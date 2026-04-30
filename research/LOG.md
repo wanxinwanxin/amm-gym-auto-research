@@ -80,3 +80,30 @@ references, and sketch the M1 plan in `STATE.md`.
 - `git push origin main` failed: no SSH key in sandbox + DNS to
   `github.com` is blocked. Documented as a user blocker in
   `STATE.md`. Local commit `d6482f4` sits on `main`.
+
+---
+
+## 2026-04-30T21:10Z — cycle 1.5 — host-side ops fixes (out-of-band)
+
+Not a research cycle — between cycle 1 and cycle 2 the user ran a
+host-side agent that resolved both blockers cycle 1 surfaced.
+
+- The cycle 1 commits (`d6482f4`, `01afdb6`) were pushed to `origin/main`
+  from the host.
+- A launchd agent (`~/Library/LaunchAgents/com.xinwan.amm-gym-push.plist`)
+  now runs every 15 min on the host and pushes `origin main`. The
+  sandbox no longer needs to push.
+- Stale `.git/*.lock*` files and orphaned `.git/objects/**/tmp_obj_*`
+  cleaned; `git gc --prune=now` ran clean on the host.
+- `scripts/git_unstick.sh` (host-authored) wired into
+  `AUTORESEARCH_PROMPT.md` step 1 so every future cycle starts with
+  the stale-lock sweep.
+- Local git identity set to `amm-gym-autoresearch /
+  autoresearch@amm-gym.local`; future commits no longer need env-var
+  injection.
+- The investigation of the FUSE-mount config that denies `unlink` was
+  skipped — the mount is internal to the Cowork sandbox container and
+  not visible from the host. The preflight script is the equilibrium.
+
+Host-side ops commit: `b96f489`. Updated `STATE.md` to clear the user
+blocker and document the new push topology.

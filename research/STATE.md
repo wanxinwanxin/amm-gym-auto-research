@@ -1,6 +1,6 @@
 # State — current cycle
 
-**Last updated**: 2026-04-30 (cycle 1, bootstrap)
+**Last updated**: 2026-04-30 (cycle 1 + host-side ops fixes)
 
 ## Active milestone
 
@@ -61,22 +61,24 @@ because the simulator has no MEV competition for retail flow.
 
 ## Blockers for user
 
-- **Cycle 1 commit could not be pushed.** `git push origin main` failed
-  with `Host key verification failed` and DNS resolution to
-  `github.com` returns `Temporary failure in name resolution`. The
-  sandbox running this autoresearch task has no SSH key or network
-  access to GitHub, so no cycle's commit can leave this machine until
-  the user does one of:
-  1. Open a terminal on the host machine
-     (`/Users/xinwan/Github/amm-gym-auto-research`) and run
-     `git push origin main` from there. The local commit is already on
-     `main`.
-  2. Or, configure the autoresearch sandbox with SSH access to
-     GitHub (drop a deploy key under `~/.ssh/` and add `github.com`
-     to `known_hosts`, or switch the remote to HTTPS with a token).
-- All future cycles will queue commits on local `main` until the push
-  pipe is restored. Future cycles must check `git status` for "ahead
-  of origin/main" and continue queuing rather than failing.
+None.
+
+## How push works (post host-side fix)
+
+The sandbox cannot push directly — it has no SSH key and `github.com`
+DNS is blocked. **This is expected and not a blocker.** A host-side
+launchd agent (`~/Library/LaunchAgents/com.xinwan.amm-gym-push.plist`)
+runs every 15 minutes and pushes `origin main` from the host, which
+has the working SSH credentials. So the cycle protocol's "push" step
+will always fail from inside the sandbox — that's fine, just commit
+locally and the launchd agent ships it within 15 min. Verify success
+the next cycle by checking that `git log origin/main..HEAD` is empty
+after `git fetch` (which also fails — but `git log --oneline -5`
+showing your prior cycle's commits as the most recent commits with
+nothing newer is the same signal).
+
+If commits ever stop reaching origin in practice, the failure log
+lives on the host at `/tmp/amm-gym-push.log`.
 
 ## Operational notes
 
@@ -96,3 +98,12 @@ because the simulator has no MEV competition for retail flow.
 - BigQuery on-demand bytes-billed limit per query is **1 GB**. Multi-day
   spans on `markout_prod` are larger than that. Stick to single-day
   scans for M1 unless we batch carefully.
+- **`scripts/git_unstick.sh` runs as the very first step of every
+  cycle** (already wired into `AUTORESEARCH_PROMPT.md` step 1). It
+  moves stale `.git/*.lock` files aside via `mv` (the FUSE mount
+  refuses `unlink` but allows `rename`). If a git op still complains
+  about a lock, look for new lock files the script doesn't know about
+  yet and add them.
+- Local git identity is now set per-repo (`amm-gym-autoresearch /
+  autoresearch@amm-gym.local`); commits no longer need
+  `GIT_AUTHOR_*` env-var injection.
