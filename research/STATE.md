@@ -61,7 +61,22 @@ because the simulator has no MEV competition for retail flow.
 
 ## Blockers for user
 
-None.
+- **Cycle 1 commit could not be pushed.** `git push origin main` failed
+  with `Host key verification failed` and DNS resolution to
+  `github.com` returns `Temporary failure in name resolution`. The
+  sandbox running this autoresearch task has no SSH key or network
+  access to GitHub, so no cycle's commit can leave this machine until
+  the user does one of:
+  1. Open a terminal on the host machine
+     (`/Users/xinwan/Github/amm-gym-auto-research`) and run
+     `git push origin main` from there. The local commit is already on
+     `main`.
+  2. Or, configure the autoresearch sandbox with SSH access to
+     GitHub (drop a deploy key under `~/.ssh/` and add `github.com`
+     to `known_hosts`, or switch the remote to HTTPS with a token).
+- All future cycles will queue commits on local `main` until the push
+  pipe is restored. Future cycles must check `git status` for "ahead
+  of origin/main" and continue queuing rather than failing.
 
 ## Operational notes
 

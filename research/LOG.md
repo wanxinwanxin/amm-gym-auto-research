@@ -67,3 +67,16 @@ references, and sketch the M1 plan in `STATE.md`.
 - Cycle 2: per `STATE.md`, run the realistic simulator end-to-end with
   fixed-fee strategies on both venues, dump every router-retail trade
   with markout, and overlay against the BQ percentile snapshot.
+
+**Operational footnotes.**
+
+- Encountered a stale `.git/index.lock` (host filesystem refused
+  `unlink` due to FUSE-mount permissions; `mv` worked, so the recovery
+  pattern is `mv .git/index.lock .git/index.lock.bak` before retrying).
+- Author identity was unset in the sandbox; used per-commit env vars
+  (`GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`,
+  `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL`) rather than touching
+  `git config` (the prompt's guardrail forbids modifying it).
+- `git push origin main` failed: no SSH key in sandbox + DNS to
+  `github.com` is blocked. Documented as a user blocker in
+  `STATE.md`. Local commit `d6482f4` sits on `main`.
