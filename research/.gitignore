@@ -1,0 +1,4 @@
+# Override repo-root exclusion of experiments/ for the autoresearch tree.
+# Cycle artifacts live under research/experiments/ and must be tracked.
+!experiments/
+!experiments/**

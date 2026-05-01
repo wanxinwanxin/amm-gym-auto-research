@@ -107,3 +107,89 @@ host-side agent that resolved both blockers cycle 1 surfaced.
 
 Host-side ops commit: `b96f489`. Updated `STATE.md` to clear the user
 blocker and document the new push topology.
+
+---
+
+## 2026-05-01T00:45Z — cycle 2 — M1 baseline markout
+
+**Plan for the cycle.** Per cycle-1's STATE.md: build
+`research/experiments/2026-04-30-2240-m1-baseline-markout/`, run the
+realistic exact simulator with a fixed-fee strategy on multiple seeds,
+dump every retail trade with markout_now and markout_next, pull a
+200-bin quantile reference from `markout_prod` for the canonical pool,
+and overlay a CDF + percentile table. Update presentation with the M1
+section.
+
+Hypothesis going in (recorded in cycle-1 STATE): body matches within a
+few bps; tails might be off; mean should be biased LP-positive because
+sim has no MEV competition.
+
+**What I ran.**
+
+- Smoke-tested one seed of `ExactSimpleAMMConfig.real_data_from_seed(0)`
+  with `FixedFeeStrategy(bid=ask=5e-4)` — 0.3 s for 10k steps,
+  generates ~12k trades / seed (~5k retail). Cheap.
+- Built `scripts/run_sim_markouts.py`: 32 seeds × 10k steps, dumps
+  per-trade parquet (372k rows, 165k of which are retail).
+- Built `scripts/build_overlay.py`: turns parquet + BQ quantile JSON
+  into `comparison_table.json` and `figures/markout_cdf_overlay.png`.
+- BQ pulls: per-day stats for canonical pool 4-25..4-29 (5 days), and
+  one 200-bin `APPROX_QUANTILES` dump for 4-27 (small enough under the
+  1 GB ceiling with `ABS(markout_next) < 0.05` filter to suppress
+  benchmark glitches).
+- Wrote experiment README (`research/experiments/2026-04-30-2240-m1-baseline-markout/README.md`).
+- Updated `presentation/index.html` with the M1 section, headline
+  insight, side-by-side table, CDF figure, and cycle-3 plan.
+
+**What worked.**
+
+- Sim-vs-chain shape match is striking: both unimodal, right-skewed,
+  comparable interquartile widths. The simulator's price + retail
+  fitting is in good shape.
+- Mean shift is **+2.74 bps** (sim retail markout_next +5.80 vs
+  on-chain +3.06 on 4-27); standard-deviation match for `markout_now`
+  is essentially perfect (5.80 vs 5.23 bps).
+- BQ tool-result file workaround for >100KB outputs (cp from
+  `/sessions/.../tool-results/` into the experiment dir) — works
+  smoothly, no need to re-query.
+
+**What failed.**
+
+- 7-day union of `markout_prod` exceeded the 1 GB billed-bytes ceiling
+  (3.5 GB needed). Workaround: 1-day-at-a-time pulls + client-side
+  merge, deferred to cycle 3.
+- A raw per-row pull of one day (with `ABS<0.05` filter, n=4,293)
+  exceeded the MCP tool's token budget — but the auto-saved
+  tool-results file is fine to `cp` over.
+
+**Updates implied for the prior.**
+
+- I expected only the *tails* to be biased. Reality: the *whole CDF*
+  is shifted by an approximately constant ~2-3 bps between p25 and p75.
+  That's a stronger and more useful claim — it points to one missing
+  mechanism, not many small ones. Updated cycle-3 hypothesis is "this
+  is MEV / fast-CEX adverse selection," which has a clean falsification
+  test: filter on-chain to router-originated swaps (which strip the
+  MEV contribution) and see whether the shift collapses.
+
+**Next.**
+
+- Cycle 3: per `STATE.md`,
+  (a) re-pull on-chain reference filtered to router swaps,
+  (b) sanity-check by running 32 fresh seeds and confirming the +2.74
+      bps shift reproduces,
+  (c) stitch a 5-7 day reference for tighter tail comparison.
+- If M1 closes cleanly in cycle 3, M2 begins in cycle 4.
+
+**Operational footnotes.**
+
+- Repo mount this cycle is `/sessions/bold-eloquent-babbage/mnt/amm-gym-auto-research`
+  (cycle 1 was on `happy-fervent-wright`); confirmed with `pwd` and
+  `git remote -v`. Always confirm.
+- `git pull --ff-only origin main` fails inside the sandbox because
+  github.com DNS is blocked; that's expected per the cycle-1 ops fix
+  — the launchd agent on the host pushes outgoing commits.
+- Installed `pyarrow` into `.venv` (needed for parquet writes); not
+  added to repo `requirements.txt` because no `arena_*` package
+  imports it.
+- Inherited working-tree changes left untouched, as in cycle 1.

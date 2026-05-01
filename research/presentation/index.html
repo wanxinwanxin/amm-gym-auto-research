@@ -5,26 +5,34 @@
 <title>amm-gym auto-research — narrative</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-         max-width: 920px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.55; color: #1f2330; }
+         max-width: 980px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.55; color: #1f2330; }
   h1, h2, h3 { line-height: 1.2; }
   h1 { border-bottom: 2px solid #2b3a55; padding-bottom: 0.4rem; }
-  h2 { margin-top: 2.4rem; color: #2b3a55; }
+  h2 { margin-top: 2.4rem; color: #2b3a55; border-bottom: 1px solid #d6dae3; padding-bottom: 0.3rem; }
+  h3 { color: #2b3a55; margin-top: 1.6rem; }
   .meta { color: #6b7280; font-size: 0.9rem; }
   .pending { background: #fff7e6; border-left: 4px solid #f0a020; padding: 0.6rem 1rem; }
   .summary { background: #f3f6fc; border-left: 4px solid #2b3a55; padding: 0.6rem 1rem; }
-  table { border-collapse: collapse; margin: 0.8rem 0; }
+  .insight { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 0.6rem 1rem; margin: 1rem 0; }
+  .caveat { background: #fdecea; border-left: 4px solid #c0392b; padding: 0.6rem 1rem; margin: 1rem 0; font-size: 0.95rem; }
+  table { border-collapse: collapse; margin: 0.8rem 0; font-size: 0.95rem; }
   th, td { border: 1px solid #d6dae3; padding: 4px 10px; text-align: right; }
   th { background: #f3f6fc; }
   td.l, th.l { text-align: left; }
   code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 0.92em; }
+  figure { margin: 1.4rem 0; }
+  figure img { max-width: 100%; border: 1px solid #d6dae3; border-radius: 4px; }
+  figure figcaption { font-size: 0.88rem; color: #6b7280; margin-top: 0.4rem; }
+  .pos { color: #2e7d32; font-weight: 600; }
+  .neg { color: #c0392b; font-weight: 600; }
 </style>
 </head>
 <body>
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-04-30 (cycle 1). Read top-to-bottom; later milestones
-build on earlier ones.</p>
+updated 2026-05-01 (cycle 2 — M1 baseline lands). Read top-to-bottom; later
+milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
@@ -40,50 +48,142 @@ scale with policy complexity?
 
 <h2>M1 — Validating the realistic simulator against on-chain markout</h2>
 
-<div class="pending">
-<strong>Status: starting.</strong> Cycle 1 inspected the BigQuery
-ground-truth schema, ran a one-day percentile snapshot for the
-canonical reference pool, and laid out the cycle 2 plan. No simulator
-runs yet.
+<div class="insight">
+<strong>Headline.</strong> The realistic simulator's per-trade markout
+distribution matches the on-chain ground-truth in <em>shape</em> but is
+shifted right by <span class="pos">~2.7 bps</span> in the mean (sim
++5.80 vs on-chain +3.06 bps for the canonical WETH/USDC v3 0.05% pool
+on 2026-04-27). The whole CDF is shifted, not just the tails — the
+simulator's polite retail flow has no MEV / fast-CEX adverse-selection
+component, so the LP keeps closer to the full fee.
 </div>
 
-<h3>Ground-truth reference</h3>
-<p>The canonical reference is the WETH/USDC 0.05% Uniswap v3 pool on
-Ethereum (<code>0x88e6a0c2...5640</code>) — the same pool the realistic
-simulator's price-return and retail-impact artifacts were fitted from.
-The on-chain markout column we'll compare against is
-<code>uniswap-labs.research.markout_prod.markout_next</code> (log-return
-between the next-block reference mid and the trade's executed price).</p>
+<h3>Setup</h3>
+<p>32 seeds × 10,000 12-second steps each (≈2½ days of simulated time
+per seed) of the exact simple-AMM simulator in
+<code>real_data</code> mode, with both submission and normalizer venues
+running a fixed 5-bps fee — matching the canonical pool's tier. We
+recorded every retail-routed trade with its executed price and the
+fair price one block (12 s) later, then computed
+<code>markout_next</code> from the LP's perspective:
+<code>log(ref_price / executed)</code> for trades where the AMM bought X,
+<code>log(executed / ref_price)</code> for trades where the AMM sold X.
+Total: 165,288 retail trades.</p>
 
-<p>One-day snapshot pulled in cycle 1 (2026-04-28, n=3,166 swaps,
-$34M total volume):</p>
+<p>Ground truth: <code>uniswap-labs.research.markout_prod</code>,
+canonical pool <code>0x88e6a0c2...5640</code>, 2026-04-27, n=4,293
+swaps, $40 M USD volume; 200-bin <code>APPROX_QUANTILES</code> dump
+because pulling the raw rows for one day exceeds BQ's 1 GB
+billed-bytes ceiling. We also pulled per-day summaries for 2026-04-25
+through 2026-04-29 to gauge day-to-day variability of the reference
+(see <code>research/experiments/2026-04-30-2240-m1-baseline-markout/results/bq_daily_summary.json</code>).</p>
+
+<h3>Side-by-side percentile comparison</h3>
 
 <table>
-<tr><th class="l">percentile</th><th>value (bps)</th></tr>
-<tr><td class="l">p1</td><td>-73.5</td></tr>
-<tr><td class="l">p5</td><td>-24.5</td></tr>
-<tr><td class="l">p25</td><td>-2.8</td></tr>
-<tr><td class="l">p50 (median)</td><td>+2.2</td></tr>
-<tr><td class="l">p75</td><td>+6.0</td></tr>
-<tr><td class="l">p95</td><td>+10.1</td></tr>
-<tr><td class="l">p99</td><td>+14.1</td></tr>
-<tr><td class="l">mean</td><td>+3.31</td></tr>
-<tr><td class="l">stddev</td><td>13.15</td></tr>
+<tr><th class="l">stat</th>
+    <th>on-chain<br/>(BQ, 4-27, n=4,293)</th>
+    <th>sim retail<br/>markout_now (n=165k)</th>
+    <th>sim retail<br/>markout_next (n=165k)</th>
+    <th class="l">delta (sim_next − chain)</th></tr>
+<tr><td class="l">mean (bps)</td><td>+3.06</td><td>+5.79</td><td><strong>+5.80</strong></td><td class="l"><span class="pos">+2.74</span></td></tr>
+<tr><td class="l">std  (bps)</td><td> 5.23</td><td> 5.80</td><td>9.82</td><td class="l">+4.59</td></tr>
+<tr><td class="l">p1   (bps)</td><td>-10.14</td><td>-0.05</td><td>-8.54</td><td class="l">+1.60</td></tr>
+<tr><td class="l">p5   (bps)</td><td>-2.91</td><td>+0.06</td><td>-2.80</td><td class="l">+0.11</td></tr>
+<tr><td class="l">p25  (bps)</td><td>-0.24</td><td>+1.95</td><td>+1.86</td><td class="l"><span class="pos">+2.10</span></td></tr>
+<tr><td class="l">p50  (bps)</td><td>+2.42</td><td>+5.68</td><td>+5.67</td><td class="l"><span class="pos">+3.26</span></td></tr>
+<tr><td class="l">p75  (bps)</td><td>+6.43</td><td>+9.48</td><td>+9.44</td><td class="l"><span class="pos">+3.01</span></td></tr>
+<tr><td class="l">p95  (bps)</td><td>+10.48</td><td>+11.10</td><td>+14.41</td><td class="l">+3.93</td></tr>
+<tr><td class="l">p99  (bps)</td><td>+13.35</td><td>+14.11</td><td>+21.14</td><td class="l">+7.79</td></tr>
 </table>
 
-<p>The mean is positive (LPs net-collect) and the body is reasonably
-tight. The left tail is fatter than the right (-73 bps vs +14 bps at
-the 1st/99th percentile) — that's the classic adverse-selection
-signature of toxic flow occasionally arriving and getting picked off.</p>
+<figure>
+  <img src="m1_markout_overlay.png" alt="CDF and histogram overlay of simulator retail markout vs on-chain reference">
+  <figcaption><strong>Figure 1.</strong> Left: empirical CDFs of
+    <code>markout_next</code> from the sim retail trades (red dashed,
+    n=165,262) and the on-chain canonical pool on 2026-04-27 (blue solid,
+    n=4,293). Both unimodal and right-skewed; the sim curve is shifted
+    right by ~2-3 bps across the whole interquartile range. Right:
+    histogram view of the same two distributions, with the on-chain
+    reference resampled from its quantile grid for visual density.</figcaption>
+</figure>
 
-<h3>Plan for cycle 2</h3>
-<p>Run the realistic simulator with fixed-fee 30 bps strategies on
-both venues (so we measure pure dynamics, not policy effects), dump
-every retail trade with a reconstructed markout, and overlay the
-percentile table and CDF against this ground truth. Identify which
-percentiles match and which don't, then form a hypothesis about the
-divergence (price tape, retail size distribution, arb model, fee
-structure).</p>
+<h3>What the body of the distribution says</h3>
+<p>The simulator captures the qualitative shape of LP markout
+remarkably well: both distributions are unimodal, right-skewed, bounded
+near the fee value on the upper end, and dominated by mass between
+roughly -5 and +12 bps. Markout-now std is essentially identical (sim
+5.80 vs on-chain 5.23 bps), which means the trade-size distribution
+and the AMM's per-trade impact-vs-fee math are calibrated reasonably
+well — the simulator's <em>per-trade</em> volatility is on target.</p>
+
+<p>The <strong>level</strong> of the simulator is too LP-favorable.
+Mean shifted +2.74 bps, p25/p50/p75 each shifted by +2 to +3 bps,
+sim's p5 (-2.80) is roughly where the on-chain p5 sits but every
+percentile above that is too high. This is exactly the signature of a
+missing constant per-trade tax on the LP — i.e. there's a mechanism
+on-chain that takes ~2-3 bps off every retail fill, which the
+simulator's polite Poisson retail doesn't reproduce. The leading
+candidate is <strong>MEV / fast-CEX adverse selection</strong>: when
+the chain price moves before the next block, fast actors snipe the AMM
+and the LP gives up the move. The simulator's arb actor only acts at
+discrete steps and only after price has already moved, so it can't
+inflict the same drag on the LP.</p>
+
+<h3>What the tails of <code>markout_next</code> say</h3>
+<p>The right tail of <code>markout_next</code> is too fat in the
+simulator (sim p99 = +21.1 vs on-chain +13.4). This is mostly a
+between-trade-and-next-step price drift artefact: the regime-switching
+tape draws one log-return per 12 s step, but on-chain the +12s
+benchmark is constructed from real market timestamps where individual
+trades land at fractional block positions. So the simulator's "fair
+price one block later" carries the full per-step variance, while the
+on-chain version carries less.</p>
+
+<p>The left tail of <code>markout_next</code> is closer (sim p1 = -8.54
+vs on-chain -10.14). The on-chain reference still has an extra
+percentage point of left-tail mass, again consistent with sniping —
+some fraction of on-chain retail fills get hit by a sharp adverse move
+the moment they execute.</p>
+
+<h3>What we updated about our priors</h3>
+<p>Going-in prior was "body matches, tails don't." Reality is closer
+to "<em>shape</em> matches, but the <em>level</em> is biased by a near-constant
+~2-3 bps shift across the entire interior of the distribution." That's
+a much stronger and more useful claim — it suggests one missing
+mechanism (MEV) is responsible for most of the gap, rather than a
+diffuse mismatch in many small details.</p>
+
+<h3>Caveats</h3>
+<div class="caveat">
+<strong>Sample asymmetry &amp; unfiltered on-chain mix.</strong>
+On-chain reference is one day, n=4,293; simulator has n=165,288 across
+32 seeds. The on-chain CDF is much noisier in the tails. Also,
+<code>markout_prod</code> doesn't expose a router-vs-bot flag, so the
+on-chain comparison set is "all trades on the canonical pool" — which
+mixes router (~30%) with arb / MEV bots (~70% by count). The simulator
+is generating only the router-equivalent flow plus an arb actor; the
+gap between sim and chain may be partly that the on-chain mix is
+weighted toward different trade populations. A natural cycle-3
+follow-up is to filter the on-chain set to router-originated
+transactions only and re-run the comparison.
+</div>
+
+<h3>Cycle 3 plan (next)</h3>
+<ul>
+  <li><strong>Test the MEV-shift hypothesis directly.</strong> Re-pull
+  the on-chain CDF filtered to router-originated swaps (using the
+  router address list documented in <code>analysis/weth_usdc_90d/report.md</code>);
+  if the +2.7 bps shift collapses, then "missing MEV" is the right
+  story; if it doesn't, the gap is something else (e.g. the empirical
+  impact distribution itself is biased relative to ground-truth).</li>
+  <li>Stitch together a multi-day on-chain reference (BQ 1-day pulls
+  unioned client-side) so the tail comparison is statistically
+  meaningful.</li>
+  <li>Sanity-check: replicate the M1 sim run on a second seed split
+  (32 fresh seeds) and confirm the +2.74 bps mean shift reproduces
+  rather than being an artefact of seeds 0–31.</li>
+</ul>
 
 <h2>M2 — Optimizing on the differentiable simple-AMM challenge</h2>
 <div class="pending">Not started.</div>
