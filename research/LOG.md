@@ -193,3 +193,102 @@ sim has no MEV competition.
   added to repo `requirements.txt` because no `arena_*` package
   imports it.
 - Inherited working-tree changes left untouched, as in cycle 1.
+
+---
+
+## 2026-05-03T11:00Z — cycle 4 — router-filter executed, MEV-shift hypothesis falsified
+
+**Plan for the cycle.** Per cycle-3's STATE: probe BigQuery; if it's back
+up, run the router-filtered on-chain pull (cycle-3 carry-over) and
+multi-day stitch. If router-filtered mean is ~+5 bps the cycle-3
+"routers strip MEV" hypothesis is confirmed and M1 closes; if not,
+update prior and rethink.
+
+**Hypothesis going in.** Cycle-3 expectation: filtering on-chain to
+router-originated swaps should strip the MEV-paying tail and shift the
+mean from +3.06 bps up toward sim's +5.79 bps. Falsification would be
+either (a) router-filtered mean stays low, or (b) it goes even lower.
+
+**What I ran.**
+
+- Probed BQ with `SELECT 1` — responsive this cycle.
+- Tried the cycle-3 SQL template (JOIN markout_prod × dex_trades on
+  transaction_hash). Failed: 1.06 GB billed-bytes vs 1 GB ceiling. Even
+  with quarter-day block_number windows, still over (clustering on
+  block_number doesn't prune partition reads in this case, because the
+  IN-subquery forces a transaction_hash scan).
+- Inspected markout_prod's column list via INFORMATION_SCHEMA. **Key
+  finding**: `transaction_to_address` is already a column on
+  markout_prod. The JOIN against dex_trades was unnecessary all along.
+- Direct router filter: `LOWER(transaction_to_address) IN
+  UNNEST(router_list)` on markout_prod. ~300 MB billed per day, fits
+  comfortably.
+- Pulled the canonical-day (4-27) breakdown (router/non-router/all
+  means + std + total_usd) and 100-bucket APPROX_QUANTILES for both
+  groups.
+- Pulled per-day breakdowns for 4-25..4-29 (5 days, sequentially because
+  the 5-day union exceeded the 1 GB ceiling at 3.7 GB).
+- Built `figures/router_cdf_overlay.png` (CDF: sim, ALL, ROUTER,
+  NON-ROUTER) and `figures/per_day_means.png` (per-day bar chart with
+  sim baseline as reference line).
+- Wrote experiment README at
+  `research/experiments/2026-05-03-cycle4-router-confirmed/README.md`.
+- Updated `presentation/index.html` with the cycle-4 section, including
+  the falsification result, the implication for M1, and the cycle-5
+  carry-overs.
+
+**What worked.**
+
+- The `transaction_to_address` discovery was the unlock; will save
+  every future router-filter query from JOIN gymnastics. Documented in
+  the experiment README as a reusable pattern; cycle 5 should put it
+  in `research/notes/data_sources.md`.
+- All 5 days pulled and processed in under ~15 minutes of BQ time.
+- CDF figure cleanly shows the 4-way separation; per-day chart
+  establishes day-to-day robustness.
+
+**What failed.**
+
+- 5-day union query (3.7 GB) blew the ceiling. Mitigation: 1-day
+  pulls + client-side merge.
+- The cycle-3 SQL template is now obsolete. Keep it for historical
+  reference but stop using it.
+
+**Updates implied for the prior.**
+
+- The cycle-3 hypothesis is **falsified**. Routers carry MORE adverse
+  selection on the pool side, not less. Router 5-day weighted mean =
+  +0.82 bps; non-router = +4.25 bps; all = +3.45 bps; sim = +5.79.
+  Gap to apples-to-apples (router) reference is ~5 bps, not ~2.7 bps.
+- The mechanism is now sharper: the simulator's empirical retail-impact
+  distribution captures impact-magnitude on routed flow but not
+  informedness (correlation between trade direction and short-term
+  Binance drift).
+- M1 deliverable is restated: "shape matches; level over-credits LP by
+  ~5 bps on apples-to-apples (router-only) reference; cause is the
+  fitted impact distribution being directionally uniform when reality
+  is direction-correlated." Cleaner, more useful conclusion.
+- The cycle-2 +2.74 bps headline averaged the heavily-adverse-selected
+  router flow with cleaner non-router flow — it underestimated the
+  structural gap by ~2x.
+
+**Next.**
+
+- Cycle 5: cleanup (retire cycle-3 SQL template; update data_sources
+  notes). Then start M2 setup — read `arena_search/simple_amm_search.py`
+  and `arena_policies/`, find the AMM challenge scoring rule, run one
+  baseline.
+- Cycle 5+ side-track (optional): prototype the simulator's retail
+  informedness extension. If it closes the router-mean gap, ship as
+  M1 calibration PR; otherwise document the residual.
+
+**Operational footnotes.**
+
+- Repo mount this cycle: `/sessions/clever-ecstatic-tesla/mnt/amm-gym-auto-research`
+  (cycle 1: `happy-fervent-wright`; cycle 2: `bold-eloquent-babbage`;
+  cycle 3: `bold-eloquent-babbage`). Always confirm with `pwd`.
+- `git pull --ff-only origin main` failed inside sandbox as expected
+  (DNS to github.com is blocked); host launchd agent handles outbound.
+- `pyarrow` re-installed into `.venv`. Install doesn't persist across
+  mounts. Cycle-5 cleanup item: pin in `requirements.txt`.
+- Inherited working-tree changes left untouched, as in earlier cycles.

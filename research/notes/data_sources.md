@@ -83,15 +83,44 @@ WHERE block_date = DATE 'YYYY-MM-DD'
   AND liquidity_pool_address = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640'
 ```
 
-Open question for cycle 2: whether to filter to **router-only swaps**
-to match the simulator's "retail flow" definition, or include all swaps
-(which would mix MEV / arb / retail). The 90d analysis in
-`analysis/weth_usdc_90d/` filtered router-originated swaps for impact
-fitting (31.4% of pool swaps, n=186,085 of 593,310 over 90 days). To
-match conventions we should probably filter to routers as well; the
-markout_prod table doesn't seem to have a direct `is_router` flag, so
-we may need to derive it from `transaction_to_address` against the
-router list documented in `analysis/weth_usdc_90d/report.md`.
+### Router-filtering markout_prod (resolved cycle 4)
+
+**Pattern of record**: filter directly with
+`LOWER(transaction_to_address) IN UNNEST(router_list)` on
+`markout_prod`. The column is a built-in on the table (cycle-1 schema
+notes missed it; confirmed via `INFORMATION_SCHEMA.COLUMNS` in cycle 4).
+**No JOIN** against `dex_trades` is required — and the JOIN form
+(template lives at
+`research/experiments/2026-05-01-cycle3-router-replicate-stitch/scripts/router_filtered_quantiles.sql`,
+**now obsolete**) blew the 1 GB billed-bytes ceiling because it forced
+a transaction_hash scan on the full day partition.
+
+Working query (per-day, single canonical pool, ~300 MB billed):
+
+```sql
+SELECT COUNT(*), AVG(markout_next)*1e4 AS mean_bps_next, ...
+FROM `uniswap-labs.research.markout_prod`
+WHERE block_date = DATE 'YYYY-MM-DD'
+  AND chain = 'ethereum'
+  AND protocol = 'uniswap_v3'
+  AND liquidity_pool_address = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640'
+  AND ABS(markout_next) < 0.05
+  AND LOWER(transaction_to_address) IN UNNEST([
+    -- 19-router list, see
+    -- research/experiments/2026-05-03-cycle4-router-confirmed/results/router_breakdown_2026-04-27.json
+    '0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b', ...
+  ]);
+```
+
+Multi-day pulls: do **one day per query**. The 5-day union exceeded
+the ceiling at 3.7 GB billed.
+
+Open follow-up: whether the simulator should be compared to the
+ROUTER-only on-chain reference (currently the sim's empirical impact
+distribution was fitted from router-only swaps per
+`analysis/weth_usdc_90d/`, so router-only is the apples-to-apples
+reference). Cycle-4 finding: doing this lifts the gap from -2.74 bps
+(vs all-flow) to -4.97 bps (vs router-only).
 
 ---
 

@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "block_dates": ["2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-04-29"],
+    "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640 (WETH/USDC v3 0.05%)",
+    "chain": "ethereum",
+    "filter": "ABS(markout_next) < 0.05",
+    "router_definition": "transaction_to_address IN router_list (19 known DEX-aggregator and Universal Router addresses)"
+  },
+  "per_day": [
+    {"dt": "2026-04-25", "router": {"n": 787,  "mean_bps_next": 2.156, "std_bps_next": 3.90,  "total_usd": 5934531.34},
+                          "non_router": {"n": 3191, "mean_bps_next": 4.254, "std_bps_next": 10.74, "total_usd": 8554972.77},
+                          "all": {"n": 3978, "mean_bps_next": 3.839, "std_bps_next": 9.81, "total_usd": 14489504.10}},
+    {"dt": "2026-04-26", "router": {"n": 971,  "mean_bps_next": 1.456, "std_bps_next": 4.40,  "total_usd": 14893240.50},
+                          "non_router": {"n": 5147, "mean_bps_next": 4.333, "std_bps_next": 5.67, "total_usd": 13427897.66},
+                          "all": {"n": 6118, "mean_bps_next": 3.876, "std_bps_next": 5.59, "total_usd": 28321138.16}},
+    {"dt": "2026-04-27", "router": {"n": 1192, "mean_bps_next": 0.674, "std_bps_next": 4.30,  "total_usd": 25781077.41},
+                          "non_router": {"n": 3101, "mean_bps_next": 3.983, "std_bps_next": 5.27, "total_usd": 14650857.94},
+                          "all": {"n": 4293, "mean_bps_next": 3.064, "std_bps_next": 5.23, "total_usd": 40431935.36}},
+    {"dt": "2026-04-28", "router": {"n": 958,  "mean_bps_next": 0.189, "std_bps_next": 4.86,  "total_usd": 21174276.90},
+                          "non_router": {"n": 2208, "mean_bps_next": 4.661, "std_bps_next": 15.22,"total_usd": 12895187.83},
+                          "all": {"n": 3166, "mean_bps_next": 3.308, "std_bps_next": 13.15,"total_usd": 34069464.72}},
+    {"dt": "2026-04-29", "router": {"n": 1369, "mean_bps_next": 0.175, "std_bps_next": 3.96,  "total_usd": 32982747.94},
+                          "non_router": {"n": 3557, "mean_bps_next": 4.130, "std_bps_next": 5.37, "total_usd": 18723511.83},
+                          "all": {"n": 4926, "mean_bps_next": 3.031, "std_bps_next": 5.32, "total_usd": 51706259.78}}
+  ],
+  "five_day_aggregate": {
+    "router":     {"n": 5277,  "weighted_mean_bps_next": 0.823, "total_usd": 100765873.09},
+    "non_router": {"n": 17204, "weighted_mean_bps_next": 4.253, "total_usd": 68252428.03},
+    "all":        {"n": 22481, "weighted_mean_bps_next": 3.450, "total_usd": 169033301.12}
+  },
+  "comparison_with_sim": {
+    "sim_retail_mean_bps_next": 5.795,
+    "sim_n": 165288,
+    "sim_seeds": "0..31",
+    "sim_fee_bps": 5,
+    "gap_vs_router_5d": 4.972,
+    "gap_vs_all_5d": 2.345,
+    "gap_vs_nonrouter_5d": 1.542,
+    "interpretation": "Sim retail flow uses an empirical impact distribution that was fitted from router-only swaps per analysis/weth_usdc_90d/. The apples-to-apples comparison is sim vs on-chain ROUTER, where the gap is ~5 bps — much larger than the ~2.3 bps gap to the all-flow reference that cycle 2 reported. The simulator over-estimates LP retail markout by roughly the same amount as the fee itself."
+  }
+}

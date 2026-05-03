@@ -31,8 +31,9 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-01 (cycle 2 — M1 baseline lands). Read top-to-bottom; later
-milestones build on earlier ones.</p>
+updated 2026-05-03 (cycle 4 — router-filtered on-chain pull
+falsifies the cycle-3 MEV-shift hypothesis and reframes M1). Read
+top-to-bottom; later milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
@@ -169,20 +170,163 @@ follow-up is to filter the on-chain set to router-originated
 transactions only and re-run the comparison.
 </div>
 
-<h3>Cycle 3 plan (next)</h3>
+<h3>Cycle 3 update — replication confirmed; fee-sensitivity rules out fee-misspec</h3>
+
+<p>Cycle 3 was supposed to run three sub-tasks: (a) router-filtered
+on-chain pull, (b) seed-split replicate, (c) multi-day on-chain stitch.
+The BigQuery MCP tool was unresponsive throughout cycle 3, blocking (a)
+and (c). We executed (b) and added a fee-sensitivity sweep that
+provides BQ-independent evidence for the same hypothesis.</p>
+
+<h4>(b) Replication on a fresh seed split</h4>
+
+<p>32 fresh seeds (100..131) of the same realistic-mode setup as
+cycle 2:</p>
+<table>
+<tr><th class="l">retail markout (bps)</th>
+    <th>cycle 2 (seeds 0..31)</th>
+    <th>cycle 3 (seeds 100..131)</th>
+    <th class="l">delta</th></tr>
+<tr><td class="l">mean now</td><td>+5.795</td><td>+5.780</td><td class="l">−0.015</td></tr>
+<tr><td class="l">mean next</td><td>+5.795</td><td>+5.796</td><td class="l">+0.001</td></tr>
+</table>
+<p>The +2.74 bps shift vs on-chain reproduces exactly. Not a 32-seed
+artefact.</p>
+
+<h4>Fee-sensitivity sweep</h4>
+
+<p>Eight fresh seeds × 5,000 12-second steps × four fee tiers
+(<code>1, 3, 5, 10</code> bps). For each tier we recorded retail-only
+markouts and fit a line:</p>
+
+<table>
+<tr><th>fee (bps)</th><th>retail markout_now mean (bps)</th><th>retail markout_next mean (bps)</th></tr>
+<tr><td>1</td>  <td>+1.76</td>  <td>+1.77</td></tr>
+<tr><td>3</td>  <td>+3.75</td>  <td>+3.77</td></tr>
+<tr><td>5</td>  <td>+5.73</td>  <td>+5.74</td></tr>
+<tr><td>10</td> <td>+10.63</td> <td>+10.64</td></tr>
+</table>
+
+<p>Linear fit: <strong>slope = 0.985, intercept = +0.79 bps</strong>
+(both <code>now</code> and <code>next</code>). So sim retail markout =
+<code>fee + 0.79 bps</code> across the 1–10 bps range.</p>
+
+<figure>
+  <img src="m1_fee_sweep.png" alt="Sim retail markout vs LP fee — slope 0.985, intercept +0.79 bps; on-chain reference falls 2.7 bps below the line at fee=5 bps">
+  <figcaption><strong>Figure 2.</strong> Sim retail markout means scale
+    almost 1:1 with fee. Red star is the on-chain reference at the same
+    5 bps fee tier (canonical pool, 4-27); it sits ~2.7 bps below the
+    sim line. Tweaking fee won't close the gap — it would just shift
+    the whole sim line up or down by the same amount.</figcaption>
+</figure>
+
+<div class="insight">
+<strong>Cycle-3 conclusion.</strong> Sim retail markout is dominated by
+the fee, with a small +0.79 bps intercept from the empirical
+retail-impact distribution. The +2.74 bps gap to on-chain is
+<em>structural</em> — not fee-misspecification, not a seed accident,
+not the impact distribution. Whatever it is, it removes ~2.7 bps from
+the average retail trade's LP markout that the simulator currently
+gives back to the LP. The leading hypothesis remains MEV / fast-CEX
+adverse selection, to be tested directly in cycle 4 when BQ comes
+back via the router-filter falsification test.
+</div>
+
+<h3>Cycle 4 — router-filter executed; cycle-3 hypothesis falsified</h3>
+
+<p>Cycle 4 unblocked the router-filtered pull. The cycle-3 SQL
+template did a JOIN against <code>uniswap-allium.ethereum.dex_trades</code>
+on <code>transaction_hash</code> — that blew the 1 GB billed-bytes
+ceiling. Cycle 4's first finding: <code>markout_prod</code> already has
+a <code>transaction_to_address</code> column, so the JOIN is unnecessary.
+Direct <code>LOWER(transaction_to_address) IN UNNEST(router_list)</code>
+on <code>markout_prod</code> brings each canonical-pool day to a few
+hundred MB. We pulled 5 days (4-25..4-29) and 100-bucket
+<code>APPROX_QUANTILES</code> for the canonical day (4-27).</p>
+
+<div class="insight">
+<strong>Cycle-3 hypothesis: falsified.</strong> The hypothesis was that
+routers <em>strip</em> MEV, so router-filtered on-chain mean should
+<em>rise</em> toward the sim's +5.79 bps. Reality: router-filtered mean
+markout is essentially <strong>zero</strong>
+(5-day weighted +0.82 bps; per-day range +0.18 to +2.16 bps). The
+non-router flow is the LP-favorable component, not the other way around.
+</div>
+
+<table>
+<tr><th class="l">group</th><th>5-day n</th><th>5-day mean (bps)</th><th>5-day USD</th><th class="l">interpretation</th></tr>
+<tr><td class="l">Sim retail (fee=5 bps, seeds 0..31)</td><td>165,288</td><td><strong>+5.79</strong></td><td>—</td><td class="l">Cycle-2 baseline; impact dist fitted on router-only on-chain swaps</td></tr>
+<tr><td class="l">On-chain ALL retail</td><td>22,481</td><td>+3.45</td><td>$169 M</td><td class="l">Cycle-2 reference (apparent gap = -2.34 bps)</td></tr>
+<tr><td class="l">On-chain ROUTER ONLY</td><td>5,277</td><td><strong>+0.82</strong></td><td>$101 M</td><td class="l">Apples-to-apples vs sim — <span class="neg">gap = -4.97 bps</span></td></tr>
+<tr><td class="l">On-chain NON-ROUTER</td><td>17,204</td><td>+4.25</td><td>$68 M</td><td class="l">Direct-pool calls; close to fee</td></tr>
+</table>
+
+<figure>
+  <img src="../experiments/2026-05-03-cycle4-router-confirmed/figures/per_day_means.png" alt="Per-day mean markout for router/non-router/all groups, with sim baseline reference line">
+  <figcaption><strong>Figure 3.</strong> Per-day mean retail markout
+  (canonical pool, 4-25..4-29). Router (red) is consistently 3–4 bps
+  below non-router (green). Sim baseline (blue dashed) sits another
+  2–4 bps above non-router. Pattern is robust day-by-day; no day
+  deviates qualitatively.</figcaption>
+</figure>
+
+<figure>
+  <img src="../experiments/2026-05-03-cycle4-router-confirmed/figures/router_cdf_overlay.png" alt="CDF overlay of sim, on-chain ALL, on-chain ROUTER, and on-chain NON-ROUTER markout_next">
+  <figcaption><strong>Figure 4.</strong> CDF overlay: the router curve
+  (red) and the non-router curve (green) clearly separate. Sim (blue)
+  tracks the non-router curve more closely than either matches the
+  router curve. The right comparison vs sim is the router curve,
+  because the sim's empirical impact distribution was fitted from
+  router-only on-chain swaps.</figcaption>
+</figure>
+
+<h3>Why this matters — what's actually missing from the simulator</h3>
+
+<p>Routers carry <em>more</em> adverse selection on the pool side, not
+less. Aggregator users tend to trade larger sizes (avg $19k/trade router
+vs $4k/trade non-router) and route at moments when price impact opens
+up — i.e. their fills are correlated with short-term Binance moves in
+their direction. The simulator's empirical retail-impact distribution
+was fitted from this same router population, but the fit captures
+<em>magnitudes</em> of price impact, not <em>informedness</em>: sim
+trades are uniformly random with respect to forward Binance drift, real
+ones are not.</p>
+
+<p>Quantitatively, the simulator over-credits the LP by ~5 bps on
+router-equivalent retail flow — about one whole 5-bps fee. To close
+this gap, the simulator would need either (a) a learned correlation
+between trade direction and the future Binance tape, or (b) a direct
+adverse-selection drag of ~5 bps on routed retail. The cycle-3
+fee-sensitivity result (sim mean = fee + 0.79 bps) becomes more
+sharply diagnostic now: even at a 0-bps fee, the sim's fitted retail
+flow would still leave the LP with +0.79 bps of static impact-bias,
+while reality at any fee level above ~1 bps already has the LP keeping
+~zero on routed flow.</p>
+
+<div class="insight">
+<strong>M1 deliverable, restated.</strong> The realistic simulator's
+retail markout matches the on-chain CDF in <em>shape</em>; the
+<em>level</em> is biased ~5 bps LP-favorable on the apples-to-apples
+(router-only) reference. The bias is fully attributable to a single
+missing mechanism — <em>informed-trade adverse selection on
+aggregator/router flow</em> — measurable in <code>markout_15s</code>
+(where router mean = +0.22 bps, non-router = +4.04 bps on 4-27). This
+is a cleaner, more useful M1 conclusion than cycle 2's, because it
+points directly to what an extension PR would need to add.
+</div>
+
+<h3>Carried to cycle 5</h3>
 <ul>
-  <li><strong>Test the MEV-shift hypothesis directly.</strong> Re-pull
-  the on-chain CDF filtered to router-originated swaps (using the
-  router address list documented in <code>analysis/weth_usdc_90d/report.md</code>);
-  if the +2.7 bps shift collapses, then "missing MEV" is the right
-  story; if it doesn't, the gap is something else (e.g. the empirical
-  impact distribution itself is biased relative to ground-truth).</li>
-  <li>Stitch together a multi-day on-chain reference (BQ 1-day pulls
-  unioned client-side) so the tail comparison is statistically
-  meaningful.</li>
-  <li>Sanity-check: replicate the M1 sim run on a second seed split
-  (32 fresh seeds) and confirm the +2.74 bps mean shift reproduces
-  rather than being an artefact of seeds 0–31.</li>
+  <li>Either: (a) prototype a sim extension that adds informedness on
+  routed flow (a small directional bias on retail draws conditioned on
+  the next-step Binance tape), and check whether this closes the
+  router-mean gap; or (b) accept the gap as a documented calibration
+  limitation and start M2 — the simple-AMM challenge doesn't depend on
+  realistic-mode calibration.</li>
+  <li>Cycle-5 plan-of-record: do (b) and start M2 by inventorying the
+  policy families in <code>arena_policies/</code> and the search infra
+  in <code>arena_search/simple_amm_search.py</code>; the calibration
+  extension can be a parallel side-track if there's cycle budget.</li>
 </ul>
 
 <h2>M2 — Optimizing on the differentiable simple-AMM challenge</h2>

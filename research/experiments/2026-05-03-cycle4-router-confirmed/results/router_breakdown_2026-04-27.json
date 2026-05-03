@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "block_date": "2026-04-27",
+    "chain": "ethereum",
+    "protocol": "uniswap_v3",
+    "pool": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
+    "pool_label": "WETH/USDC v3 0.05%",
+    "filter": "ABS(markout_next) < 0.05 (suppresses benchmark glitches)",
+    "router_list": [
+      "0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b",
+      "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad",
+      "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+      "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+      "0xe592427a0aece92de3edee1f18e0157c05861564",
+      "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+      "0x1111111254fb6c44bac0bed2854e76f90643097d",
+      "0x1111111254eeb25477b68fb85ed929f73a960582",
+      "0x111111125421ca6dc452d289314280a0f8842a65",
+      "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+      "0x0000000000001ff3684f28c67538d4d072c22734",
+      "0x9008d19f58aabd9ed0d60971565aa8510560ab41",
+      "0xdef171fe48cf0115b1d80b88dc8eab59176fee57",
+      "0x6a000f20005980200259b80c5102003040001068",
+      "0x6131b5fae19ea4f9d964eac0408e4408b66337b5",
+      "0x617dee16b86534a5d792a4d7a62fb491b544111e",
+      "0xbdb3ba9ffe392549e1f8658dd2630c141fdf47b6",
+      "0x51c72848c68a965f66fa7a88855f9f7784502a7f",
+      "0x881d40237659c251811cec9c364ef91dc08d300c"
+    ],
+    "router_filter_method": "transaction_to_address IN UNNEST(router_list) -- direct on markout_prod, no JOIN required (markout_prod has transaction_to_address column)"
+  },
+  "groups": [
+    {
+      "group": "all",
+      "n": 4293,
+      "mean_bps_next": 3.0639114,
+      "std_bps_next": 5.2305667,
+      "mean_bps_15s": 2.9784500,
+      "std_bps_15s": 6.3022666,
+      "total_usd": 40431935.36
+    },
+    {
+      "group": "router",
+      "n": 1192,
+      "mean_bps_next": 0.6741757,
+      "std_bps_next": 4.2961928,
+      "mean_bps_15s": 0.2216349,
+      "std_bps_15s": 5.9858253,
+      "total_usd": 25781077.41
+    },
+    {
+      "group": "non_router",
+      "n": 3101,
+      "mean_bps_next": 3.9825070,
+      "std_bps_next": 5.2675966,
+      "mean_bps_15s": 4.0381480,
+      "std_bps_15s": 6.0975111,
+      "total_usd": 14650857.94
+    }
+  ],
+  "comparison_table_with_sim": [
+    {
+      "source": "sim retail (cycle-2 baseline, fee=5bps, seeds 0..31)",
+      "mean_bps_next": 5.795,
+      "n": 165288,
+      "note": "Empirical retail-impact distribution fitted from router-only on-chain swaps per 90d analysis"
+    },
+    {
+      "source": "on-chain ALL retail (4-27, this query)",
+      "mean_bps_next": 3.064,
+      "n": 4293,
+      "note": "Original cycle-2 reference"
+    },
+    {
+      "source": "on-chain ROUTER (4-27, this query)",
+      "mean_bps_next": 0.674,
+      "n": 1192,
+      "note": "Apples-to-apples comparison vs sim retail"
+    },
+    {
+      "source": "on-chain NON-ROUTER (4-27, this query)",
+      "mean_bps_next": 3.983,
+      "n": 3101,
+      "note": "Direct-call flow"
+    }
+  ]
+}
