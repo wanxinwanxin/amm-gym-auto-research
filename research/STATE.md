@@ -1,137 +1,145 @@
 # State — current cycle
 
-**Last updated**: 2026-05-04 (cycle 11 — closed)
+**Last updated**: 2026-05-04 (cycle 12 — closed)
 
 ## Active milestone
 
-**M2 — Optimize against the simple-AMM challenge.** Cycle 11 ran a
-3-cell warm-start CEM grid (round 1 of a multi-seed × multi-dim
-sweep) on the cycle-8 anchor: (16-d, seed=2), (24-d-noop, seed=0),
-(24-d-noop, seed=1). The grid bounds the empirical CEM-noise
-distribution on this anchor + recipe and shows that cycle-10's
-"warm-start CEM is saturating around 456-457" framing is correct.
+**M2 — Optimize against the simple-AMM challenge.** Cycle 12 ran two
+falsifying experiments designed to differentiate three lurking
+hypotheses about the cycle-11 saturation at test ≈ 457:
 
-**Best M2 score: 456.80** (held-out 256 seeds; 16-d piecewise CEM
-at rng_seed=2; cycle-11 cell `d16_s2`). Up +0.06 from cycle-10's
-456.74 — a within-noise improvement, not a new regime. Gap to M2
-target: 83.20 pts.
+  (a) capacity is the bottleneck (need richer policy family)
+  (b) the cycle-8 anchor is in a sub-optimal basin
+  (c) the saturation is a genuine ceiling under this (pop=24, gen=12)
+      recipe and we need to escalate the recipe
 
-## Cycle-11 results
+**Best M2 score (unchanged): 456.80** (cycle-11 d16_s2; held-out 256
+seeds). Gap to M2 target: 83.20 pts.
 
-| cell                  | dim | seed | val (best) | test (best, n=256) | Δ vs c10 best |
-|-----------------------|----:|-----:|-----------:|-------------------:|--------------:|
-| c11 d16-s2 (bare 16d) |  16 |    2 |    458.539 |        **456.803** |        +0.06  |
-| c11 d24-s0 (8 noop)   |  24 |    0 |    457.294 |            455.656 |        −1.08  |
-| c11 d24-s1 (8 noop)   |  24 |    1 |    453.740 |            452.565 |        −4.18  |
+## Cycle-12 results
 
-**Combined with cycle 9/10**, the 7-cell ablation distribution on
-this anchor is:
+| stage | family | dim | init_std | val_score | test_score | adv_test | Δ vs warm-start |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 1 | latent_full | 18 | 0.25 | 388.77 | **388.57** | −123.65 | −68.24 |
+| 2 | piecewise (fresh) | 16 | 0.30 | 419.34 | **418.65** | −36.43 | −38.16 |
+| (ref) | piecewise (warm) | 16 | 0.10 | 458.54 | 456.80 | +63.32 | (anchor) |
 
-| cell                | dim | seed | test (n=256) |
-|---------------------|----:|-----:|-------------:|
-| c9 #1 (bare)        |  16 |    0 |       448.81 |
-| c9 #3 (EMA wrap)    |  20 |    0 |       456.64 |
-| c10 A (noop tail)   |  20 |    0 |       456.74 |
-| c10 B (seed lottery)|  16 |    1 |       452.96 |
-| **c11 d16-s2**      |  16 |    2 |   **456.80** |
-| c11 d24-s0          |  24 |    0 |       455.66 |
-| c11 d24-s1          |  24 |    1 |       452.57 |
+Both cycle-12 stages land in the "test < 430" branch of their
+falsification design — i.e. *neither* policy-family escalation nor
+fresh-anchor wide-init beats the cycle-11 warm-start cluster under the
+matched (pop=24, gen=12) compute budget.
 
-Empirical headline: a 16-d third seed (`d16_s2`) is the new best by
-+0.06; both dim=24 cells underperform the dim=20 region. Searching
-wider in dim doesn't keep helping past ~20.
+## Hypothesis verdict (cycle 12)
 
-## Hypothesis verdict (cycle 11)
+> *Going-in priors: ~30% ladder beats 460; ~25% fresh-anchor beats
+> 460; ~45% both land below.*
 
-> *Going-in hypothesis: 50% chance the grid finds ≥ 460; 30% chance
-> > 462; 20% chance ≤ 458 across all 3 reps.*
+**Both predictions in the "both land below" bucket.**
+- **(a) capacity-is-bottleneck — strongly falsified.** Even the
+  richest 18-d ladder rung with EMAs over six market features lands
+  68 pts below warm-start piecewise. The simpler family wins; richer
+  state didn't pay.
+- **(b) anchor-is-sub-optimal — not resolved.** Fresh-anchor's val
+  trajectory was still climbing at gen 11 (+0.2 pts/gen), which
+  means we haven't distinguished "wrong basin" from "same basin,
+  needs more gens". A 24-36-gen fresh-anchor run is needed to close
+  the loop.
+- **(c) recipe-ceiling — most consistent with the data.** Both
+  alternatives land below warm-start at the *same* compute, which
+  is exactly what (c) predicts. The fresh-anchor's still-rising
+  trajectory specifically suggests the piecewise basin is broad and
+  reachable from many starts but takes more than 12 gens to refine
+  to within noise of the cycle-11 ceiling.
 
-**Falsified, decisively.** None of the 3 cells reached 459 on test;
-the highest (d16_s2 = 456.80) is within the +0.10 noise band of
-cycle-10's 456.74. The basin is saturated under this anchor +
-recipe.
+## Cumulative M2 history (post-cycle-12)
 
-## Cumulative M2 history (post-cycle-11)
+| pass | family | dims | init | seed | test score | Δ vs c5 | wrapper |
+|--|--|--|--|--|--|--|--|
+| start (c5) | piecewise | 16 | inh | — | 414.01 | (baseline) | — |
+| pass 1 (c6) | piecewise | 16 | warm | 0 | 432.75 | +18.7 | n/a |
+| pass 2 (c8) | inv-aware piecewise | 19 | warm | 0 | 446.61 | +32.6 | −0.17 |
+| pass 3 (c9 #1) | piecewise | 16 | warm | 0 | 448.81 | +34.8 | n/a |
+| pass 4 (c9 #3) | EMA-inv piecewise | 20 | warm | 0 | 456.64 | +42.6 | +0.024 |
+| pass 5 (c10 A) | piecewise + noop | 20 | warm | 0 | 456.74 | +42.7 | 0 |
+| pass 6 (c10 B) | piecewise | 16 | warm | 1 | 452.96 | +38.9 | n/a |
+| pass 7 (c11 d16_s2) | piecewise | 16 | warm | 2 | **456.80** | **+42.8** | n/a |
+| pass 8 (c11 d24_s0) | piecewise + noop×8 | 24 | warm | 0 | 455.66 | +41.6 | 0 |
+| pass 9 (c11 d24_s1) | piecewise + noop×8 | 24 | warm | 1 | 452.57 | +38.6 | 0 |
+| **c12 stage 1** | **latent_full** | **18** | **default** | **0** | **388.57** | **−25.4** | **n/a** |
+| **c12 stage 2** | **piecewise (fresh)** | **16** | **default+wide** | **0** | **418.65** | **+4.6** | **n/a** |
 
-| pass | family | dims | seed | test score | Δ vs c9 #1 | wrapper signal |
-|--|--|--|--|--|--|--|
-| start (c5) | piecewise | 16 | — | ~414 | −34.8 | — |
-| pass 1 (c6) | piecewise | 16 | 0 | 432.75 | −16.0 | n/a |
-| pass 2 (c8) | inv-aware piecewise | 19 | 0 | 446.61 | −2.2 | −0.17 |
-| pass 3 (c9 #1) | piecewise | 16 | 0 | 448.81 | (baseline) | n/a |
-| pass 4 (c9 #3) | EMA-inv piecewise | 20 | 0 | 456.64 | +7.83 | +0.024 |
-| pass 5 (c10 A) | piecewise + no-op tail | 20 | 0 | 456.74 | +7.93 | 0 (by construction) |
-| pass 6 (c10 B) | piecewise (seed lottery) | 16 | 1 | 452.96 | +4.15 | n/a |
-| pass 7 (c11 d16-s2) | piecewise (seed lottery) | 16 | 2 | **456.80** | +7.99 | n/a |
-| pass 8 (c11 d24-s0) | piecewise + noop×8 | 24 | 0 | 455.66 | +6.85 | 0 |
-| pass 9 (c11 d24-s1) | piecewise + noop×8 | 24 | 1 | 452.57 | +3.76 | 0 |
+Reading: warm-start cluster (c5 → c11) climbs ~43 pts above the
+inherited starting line; cycle-12's two cold-start alternatives sit
+**below** that warm-start cluster by 38-68 pts. The warm-start
+refinement path is doing real work; richer family / wider init alone
+can't replicate it in 12 gens.
 
-## Hypothesis going into cycle 12
+## Hypothesis going into cycle 13
 
-The 16-d piecewise basin under this anchor + recipe ceilings out
-near 457. Adding more (dim, seed) cells is a low-information bet at
-this point — the CEM-noise std (~3 pts) is large enough that single
-cells will keep landing in 449-457 essentially uniformly. The
-information-rich next move is to *change the recipe or the policy
-family*: longer gens, larger pop, ladder/MLP capacity, or a fresh
-anchor (not warm-started from cycle-8).
+> *The cycle-11 "warm-start saturates near 457" finding is real, but
+> "saturated at this compute" is the better framing. Doubling the
+> CEM budget (gen=24) on the d16_s2 anchor, with the same family,
+> has a 50%+ chance of lifting test ≥ 460 because the elite-mean
+> trajectory at cycle-11 gen 11 was still ∆ +0.05 pts/gen. If recipe
+> escalation doesn't lift past 457, we have decisively shown a
+> recipe ceiling and should pivot to M3 with d16_s2 as the M2
+> deliverable.*
 
-## Cycle-12 plan-of-record
+## Cycle-13 plan-of-record
 
-1. **Capacity escalation: ladder policy.** Warm-start a ladder
-   level-1 rung from `d16_s2 best` (test 456.80). Same recipe
-   (pop=24, gen=12) for direct comparison. Hypothesis: if ladder
-   beats piecewise, capacity is the bottleneck and we move to
-   ladder + MLP from there. If ladder is within noise of 456-457,
-   neither dim nor capacity is the bottleneck; the *anchor* probably
-   is.
-2. **Fresh-anchor CEM (sanity).** A from-scratch piecewise CEM with
-   a much wider init_std (e.g. 0.30) to test whether the
-   cycle-8/cycle-9-derived anchor is itself sub-optimal. ~30 min.
-3. **Background**: jax-via-CPU-wheel install retry; if successful,
-   bring back smooth-vs-exact correlation as cycle-13 priority.
+1. **Long-run warm-start CEM on d16_s2.** Same anchor (cycle-11
+   d16_s2 best params), same family (piecewise 16-d), pop=24,
+   **gen=24** (double cycle-11), init_std_frac=0.10. Tests
+   hypothesis (c) directly. ~60 min wall-clock, fits in one cycle.
+2. **(If time)** Long-run fresh-anchor piecewise. init_std=0.30,
+   pop=24, gen=24 from defaults. Resolves cycle-12's ambiguity
+   about whether the cycle-8 anchor is in the right basin.
+3. **(Background)** Add a `bin/checks/10_cycle12_alternatives.py`
+   check that re-runs both cycle-12 best params on a small seed
+   set and asserts they reproduce within tolerance. Encodes the
+   cycle-12 finding ("ladder family + fresh-anchor both below
+   warm-start") as a runnable assertion that would flip if scoring
+   or simulator semantics changed.
 
 ## Blockers for user
 
-- **jax install OOMs on this sandbox.** 3.9 GB total RAM, no swap.
-  `pip install jax[cpu]` and `pip install jax jaxlib` both die with
-  exit 143 (SIGTERM, OOM). Either the sandbox needs more RAM/swap,
-  or we need a host-side install path. Documented as a passing-when-
-  failing check (`bin/checks/08_jax_optional.sh`). Push topology
-  unchanged: sandbox commits to local `main`; host launchd agent
-  ships to `origin` every 15 min.
+- **jax install OOMs on this sandbox.** Same as cycle 11 — 3.9 GB
+  RAM, no swap, `pip install jax[cpu]` dies with exit 143. Either
+  more sandbox RAM or a host-side install path needed before we
+  can run smooth-vs-exact correlation work. Documented as the
+  passing-when-failing check `bin/checks/08_jax_optional.sh`.
+- Push topology (`origin` is git@github.com…; sandbox can't
+  resolve DNS) means commits are pushed by host-side tooling, not
+  in-sandbox. Cycle-1 `checks/04_no_outbound_dns.sh` already
+  encodes this as a passing-when-failing predictor.
 
-## Operational notes
+## Operational notes (carry-forward)
 
-- **Repo path on this sandbox**:
-  `/sessions/busy-ecstatic-curie/mnt/amm-gym-auto-research`
+- Repo path: `/sessions/<sandbox-name>/mnt/amm-gym-auto-research`
   (sandbox name changes each cycle; always confirm with `pwd`).
-- **The host `.venv/bin/python` is Mac-Homebrew-only**; use system
-  `python3` (3.10.12) directly. Project deps to install once per
-  fresh sandbox: `pip install --break-system-packages --no-cache-dir
-  numpy gymnasium pyarrow pytest`. Skip jax until OOM is resolved.
-- **Cannot `unlink` files in the sandbox results dir** — drivers
-  open log files in `"w"` mode to truncate instead of deleting.
-- **CPU**: 4 cores. Each CEM run uses 3 workers; ~120s/gen at
-  pop=24, dim=16; ~120-130s/gen at dim=20-24. Two CEMs in parallel
-  would saturate (6 worker procs on 4 cores) — run sequentially.
-- **Cycle-11 wall-clock**: ~5 min orient + ~10 min script writeup +
-  ~30 min × 3 cells + ~5 min figure + ~15 min STATE/LOG/presentation
-  + ~5 min commit = ~110 min. Within 2-h budget.
-- **`bin/checks/` policy**: every cycle runs `bash bin/run_checks.sh`
-  first thing. Cycle-11 found all green except the optional jax
-  check.
-- **Inherited working-tree changes** (across `arena_eval/`,
-  `arena_policies/`, `arena_search/`, `tests/`, etc.) still
-  untouched per convention; cycle-11's only edits were under
-  `research/` and the experiment scripts.
+- Use `python3` (system, 3.10.12); the host `.venv/bin/python` is
+  Mac-Homebrew-only and broken on this Linux sandbox. Project deps
+  needed once per fresh sandbox: `pip install
+  --break-system-packages --no-cache-dir numpy gymnasium pyarrow
+  pytest matplotlib`. Skip jax until OOM resolved.
+- Cannot `unlink` files in the sandbox results dir — drivers open
+  log files in `"w"` mode to truncate instead of deleting.
+- CPU: 4 cores. Each CEM run uses 3 workers; ~115-130s/gen at
+  pop=24, dim=16-18. Two CEMs in parallel would saturate (6 worker
+  procs on 4 cores) — run sequentially via a chain driver like
+  cycle-12's `scripts/run_chain.sh`.
+- **Cycle-12 wall-clock:** ~5 min orient + ~10 min script writeup +
+  ~36 min stage 1 + ~35 min stage 2 + ~5 min figure + ~15 min
+  STATE/LOG/presentation + ~5 min commit ≈ 110 min. Within 2h
+  budget; cycle-13's gen=24 single-stage CEM should fit
+  comfortably (~60 min CEM, plenty of slack).
+- **`bin/checks/` policy**: `bash bin/run_checks.sh` first thing
+  every cycle. Cycle-12 found dep-missing on first run (fresh
+  sandbox), green after install. No new checks added.
 - **Bash-tool polling subtlety**: `sleep N` with N > 600 is killed
-  with exit 143 by the bash tool's max-timeout. Pattern that works:
-  launch via `nohup ... &` once, then poll every 8-9 min by reading
-  `progress.log` directly.
-- **Grid driver path bug** (cycle 11): `cd "$(dirname "$0")/../.."`
-  was one parent too many; corrected to `cd "$(dirname "$0")/.."`
-  before relaunch. The python cell script computes `ROOT`
-  independently from its own file path so it self-corrected even
-  through the broken driver run; only the driver's per-cell
-  stdout-redirect target was wrong.
+  with exit 143; even N ≈ 540 sometimes returns 143 if other
+  cycles run into the 10-min cap. Pattern that works: launch via
+  `nohup ... &` once, then poll `progress.log` every 8-9 min.
+- **Inherited working-tree changes** (across `arena_eval/`,
+  `arena_policies/`, `arena_search/`, `tests/`, etc.) untouched
+  per convention; cycle-12's only edits were under `research/`.

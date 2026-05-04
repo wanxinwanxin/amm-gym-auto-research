@@ -1,0 +1,50 @@
+[23:45:30] Cycle-12 ladder CEM | family=latent_full pop=24 gen=12 elite_n=4 init_std_frac=0.25 workers=3 rng_seed=0
+[23:45:30] Search seeds: 0..63 (n=64)
+[23:45:30] Val seeds:    1000..1127 (n=128)
+[23:45:30] Test seeds:   2000..2255 (n=256)
+[23:45:30] Anchor: defaults (param dim = 18); std = 0.25 × range
+[23:45:30] Bar to beat: piecewise d16_s2 cycle-11 = 456.803
+[23:46:13] Sanity (default mean on val): score=38.428 adv=-174.389 (43.4s)
+[23:49:29]   gen  0: best_search=374.362 elite_mean=369.579 median=197.725 fixed_val=377.444 adv=-94.876 (166.2s search + 29.6s val)
+[23:52:06]   gen  1: best_search=377.887 elite_mean=375.760 median=365.801 fixed_val=382.751 adv=-134.305 (129.1s search + 27.2s val)
+[23:54:39]   gen  2: best_search=379.605 elite_mean=379.372 median=375.627 fixed_val=383.942 adv=-120.794 (126.1s search + 27.7s val)
+[23:57:10]   gen  3: best_search=380.906 elite_mean=380.786 median=378.632 fixed_val=385.432 adv=-123.187 (122.2s search + 28.6s val)
+[23:59:37]   gen  4: best_search=382.325 elite_mean=382.022 median=380.765 fixed_val=386.872 adv=-119.509 (118.5s search + 28.0s val)
+[00:02:03]   gen  5: best_search=382.993 elite_mean=382.813 median=381.979 fixed_val=387.591 adv=-119.128 (118.1s search + 27.8s val)
+[00:04:26]   gen  6: best_search=383.460 elite_mean=383.376 median=382.873 fixed_val=388.177 adv=-121.362 (115.6s search + 27.9s val)
+[00:06:51]   gen  7: best_search=383.789 elite_mean=383.661 median=383.366 fixed_val=388.504 adv=-120.568 (116.6s search + 27.9s val)
+[00:09:17]   gen  8: best_search=383.977 elite_mean=383.839 median=383.588 fixed_val=388.773 adv=-122.025 (118.0s search + 28.1s val)
+[00:11:45]   gen  9: best_search=383.943 elite_mean=383.931 median=383.838 fixed_val=388.642 adv=-119.441 (120.4s search + 27.9s val)
+[00:14:11]   gen 10: best_search=384.029 elite_mean=383.980 median=383.889 fixed_val=388.738 adv=-119.496 (118.1s search + 27.9s val)
+[00:16:37]   gen 11: best_search=384.001 elite_mean=383.993 median=383.958 fixed_val=388.769 adv=-121.285 (118.3s search + 27.5s val)
+[00:16:37] CEM complete in 1823.3s (30.4 min)
+[00:16:37] Reranking top-8 unique elites on 128 val seeds, then scoring val-best on 256 test seeds…
+[00:21:08]   Best-by-val | val_score=388.773 | test_score=388.567 | adv=-123.652  (53.8s) | piecewise bar=456.803 | Δ_vs_piecewise=-68.236
+[00:21:08]   -> wrote /sessions/magical-festive-mccarthy/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle12-latent-ladder-cem/results/latent_full_test.json
+[00:21:08] {
+  "params": {
+    "base_fee": 0.006860608289628375,
+    "min_fee": 0.00023022499130085733,
+    "max_fee": 0.02460444028251731,
+    "flow_decay": 0.8318011487244524,
+    "opportunity_decay": 0.7642012713903722,
+    "opportunity_scale": 2.7698089055675683,
+    "opportunity_weight": -0.00031757239386916923,
+    "flow_skew_weight": 0.029322107731474957,
+    "fair_decay": 0.8524680101238571,
+    "fair_size_weight": 3.1350508750043864,
+    "fair_gap_weight": 0.0,
+    "toxicity_decay": 0.8795455023596782,
+    "reverse_toxicity_weight": 0.5703863470460929,
+    "toxicity_weight": 0.007482712104104692,
+    "competition_decay": 0.6015305153297951,
+    "competition_weight": 0.005694116401943332,
+    "inventory_weight": -0.029991098414232777,
+    "inventory_target": -0.03382383920130533
+  },
+  "val_score": 388.77347551290177,
+  "val_edge_advantage": -122.02470338027415,
+  "test_score": 388.56655508678364,
+  "test_edge_advantage": -123.65226583760693,
+  "test_n_seeds": 256
+}

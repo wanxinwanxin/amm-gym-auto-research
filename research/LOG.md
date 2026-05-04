@@ -1355,3 +1355,180 @@ cycle 12.
   edits are restricted to `research/` and `bin/checks/` — actually
   no `bin/checks/` change this cycle).
 
+
+---
+
+## 2026-05-04T23:35Z — cycle 12 — capacity escalation + fresh-anchor sanity
+
+**Plan for the cycle.** Cycle-11 closed with the empirical headline
+that warm-start CEM on the cycle-8 piecewise anchor saturates at test
+≈ 457 across 7 cells (spread 449-457; CEM-noise std ≈ 3 pts). The
+cycle-11 plan-of-record proposed two follow-ups, both of which were
+explicitly designed to *differentiate* between three lurking
+hypotheses: (a) capacity is the bottleneck (need richer policy
+family), (b) the cycle-8 anchor is in a sub-optimal basin (need to
+re-anchor), (c) the saturation reflects a genuine ceiling under this
+recipe and we need to escalate the recipe instead. Cycle 12 runs both:
+
+  1. **Stage 1 — ladder family CEM.** From-defaults CEM on
+     `latent_full` (18-d ladder rung; EMAs over flow / opportunity /
+     fair-price / toxicity / competition / inventory). pop=24,
+     gen=12, init_std=0.25 × range, rng_seed=0. If test ≥ 460,
+     capacity is the answer; if test < 430, ladder isn't the path.
+  2. **Stage 2 — fresh-anchor piecewise CEM.** From-defaults CEM on
+     piecewise (16-d; the exact same family as cycles 6-11), but with
+     init_std = 0.30 × range — wide enough to plausibly leave the
+     cycle-8 basin. If test ≥ 460, the cycle-8 anchor is sub-optimal
+     and we re-anchor; if test < 430, 12 gens of fresh-anchor CEM
+     can't escape the default basin (warm-start was doing real
+     refinement work).
+
+Going-in priors: ~30% ladder beats 460, ~25% fresh-anchor beats 460,
+~45% both land below — saturation is real and we should pivot to
+recipe escalation in cycle 13.
+
+**What I ran.**
+1. `bin/run_checks.sh` → 9/10 pass; only the optional jax check
+   failed (still OOM-blocked). The required-deps check failed once
+   on the fresh sandbox; installed `gymnasium pyarrow pytest numpy
+   matplotlib` with `pip install --break-system-packages`. After
+   install, all 9 non-optional checks green.
+2. `git pull --ff-only origin main` → DNS unresolvable as expected
+   (check 04 is a passing-when-failing predictor); proceeded.
+3. Wrote `run_ladder_cem.py` — generic ladder-family CEM driver,
+   parameterized by `--family <latent_flow | latent_fair |
+   latent_toxicity | latent_competition | latent_full>`. Same
+   contract as cycle-7 multi-family driver but starts from the
+   dataclass defaults rather than an inherited warm-start.
+4. Wrote `run_fresh_anchor_piecewise.py` — fresh-anchor piecewise
+   CEM with init_std_frac=0.30 (vs warm-start's 0.10).
+5. Wrote `run_chain.sh` — sequential driver for both stages; logs
+   to `chain.log`.
+6. Smoke-tested defaults: `latent_full` 8-seed score = 52.9 (adv
+   −162); piecewise 32-seed score = 254.2 (adv +2.3). Confirms
+   ladder defaults are far from any working basin while piecewise
+   defaults are competitive but unrefined.
+7. Launched chain via `nohup`. Polled per-gen progress.log every
+   ~9 min throughout the cycle.
+8. After both stages, ran `make_figure.py` to produce
+   `figures/cycle12_summary.png` (per-gen progression + M2
+   cumulative bar chart from cycle 5 to cycle 12).
+9. Updated experiment README, presentation, STATE, LOG.
+
+**What worked.**
+- **Both stages completed cleanly** in the wall-clock budget.
+  Stage 1 (latent_full): CEM 30 min + rerank 5 min = 36 min total.
+  Stage 2 (piecewise fresh): CEM 29 min + rerank 6 min = 35 min
+  total. End-to-end ~71 min for the chain.
+- **Falsification design held.** Both stages landed in their
+  respective "test < 430" branches:
+  - latent_full: test = **388.57** (val 388.77, adv −123.65) →
+    68 pts below warm-start cluster. The CEM saturated quickly
+    around gen 5 (best 383) and barely budged through gen 11
+    (best 384). The ladder-family controllers default to
+    advantage ≈ −205 (substantially worse than the FixedFee
+    normalizer); 12 gens of CEM from defaults found a basin at
+    advantage ≈ −123 but couldn't approach the warm-start
+    piecewise advantage ≈ +63.
+  - fresh-anchor piecewise: test = **418.65** (val 419.34, adv
+    −36.43) → 38 pts below warm-start cluster. CEM climbed
+    monotonically through 12 gens (374 → 414) and was still
+    inching at gen 11 (+0.2 pts/gen), which suggests longer gens
+    might catch up — but at 12 gens, the from-default piecewise
+    is decisively below warm-start refinement.
+- **Both stages produced clean test JSONs and reproducible
+  histories.** Used the same val/test split as every prior cycle
+  (val 1000-1127, test 2000-2255), so all 12 M2 cycles are now on
+  the same scoreboard.
+
+**What failed (or surprised).**
+- **Latent-family default scores are catastrophically bad.** All
+  4 simpler ladder rungs (flow / fair / toxicity / competition)
+  default to score ≈ 0 with adv −205; latent_full only hits 53.
+  This means CEM-from-defaults on the ladder is essentially a
+  cold start; the 12-gen budget isn't enough to climb out of the
+  hole. A fairer comparison would warm-start the ladder from a
+  checkpoint, but we don't have one — *and* the parameter space
+  doesn't overlap with piecewise so we can't translate.
+- **The fresh-anchor piecewise wasn't a sub-optimal-basin
+  detector — it was a budget detector.** The CEM was still
+  climbing at gen 11 (val 419 vs gen 0's 391), which means we
+  haven't actually distinguished "wrong basin" from "same basin,
+  not enough gens". The right cycle-13 follow-up to *this* arm is
+  a 24-or-36-gen fresh-anchor run; if that lands in the 449-457
+  cluster, the answer is "same basin, just slow"; if it lands
+  ≥460, the cycle-8 anchor IS sub-optimal.
+- **Score-vs-advantage decoupling.** The challenge scoring rule
+  rewards score 380+ even when adv is negative-100 (i.e. the
+  policy is dramatically worse than FixedFee on edge); both
+  cycle-12 stages exhibit this. This is consistent with prior
+  cycles but worth flagging — score is dominated by retail
+  recapture / arb-loss-protection terms when adv is bad, not by
+  the per-trade advantage. We may want to look at the scoring
+  rule's component decomposition in cycle 13 to understand which
+  term the warm-start cluster is winning on.
+
+**Updates implied for the prior.**
+- **Hypothesis (a) "capacity is the bottleneck" → strongly
+  falsified** under this recipe. Even the richest 18-d ladder rung
+  with explicit EMAs over six market features lands 68 pts below
+  warm-start piecewise. The simpler family wins.
+- **Hypothesis (b) "the cycle-8 anchor is sub-optimal" → not
+  falsified, but not confirmed either.** Fresh-anchor at 12 gens
+  lands 38 pts below warm-start, but the trajectory was still
+  rising, so this is genuinely ambiguous. To get a clean answer we
+  need either a longer fresh-anchor run (24-36 gens) or a much
+  larger pop with init_std=0.30.
+- **Hypothesis (c) "saturation reflects a recipe ceiling" → most
+  consistent with the data.** Both alternatives land below
+  warm-start at the same compute budget, which is the prediction
+  of (c). The fresh-anchor's still-rising trajectory in particular
+  suggests that the piecewise basin is broad and reachable from
+  many starts but takes >12 gens to refine to within ~5 pts of the
+  cycle-11 ceiling.
+- **Operational lesson:** when "warm-start refinement" stops
+  paying off (cycles 9-11), the failure mode looks like
+  saturation. But "fresh-anchor + same recipe" doesn't catch up —
+  warm-start is doing real refinement work, even if its marginal
+  contribution per cycle has shrunk. Don't conclude "we're done"
+  from saturation alone; budget escalation is the natural next
+  test.
+
+**Next.**
+- **Cycle 13 plan-of-record (highest-info-first):**
+  1. **Long-run warm-start CEM on d16_s2.** Same anchor, same
+     family, but pop=24, gen=24 (double the budget). Tests
+     hypothesis (c) directly: does warm-start CEM keep climbing
+     past 457 with more compute? If yes → genuine refinement still
+     left; if no → ceiling confirmed and we move to recipe-shape
+     changes (larger pop, new normalizer, etc.).
+  2. **Long-run fresh-anchor piecewise CEM.** init_std=0.30,
+     gen=24-36 from defaults. Resolves the cycle-12 ambiguity
+     about whether the cycle-8 anchor is in the right basin.
+     Lower priority than (1) — cycle-12 result still tilts toward
+     "same basin", and the (1) experiment will tell us whether to
+     bother re-anchoring.
+  3. **(Background)** decompose the challenge score into its
+     components on the d16_s2 best vs latent_full best vs
+     fresh-anchor best. Useful for cycle-14 reward-shaping
+     analysis.
+- **If recipe escalation flatlines too**: pivot to **M3
+  (generalization study)** with d16_s2 as the M2 deliverable
+  (~85% of way to the 540 target). M3 will add new info regardless
+  of whether we close the M2 gap.
+
+**Operational footnotes.**
+- Repo path on this sandbox: `/sessions/magical-festive-mccarthy/
+  mnt/amm-gym-auto-research`. Sandbox name confirmed via `pwd`.
+- All cycle-12 edits restricted to `research/` (and the new
+  `research/experiments/2026-05-04-cycle12-latent-ladder-cem/`);
+  inherited working-tree changes still untouched.
+- Stage 2's gen 11 was still showing positive ∆-per-gen at +0.2
+  pts; the CEM "complete in 12 gens" stopping rule is arguably
+  premature for from-default cold-starts. Cycle-13's gen=24 sweep
+  will resolve.
+- `bin/checks/` policy held: `bash bin/run_checks.sh` first thing,
+  installed deps when 03 failed, no checks added or retired this
+  cycle. (No new operational facts surfaced; cycle-11's lessons
+  about sleep-timeouts, results-dir-unlink, and grid driver paths
+  all held.)

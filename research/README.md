@@ -88,11 +88,16 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 7: M1 closed (cycle 5); M2 active.
-Best M2 test score = **432.75** (piecewise warm-start CEM, cycle 6);
-M2 target = 540, gap = 107.25 pts. Cycle 7 falsified the hypothesis
-that warm-start CEM lifts ~+19 pts on every policy family
-(submission_compact +5.3, submission_basis +0.6). Cycle 8 plan:
-inventory-aware piecewise + init_std sweep + smooth-vs-exact
-correlation. The cumulative narrative is in
+See `research/STATE.md`. As of cycle 12: M1 closed (cycle 5); M2
+active. Best M2 test score = **456.80** (piecewise warm-start CEM at
+rng_seed=2, cycle 11 d16_s2 cell); M2 target = 540, gap = 83.2 pts.
+Cycles 6→11 stacked warm-start CEM passes on the cycle-8 anchor and
+hit a saturation ceiling ~457 across 7 cells. Cycle 12 falsified
+both alternatives at matched compute: capacity escalation (the 18-d
+`latent_full` ladder rung tested at 388.6) and fresh-anchor
+piecewise with wide init_std (tested at 418.6). Conclusion: the
+saturation is a recipe ceiling, not a capacity-or-anchor problem.
+Cycle 13 plan: long-run warm-start CEM at gen=24 to test whether
+doubling the budget lifts past 457; if not, pivot to M3 with
+d16_s2 as the M2 deliverable. The cumulative narrative is in
 `research/presentation/index.html`.

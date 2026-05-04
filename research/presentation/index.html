@@ -31,13 +31,18 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 11 — best M2 score now <strong>456.80</strong>
-on a 16-d piecewise CEM at rng_seed=2 with no wrapper. Cycle 11 ran a
-3-cell warm-start CEM grid on the cycle-8 anchor and falsified the
-hypothesis that more (dim, seed) reps would lift the basin past 458.
-The 7-cell empirical CEM-noise distribution on this anchor is now
-characterized; its ceiling is essentially 457). Read top-to-bottom;
-later milestones build on earlier ones.</p>
+updated 2026-05-04 (cycle 12 — best M2 score still
+<strong>456.80</strong> on a 16-d piecewise CEM at rng_seed=2. Cycle 12
+ran two falsifying alternatives — capacity escalation via the
+<code>latent_full</code> ladder rung (18-d, with EMAs over flow,
+opportunity, fair-price, toxicity, competition, inventory) and
+fresh-anchor piecewise with wide init_std — under the same compute
+budget. Both landed decisively below the cycle-11 warm-start cluster
+(test 388.6 and 418.6 respectively, vs warm-start 456.80). The simpler
+family wins under matched compute; the saturation we observe at 457
+is a recipe ceiling, not a capacity-or-anchor problem. Cycle 13
+escalates the recipe.) Read top-to-bottom; later milestones build on
+earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
@@ -51,12 +56,20 @@ later milestones build on earlier ones.</p>
   <li><strong>What we've ruled out.</strong> Inventory-aware fee skew
   (instantaneous and EMA-smoothed): both ablate to ≈ 0. The "inert
   wrapper" pattern that produced the cycle-9 lift is rng-stream-offset
-  + seed lottery, not real signal. <em>New (cycle 11)</em>: cheap
-  multi-seed × multi-dim CEM reps are saturating — the 7-cell empirical
-  ceiling on this anchor sits at 456.80 and the noise std is ~3 pts.</li>
-  <li><strong>Open question.</strong> Does escalating policy capacity
-  (ladder, MLP) lift the basin, or do we need to revisit the anchor
-  itself (fresh CEM with much wider init_std)?</li>
+  + seed lottery, not real signal. Cheap multi-seed × multi-dim CEM
+  reps are saturating — the 7-cell empirical ceiling on the warm-start
+  anchor sits at 456.80 with std ≈ 3. <em>New (cycle 12)</em>:
+  capacity escalation (the 18-d <code>latent_full</code> ladder rung)
+  doesn't help under matched compute — it tests at 388.6 from
+  defaults, 68 pts below warm-start. Fresh-anchor wide-init piecewise
+  tests at 418.6, 38 pts below warm-start — meaning the warm-start
+  refinement is doing real work that 12 generations of cold-start
+  CEM can't replicate.</li>
+  <li><strong>Open question.</strong> Does <em>doubling the generation
+  budget</em> (gen=24) on the warm-start CEM lift past 457, or is that
+  a true recipe ceiling? Cycle 13 runs gen=24 to find out — if it
+  flatlines, we pivot to M3 with d16_s2 as the M2 deliverable
+  (~85% of way to 540).</li>
 </ul>
 </div>
 
@@ -1062,23 +1075,128 @@ is consistent across <code>dim_total</code>.</p>
 </ul>
 </div>
 
-<h3>Cycle 12 plan</h3>
+<h3>Cycle 12 — capacity escalation + fresh-anchor sanity: both falsified</h3>
+
+<p><strong>Question.</strong> The cycle-11 grid established that
+warm-start CEM on the cycle-8 piecewise anchor saturates near test 457
+across 7 cells (std ≈ 3 pts). That left three live hypotheses for what
+the bottleneck actually is, and cycle 12 was designed to differentiate
+them in a single cycle:</p>
+<ul>
+  <li><strong>(a) capacity is the bottleneck</strong> — we need a
+  policy family that can express functions piecewise can't.</li>
+  <li><strong>(b) the cycle-8 anchor is sub-optimal</strong> — we've
+  refined inside the wrong basin and need to re-anchor.</li>
+  <li><strong>(c) the saturation reflects a recipe ceiling</strong> —
+  warm-start CEM at (pop=24, gen=12) is doing real refinement work
+  but has run out of room at this compute budget.</li>
+</ul>
+
+<p>Why this matters: hypothesis (a) implies move to ladder/MLP;
+hypothesis (b) implies re-anchor; hypothesis (c) implies don't change
+the family or the anchor — increase the compute. The three branches
+have very different cycle-13 implications, so distinguishing them is
+high-information.</p>
+
+<p><strong>Method.</strong> Two CEMs, run sequentially via
+<code>scripts/run_chain.sh</code>, sharing the cycle-6/8/9/11 protocol
+(search seeds 0..63, val 1000..1127, test 2000..2255, normalizer
+FixedFee(0.003), evaluator "challenge", pop=24, gen=12, elite_n=4,
+3 workers). Both stages start from <em>defaults</em> (not from a
+warm-start anchor) so their compute is matched and directly comparable
+to the warm-start cluster.</p>
+<ul>
+  <li><strong>Stage 1 — <code>latent_full</code> CEM.</strong> The
+  18-d ladder rung — the richest variant in
+  <code>arena_policies/latent_ladder.py</code>, with EMAs over flow,
+  opportunity, fair-price, toxicity, competition, and inventory.
+  init_std = 0.25 × range. Tests hypothesis (a).</li>
+  <li><strong>Stage 2 — fresh-anchor piecewise CEM.</strong> Same
+  family as the warm-start cluster, but starting from
+  <code>PiecewiseControllerParams()</code> defaults with init_std =
+  0.30 × range — wider than the 0.10 used in warm-start. Tests
+  hypothesis (b).</li>
+</ul>
+
+<p>Falsification design (logged in the experiment README before the
+runs): if a stage's test ≥ 460, that hypothesis is confirmed; if test
+&lt; 430, it's strongly falsified; in-between is ambiguous and needs a
+follow-up.</p>
+
+<p><strong>Result.</strong></p>
+
+<table>
+  <tr><th class="l">stage</th><th>family</th><th>dim</th><th>init_std</th><th>val_score</th><th>test_score (n=256)</th><th>test_advantage</th><th>Δ vs warm-start (456.80)</th></tr>
+  <tr><td class="l">1</td><td class="l">latent_full</td><td>18</td><td>0.25</td><td>388.77</td><td><strong>388.57</strong></td><td class="neg">−123.65</td><td class="neg">−68.24</td></tr>
+  <tr><td class="l">2</td><td class="l">piecewise (fresh)</td><td>16</td><td>0.30</td><td>419.34</td><td><strong>418.65</strong></td><td class="neg">−36.43</td><td class="neg">−38.16</td></tr>
+  <tr><td class="l">(ref)</td><td class="l">piecewise (warm-start, c11 d16_s2)</td><td>16</td><td>0.10</td><td>458.54</td><td>456.80</td><td class="pos">+63.32</td><td>(anchor)</td></tr>
+</table>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle12-latent-ladder-cem/figures/cycle12_summary.png"
+       alt="Cycle 12 — per-gen progression of both CEMs (left) and cumulative M2 history (right)">
+  <figcaption>Left: per-gen <code>best_search</code> (solid),
+  <code>fixed_val</code> (dashed), and <code>elite_mean_search</code>
+  (dotted) for the two CEMs. Black solid line: warm-start bar
+  (456.80). Grey dotted: cycle-5 starting line (414). Right: held-out
+  test scores across all M2 cycles 5 → 12. The cycle-12 bars sit
+  decisively below the warm-start cluster; the warm-start cluster
+  itself plateaus near 457.</figcaption>
+</figure>
+
+<div class="insight">
+<strong>What it changed.</strong>
+<ul>
+  <li><strong>Hypothesis (a) — strongly falsified.</strong> Even the
+  richest 18-d ladder rung with explicit EMAs over six market
+  features lands 68 pts below warm-start piecewise under matched
+  compute. The ladder's CEM saturated quickly — best-search climbed
+  from 374 (gen 0) to 384 (gen 11), with the elite-mean trajectory
+  flattening from gen 5 onward. Capacity is not the bottleneck;
+  more state isn't the answer.</li>
+  <li><strong>Hypothesis (b) — not confirmed, but not cleanly
+  falsified either.</strong> Fresh-anchor's val trajectory was
+  <em>still climbing</em> at gen 11 (+0.2 pts/gen, 391 → 419 across
+  the run). At 12 gens the CEM had not yet bottomed out, so
+  "wrong basin" and "right basin, slow climb" are not distinguished.
+  We can say the 12-gen budget isn't enough to escape the default
+  region — but the still-rising curve hints the basin reached at
+  gen 11 may match or be near the warm-start basin given more
+  compute.</li>
+  <li><strong>Hypothesis (c) — most consistent with the data.</strong>
+  Both alternatives land below the warm-start cluster <em>at the
+  same compute</em>, which is the signature prediction of (c). The
+  warm-start cluster's apparent saturation at 457 is therefore best
+  read as "we've extracted what 12 gens can give us from this
+  anchor"; longer gen counts are the natural next test, not different
+  families or fresh anchors.</li>
+  <li><strong>Methodological lesson.</strong> When warm-start
+  refinement stops paying off, the failure mode looks like saturation.
+  But "fresh-anchor + same recipe" doesn't catch up under matched
+  compute — meaning warm-start is doing real refinement work, even
+  when its marginal contribution per cycle has shrunk below the
+  noise floor. Don't mistake "marginal improvements within noise"
+  for "no more gains available"; budget escalation is the natural
+  next test.</li>
+</ul>
+</div>
+
+<h3>Cycle 13 plan</h3>
 <ol>
-  <li><strong>Capacity escalation: ladder policy.</strong> Warm-start
-  the ladder level-1 rung from c11 d16-s2's params (held-out test
-  456.80). Same recipe (pop=24, gen=12) for direct comparison. If
-  ladder beats piecewise on this anchor by &gt; 3 (the noise band),
-  capacity is the bottleneck. If ladder is within noise, neither
-  dim nor capacity is — the anchor itself probably is.</li>
-  <li><strong>Fresh-anchor CEM.</strong> A from-scratch piecewise
-  CEM with init_std_frac=0.30 (vs 0.10 default) to test whether the
-  cycle-8/9-derived anchor is a local optimum that warm-start has
-  been stuck in. ~30 min.</li>
-  <li><strong>Defer.</strong> More (dim, seed) cells unless we
-  discover an outlier justifying it. The (dim, seed) lottery on this
-  anchor has answered its question.</li>
-  <li><strong>Background</strong>: jax-via-CPU-wheel install retry;
-  if successful, bring back smooth-vs-exact correlation.</li>
+  <li><strong>Long-run warm-start CEM.</strong> Same anchor (cycle-11
+  d16_s2 best params), same family (piecewise 16-d), pop=24, but
+  <strong>gen=24</strong> (double cycle-11), init_std_frac=0.10.
+  Tests hypothesis (c) directly: does warm-start CEM keep climbing
+  past 457 with more compute? ~60 min wall-clock.</li>
+  <li><strong>(If time)</strong> Long-run fresh-anchor piecewise
+  CEM. init_std=0.30, pop=24, gen=24-36 from defaults. Resolves the
+  cycle-12 ambiguity about whether the cycle-8 anchor is in the
+  right basin.</li>
+  <li><strong>Fallback.</strong> If recipe escalation also flatlines,
+  pivot to M3 (generalization study) with d16_s2 as the M2
+  deliverable — at 456.80, that's ~85% of the way to the 540 target,
+  and M3 will produce new information regardless of whether the M2
+  gap closes.</li>
 </ol>
 
 <h2>M3 — Generalization study</h2>

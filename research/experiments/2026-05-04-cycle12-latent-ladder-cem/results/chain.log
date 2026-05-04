@@ -1,0 +1,7 @@
+[23:45:30] === Cycle 12 chain start ===
+[23:45:30] ROOT=/sessions/magical-festive-mccarthy/mnt/amm-gym-auto-research
+[23:45:30] --- Stage 1/2: latent_full CEM (18-d, init_std=0.25, pop=24, gen=12) ---
+[00:21:09] Stage 1 exit code: 0, elapsed: 2139s
+[00:21:09] --- Stage 2/2: fresh-anchor piecewise CEM (16-d, init_std=0.30, pop=24, gen=12) ---
+[00:54:57] Stage 2 exit code: 0, elapsed: 2028s
+[00:54:57] === Cycle 12 chain done (rc1=0, rc2=0) ===
