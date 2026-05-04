@@ -1,0 +1,12 @@
+[06:41:13] reranking 8 unique gen-best elites on 128 val seeds…
+  gen  0 | search=452.387 | val=458.539 | adv=+66.146 (29.0s)
+  gen 10 | search=451.365 | val=457.706 | adv=+58.688 (28.7s)
+  gen 19 | search=451.261 | val=457.735 | adv=+53.669 (28.4s)
+  gen  8 | search=451.235 | val=457.707 | adv=+56.721 (28.7s)
+  gen 22 | search=451.231 | val=457.647 | adv=+54.287 (28.6s)
+  gen 23 | search=451.230 | val=457.576 | adv=+53.817 (28.7s)
+  gen 21 | search=451.227 | val=457.724 | adv=+52.666 (28.6s)
+  gen 15 | search=451.225 | val=457.622 | adv=+53.048 (28.6s)
+[06:45:02] best-by-val from gen 0 (val=458.539); scoring on 256 test seeds…
+  test=456.803 | adv=+63.322 (58.6s) | Δ champion=+0.000
+  -> wrote /sessions/gifted-amazing-bohr/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle13-longrun-warmstart-cem/results/longrun_d16_s0_g24/result.json

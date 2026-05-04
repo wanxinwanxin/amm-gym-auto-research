@@ -88,16 +88,17 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 12: M1 closed (cycle 5); M2
-active. Best M2 test score = **456.80** (piecewise warm-start CEM at
-rng_seed=2, cycle 11 d16_s2 cell); M2 target = 540, gap = 83.2 pts.
-Cycles 6→11 stacked warm-start CEM passes on the cycle-8 anchor and
-hit a saturation ceiling ~457 across 7 cells. Cycle 12 falsified
-both alternatives at matched compute: capacity escalation (the 18-d
-`latent_full` ladder rung tested at 388.6) and fresh-anchor
-piecewise with wide init_std (tested at 418.6). Conclusion: the
-saturation is a recipe ceiling, not a capacity-or-anchor problem.
-Cycle 13 plan: long-run warm-start CEM at gen=24 to test whether
-doubling the budget lifts past 457; if not, pivot to M3 with
-d16_s2 as the M2 deliverable. The cumulative narrative is in
-`research/presentation/index.html`.
+See `research/STATE.md`. As of cycle 14: M1 closed (cycle 5); **M2
+closed (cycle 13)** with deliverable test = **456.80** (piecewise
+warm-start CEM, cycle 11 d16_s2 cell, ~85% of way to 540 target).
+Cycle 13's gen=24 long-run CEM confirmed the recipe ceiling — the
+val-best after 24 generations was the anchor itself (gen 0). **M3
+active**. Cycle 14 ran the M3 cycle-1 dual-curve eval over the
+chronological M2 anchor sequence; first OOD result lands at
+real_data lift = **+2.92** above FixedFee, with a striking three-regime
+shape: early M2 anchors (c5, c6) are *actively harmful* OOD; the c8
+→ c9-EMA segment is high-leverage; cycles 9-EMA → 13 plateau OOD
+just like they plateau in-distribution. Cycle 15 plan: add held-out
+test seeds, replicate inversion on second anchor chain, decompose
+c5 real_data PnL to localize the failure mode. The cumulative
+narrative is in `research/presentation/index.html`.

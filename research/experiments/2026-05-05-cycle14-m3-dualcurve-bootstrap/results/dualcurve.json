@@ -1,0 +1,108 @@
+{
+  "val_seeds_range": [
+    1000,
+    1128
+  ],
+  "n_val_seeds": 128,
+  "normalizer_fee": 0.003,
+  "fixedfee_challenge_val_score": 342.03794292522156,
+  "fixedfee_real_data_val_score": 0.5837950452257379,
+  "rows": [
+    {
+      "label": "c5 baseline",
+      "family": "piecewise",
+      "n_params": 16,
+      "prior_test_score_challenge": 414.0095981615039,
+      "challenge_val_score": 414.42194593414644,
+      "challenge_val_adv": -67.42385790366026,
+      "real_data_val_score": -0.35330823086974444,
+      "real_data_val_adv": -6.103044839286601,
+      "real_data_lift_vs_fixedfee": -0.9371032760954823,
+      "elapsed_s": 58.370917320251465
+    },
+    {
+      "label": "c6 warmstart",
+      "family": "piecewise",
+      "n_params": 16,
+      "prior_test_score_challenge": 432.747768827535,
+      "challenge_val_score": 433.5662552119262,
+      "challenge_val_adv": -17.186847105657993,
+      "real_data_val_score": -0.6144875531812224,
+      "real_data_val_adv": -5.893094080092093,
+      "real_data_lift_vs_fixedfee": -1.1982825984069603,
+      "elapsed_s": 59.8237099647522
+    },
+    {
+      "label": "c8 inv-aware",
+      "family": "inventory_aware_piecewise",
+      "n_params": 19,
+      "prior_test_score_challenge": 446.4413999714688,
+      "challenge_val_score": 447.6546548006896,
+      "challenge_val_adv": 28.695922245067695,
+      "real_data_val_score": 0.043615577305467605,
+      "real_data_val_adv": -3.900266733496061,
+      "real_data_lift_vs_fixedfee": -0.5401794679202703,
+      "elapsed_s": 62.625542640686035
+    },
+    {
+      "label": "c9 third-pass",
+      "family": "piecewise",
+      "n_params": 16,
+      "prior_test_score_challenge": 448.80742435892375,
+      "challenge_val_score": 450.0464522326216,
+      "challenge_val_adv": 55.7627473367687,
+      "real_data_val_score": 1.783814402923834,
+      "real_data_val_adv": 0.2968907734932578,
+      "real_data_lift_vs_fixedfee": 1.2000193576980962,
+      "elapsed_s": 63.951905488967896
+    },
+    {
+      "label": "c9 EMA-inv",
+      "family": "ema_inventory_piecewise",
+      "n_params": 20,
+      "prior_test_score_challenge": 456.64020369438475,
+      "challenge_val_score": 457.61991434697063,
+      "challenge_val_adv": 55.45755636717868,
+      "real_data_val_score": 2.783997847671756,
+      "real_data_val_adv": 2.5266391446978123,
+      "real_data_lift_vs_fixedfee": 2.200202802446018,
+      "elapsed_s": 64.78297233581543
+    },
+    {
+      "label": "c10A noop",
+      "family": "piecewise",
+      "n_params": 20,
+      "prior_test_score_challenge": 456.73763636922195,
+      "challenge_val_score": 457.66797860145726,
+      "challenge_val_adv": 58.19297637521871,
+      "real_data_val_score": 2.9670815271283124,
+      "real_data_val_adv": 3.087480736313084,
+      "real_data_lift_vs_fixedfee": 2.3832864819025747,
+      "elapsed_s": 65.2081687450409
+    },
+    {
+      "label": "c11 d16_s2",
+      "family": "piecewise",
+      "n_params": 16,
+      "prior_test_score_challenge": 456.8032181567959,
+      "challenge_val_score": 458.53908063318073,
+      "challenge_val_adv": 66.14590820919061,
+      "real_data_val_score": 2.918268850383546,
+      "real_data_val_adv": 3.052819896956474,
+      "real_data_lift_vs_fixedfee": 2.334473805157808,
+      "elapsed_s": 65.30836057662964
+    },
+    {
+      "label": "c13 longrun",
+      "family": "piecewise",
+      "n_params": 16,
+      "prior_test_score_challenge": 456.8032181567959,
+      "challenge_val_score": 458.53908063318073,
+      "challenge_val_adv": 66.14590820919061,
+      "real_data_val_score": 2.918268850383546,
+      "real_data_val_adv": 3.052819896956474,
+      "real_data_lift_vs_fixedfee": 2.334473805157808,
+      "elapsed_s": 64.56685733795166
+    }
+  ]
+}

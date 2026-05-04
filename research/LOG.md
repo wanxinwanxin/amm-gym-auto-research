@@ -1532,3 +1532,154 @@ recipe escalation in cycle 13.
   cycle. (No new operational facts surfaced; cycle-11's lessons
   about sleep-timeouts, results-dir-unlink, and grid driver paths
   all held.)
+
+---
+
+## 2026-05-05T07:00Z — cycle 14 — close M2 (recipe ceiling confirmed) + M3 cycle-1 dual-curve
+
+**Plan for the cycle.** Cycle 13's gen=24 long-run CEM finished all
+24 generations but the in-script rerank/test step never wrote
+`result.json` (the script must have been killed between gens
+completing and rerank finishing — the last `progress.log` line was
+the "Reranking…" header). Cycle 14's first job: recover the cycle-13
+test score from `history.json` so we can apply the cycle-13 decision
+rule. Then per the rule, either continue M2 or pivot to M3.
+
+**What I ran.**
+
+1. **Reorient + checks.** `bin/run_checks.sh` failed on
+   `03_required_python_deps.sh` (fresh sandbox, gymnasium not
+   installed). Installed `numpy gymnasium pyarrow pytest matplotlib
+   --break-system-packages`. All 11 active checks pass except the
+   carry-forward `08_jax_optional.sh` (still OOMs on this sandbox,
+   already on Blockers list).
+2. **Cycle-13 rerank recovery.**
+   `research/experiments/2026-05-05-cycle13-longrun-warmstart-cem/scripts/finish_rerank.py`:
+   pulls the per-gen `best_search_params` from `history.json` (24
+   candidates, dedup → 8 unique by rounded-key), val-scores each on
+   1000..1127, and test-scores the val-best on 2000..2255. ~5 min.
+   Result: best-by-val came from **gen 0 (the anchor itself!)** with
+   val=458.539, test=**456.803** — Δ vs champion = +0.000.
+3. **Cycle-13 figure regenerated** with the recovered result.
+4. **M3 cycle-1 dual-curve eval.** New experiment dir
+   `research/experiments/2026-05-05-cycle14-m3-dualcurve-bootstrap/`.
+   `scripts/eval_anchors_dualcurve.py` loads `best_by_val.params`
+   from each chronological M2 anchor (c5..c13, 8 anchors) and runs
+   `run_batch(..., evaluator_kind="challenge")` and `(..., "real_data")`
+   on the standard val seed split (1000..1127, n=128). Normalizer is
+   FixedFee(0.003) in both modes. ~10 min single-process. Wrote
+   `dualcurve.json` and 2-panel `m3_dualcurve.png` figure.
+5. **New check** `bin/checks/11_cycle13_recipe_ceiling.py` — encodes
+   "no later gen of cycle-13 longrun beats gen-0 anchor's
+   best_search_score by >2 pts". Falsifies if the simulator
+   semantics shift. Passes on this sandbox.
+6. **Tests.** `pytest -x -q` on the non-torch/non-jax test set: 136
+   pass, 2 skip. (torch- and jax-dependent suites
+   `test_training.py`, `test_diff_simple_amm_*.py`,
+   `test_clairvoyant_oracle.py`, `test_retail_recapture.py` carry
+   forward the inherited "torch/jax not installed on this sandbox"
+   blocker — none touched by cycle-14 edits.)
+
+**What worked / surprised.**
+- **The cycle-13 result is unambiguous.** The 24-gen long-run CEM
+  evaluated 24×24 = 576 candidates and never produced one whose
+  128-seed val score beat the anchor's gen-0 458.539. Elite-mean
+  did climb (436 → 451 in 8 gens, then plateau), but no elite ever
+  found a strictly better val region. This is the cleanest possible
+  falsification of "warm-start CEM has more refinement to give
+  under this recipe".
+- **The M3 dual-curve plot is the most informative single figure of
+  the project so far.** It cleanly partitions the M2 trajectory into
+  three regimes:
+    1. c5 → c6 (challenge 414 → 434): real_data score *regresses*
+       below FixedFee. Early challenge optimization is
+       **net-harmful** OOD.
+    2. c8 → c9-EMA (challenge 448 → 458): real_data score climbs
+       from 0 to +2.8 above FixedFee. **High-leverage segment** —
+       this is where challenge optimization actually buys OOD value.
+    3. c9-EMA → c13 (challenge 458 → 458): real_data score
+       saturates at +2.4 above FixedFee. **OOD ceiling reached at
+       the same compute as the in-distribution ceiling.**
+- **The c11 = c13 equality holds OOD too**, which is a non-trivial
+  consistency check: two independent reruns of the same parameter
+  vector should produce identical scores up to seed-set
+  determinism, and they do (real_val 2.918 = 2.918 exactly).
+- **Surprise vs prior**: I had ~25% odds the early M2 anchors would
+  be net-harmful OOD; the actual outcome is 100% on the first 2
+  anchors. This is a stronger result than expected and reframes the
+  M3 question from "where do the curves diverge?" to "why does the
+  early phase of challenge optimization actively *break* the
+  policy on real data?"
+
+**What failed (or surprised on the downside).**
+- The cycle-13 driver's rerank step did not survive the cycle
+  boundary. Operationally this is a recurring "long script + CEM
+  resumability" issue: the CEM itself was resumable (history.json
+  saved per gen) but the rerank/test postprocess wasn't. Future
+  long-run CEM drivers should *always* checkpoint the rerank pool
+  to disk before scoring, or split the CEM and rerank into two
+  separate scripts. Recorded as a methodological note in cycle-14
+  README; not yet a check (no clean falsifiable assertion).
+- `pytest tests/test_diff_simple_amm.py` collection fails because
+  it imports torch transitively via the test_training.py shared
+  fixtures. Carry-forward; not new this cycle.
+
+**Updates implied for the prior.**
+- **M2 closed.** The deliverable is `cycle-11 d16_s2`
+  best_by_val (test=456.80, ~85% of way to 540). All three
+  cycle-12 hypotheses have now been touched: (a) capacity
+  falsified, (b) anchor-sub-optimal de facto falsified by cycle 13
+  not finding a better basin, (c) recipe-ceiling confirmed.
+  Future M2 reopening would need a *different recipe shape* —
+  much wider init_std, much larger pop, hybrid CEM→PPO, different
+  normalizer venue, etc. Not the most informative next step right
+  now.
+- **M3 active hypothesis.** "Challenge optimization is harmful OOD
+  early and saturates OOD before it saturates in-distribution."
+  Cycle 14's evidence is suggestive but single-seed (n=128 val).
+  Cycle 15 should:
+  1. Add a held-out test split (2000..2255) to the dual-curve plot
+     so the headline numbers aren't single-seed point estimates.
+  2. **Replicate the early-anchor inversion** with a 2nd anchor
+     sequence (cycle-11 grid d16_s0 / d16_s1 chains) to confirm the
+     "challenge gain → OOD harm" shape isn't a c5/c6 fluke.
+  3. **Decompose the c5 real_data PnL** into retail-flow and
+     arb-flow components to localize *what* the early
+     optimization is breaking on real data (toxic-flow miss-quote?
+     too-tight base spread that loses to MM impact?).
+
+**Next.**
+- **Cycle-15 plan-of-record:**
+  1. Add held-out test seeds 2000..2255 to the dual-curve table —
+     re-run `eval_anchors_dualcurve.py` with a second seed split
+     and pick the val-best vs test-best discrepancy. ~10 min.
+  2. Replicate dual-curve on `cycle-11 d16_s0` and `d16_s1` anchor
+     chains (different rng seeds, same recipe). If the
+     early-anchor inversion replicates on both, the "early
+     optimization is OOD-harmful" finding gets locked in. ~15 min
+     each.
+  3. Decompose real_data evaluator's `score` into retail vs arb
+     PnL components for c5 vs c11 to localize the failure mode.
+     Requires a one-shot diff into `simulator.py` to capture
+     intermediate per-trade signals (or a new evaluator wrapper).
+     ~20 min.
+- **If (2) confirms** and (3) localizes the failure: the M3
+  writeup and the M4 plan both gain a clean "what the first 19 pts
+  of challenge improvement are *actually* doing wrong" story,
+  which is the highest-information lever we have for M4 (training
+  directly on real_data).
+
+**Operational footnotes.**
+- Repo path on this sandbox: `/sessions/gifted-amazing-bohr/mnt/amm-gym-auto-research`.
+  Sandbox name confirmed via `pwd`.
+- All cycle-14 edits restricted to `research/` (new experiment
+  dirs, README/STATE/LOG/presentation updates) and
+  `bin/checks/11_cycle13_recipe_ceiling.py`. Inherited working-tree
+  diffs (`arena_eval/`, `arena_policies/retail_recapture.py`,
+  `scripts/`, `tests/`) untouched per convention.
+- Wall-clock: ~10 min orient + ~5 min finish_rerank + ~5 min
+  cycle-13 figure + ~10 min M3 dualcurve eval + ~3 min M3 figure
+  + ~30 min STATE/LOG/presentation + ~5 min check + ~5 min commit
+  ≈ 75 min. Within the 2h budget.
+- **No checks retired this cycle.** All 11 active checks pass
+  (modulo the carry-forward jax-OOM blocker on `08_jax_optional`).

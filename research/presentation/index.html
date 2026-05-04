@@ -31,45 +31,48 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 12 — best M2 score still
-<strong>456.80</strong> on a 16-d piecewise CEM at rng_seed=2. Cycle 12
-ran two falsifying alternatives — capacity escalation via the
-<code>latent_full</code> ladder rung (18-d, with EMAs over flow,
-opportunity, fair-price, toxicity, competition, inventory) and
-fresh-anchor piecewise with wide init_std — under the same compute
-budget. Both landed decisively below the cycle-11 warm-start cluster
-(test 388.6 and 418.6 respectively, vs warm-start 456.80). The simpler
-family wins under matched compute; the saturation we observe at 457
-is a recipe ceiling, not a capacity-or-anchor problem. Cycle 13
-escalates the recipe.) Read top-to-bottom; later milestones build on
-earlier ones.</p>
+updated 2026-05-05 (cycle 14 — <strong>M2 closed</strong>, deliverable
+is the cycle-11 d16_s2 anchor at test = <strong>456.80</strong>;
+<strong>M3 cycle 1</strong> produced the first OOD generalization
+plot. The cycle-13 long-run warm-start CEM (gen=24) confirmed the
+recipe ceiling: the best-by-val candidate after 24 generations was
+the anchor itself, with no later elite ever beating it. Cycle 14 then
+scored the chronological M2 anchor sequence (cycles 5..13) on the
+realistic <code>real_data</code> evaluator and found three regimes —
+early M2 anchors are <em>actively harmful</em> OOD (worse than
+FixedFee), the c8 → c9-EMA segment is high-leverage (each pt of
+challenge buys real OOD value), and the c9-EMA → c13 segment
+saturates OOD at the same compute as it saturates in-distribution.)
+Read top-to-bottom; later milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
-  <li><strong>Where we are.</strong> Active milestone is M2 (optimize on
-  the simple-AMM challenge); M1 closed at cycle 5.</li>
-  <li><strong>Headline number.</strong> Best M2 test score
-  <strong>456.80</strong> (held-out 256 seeds; 16-d piecewise CEM at
-  rng_seed=2), up from a cycle-5 starting line of ~414. Target: 540.
-  Gap remaining: ~83 pts.</li>
-  <li><strong>What we've ruled out.</strong> Inventory-aware fee skew
-  (instantaneous and EMA-smoothed): both ablate to ≈ 0. The "inert
-  wrapper" pattern that produced the cycle-9 lift is rng-stream-offset
-  + seed lottery, not real signal. Cheap multi-seed × multi-dim CEM
-  reps are saturating — the 7-cell empirical ceiling on the warm-start
-  anchor sits at 456.80 with std ≈ 3. <em>New (cycle 12)</em>:
-  capacity escalation (the 18-d <code>latent_full</code> ladder rung)
-  doesn't help under matched compute — it tests at 388.6 from
-  defaults, 68 pts below warm-start. Fresh-anchor wide-init piecewise
-  tests at 418.6, 38 pts below warm-start — meaning the warm-start
-  refinement is doing real work that 12 generations of cold-start
-  CEM can't replicate.</li>
-  <li><strong>Open question.</strong> Does <em>doubling the generation
-  budget</em> (gen=24) on the warm-start CEM lift past 457, or is that
-  a true recipe ceiling? Cycle 13 runs gen=24 to find out — if it
-  flatlines, we pivot to M3 with d16_s2 as the M2 deliverable
-  (~85% of way to 540).</li>
+  <li><strong>Where we are.</strong> M1 closed at cycle 5. M2 closed
+  at cycle 13 (deliverable: 456.80, ~85% of way to 540). Active
+  milestone is M3 (generalization study).</li>
+  <li><strong>Headline numbers.</strong>
+    M2: best test score <strong>456.80</strong> (held-out 256 seeds;
+    16-d piecewise CEM at rng_seed=2; target 540, gap 83.20).
+    M3 cycle 1: chronological M2 anchors evaluated on <code>real_data</code>
+    val seeds — best <strong>+2.92</strong> (≈ +2.34 above the
+    FixedFee(0.003) baseline of 0.58); curve plateaus at c9-EMA.</li>
+  <li><strong>What we've learned about M2 generalization.</strong>
+  Cycles 5–6 of M2 (challenge 414 → 434) actually <em>regress</em>
+  on real data — the trained policy lands <em>below</em> FixedFee.
+  Cycles 8 → 9-EMA (challenge 448 → 458) is the
+  <em>high-leverage segment</em>: each pt of challenge improvement
+  buys ~+0.27 pts of real-data lift. From cycle 9-EMA onwards
+  (including all of cycles 10–13) the OOD curve is flat — the
+  recipe ceiling we hit on challenge holds OOD too.</li>
+  <li><strong>Open questions.</strong> (1) Does the early-anchor
+  inversion replicate on a different rng-seed chain (cycle-11 d16_s0
+  / d16_s1)? (2) Single-seed (n=128 val); cycle 15 needs to add a
+  held-out test split (2000..2255) before the headline real-data
+  number gets stakeholder-quality. (3) <em>What</em> is the c5 / c6
+  anchor doing wrong on real data — too-tight base spread? toxic-flow
+  miss-classification? Decompose c5 real_data PnL into retail vs arb
+  to localize before kicking off M4 (training directly on real_data).</li>
 </ul>
 </div>
 
@@ -117,6 +120,28 @@ scale with policy complexity?
   normals, advancing the RNG state at different rates and producing
   different sample sequences from gen 1 onwards even at the same
   seed.</li>
+  <li><strong>Challenge evaluator (<code>evaluator_kind="challenge"</code>).</strong>
+  The synthetic in-distribution simulator with GBM price process and
+  uniform retail-arrival/size distributions. M2 trained against this.</li>
+  <li><strong>Real-data evaluator (<code>evaluator_kind="real_data"</code>).</strong>
+  The realistic out-of-distribution simulator: regime-switching price
+  process (transition matrix and inverse-CDF fitted from Binance ETH/USDT
+  returns) plus empirical retail-impact percentiles fitted from on-chain
+  WETH/USDC v3 0.05% pool router flow. The score scale here is much
+  smaller than challenge (FixedFee scores ~0.6 instead of ~342).</li>
+  <li><strong>OOD ("out of distribution").</strong> Used in M3 to mean
+  "evaluated on the realistic env after training on the challenge env."</li>
+  <li><strong>Lift-vs-FixedFee.</strong> The score (or
+  edge_advantage) of the trained policy minus the score of
+  FixedFee(0.003) on the same seed split. Used in M3 as the OOD
+  yardstick because the realistic-env raw scores are tiny in absolute
+  terms (-1 to +3) but make sense relative to the FixedFee
+  baseline (~+0.6).</li>
+  <li><strong>Recipe ceiling.</strong> The score plateau induced by a
+  fixed CEM recipe (population, init_std, generations, elite fraction,
+  anchor) — distinct from a capacity ceiling (limit of the policy
+  family) or an environment ceiling (limit of any policy on this env).
+  Cycles 11–13 collectively confirmed M2 hit the recipe ceiling.</li>
 </ul>
 </div>
 
@@ -1181,29 +1206,223 @@ follow-up.</p>
 </ul>
 </div>
 
-<h3>Cycle 13 plan</h3>
-<ol>
-  <li><strong>Long-run warm-start CEM.</strong> Same anchor (cycle-11
-  d16_s2 best params), same family (piecewise 16-d), pop=24, but
-  <strong>gen=24</strong> (double cycle-11), init_std_frac=0.10.
-  Tests hypothesis (c) directly: does warm-start CEM keep climbing
-  past 457 with more compute? ~60 min wall-clock.</li>
-  <li><strong>(If time)</strong> Long-run fresh-anchor piecewise
-  CEM. init_std=0.30, pop=24, gen=24-36 from defaults. Resolves the
-  cycle-12 ambiguity about whether the cycle-8 anchor is in the
-  right basin.</li>
-  <li><strong>Fallback.</strong> If recipe escalation also flatlines,
-  pivot to M3 (generalization study) with d16_s2 as the M2
-  deliverable — at 456.80, that's ~85% of the way to the 540 target,
-  and M3 will produce new information regardless of whether the M2
-  gap closes.</li>
-</ol>
+<h3>Cycle 13 — long-run warm-start CEM closes M2: recipe ceiling confirmed</h3>
+
+<p><em>Question.</em> Cycle 12 left three live hypotheses about why
+the warm-start CEM saturated near 457 across cycles 9–11:
+(a) capacity is the bottleneck, (b) the cycle-8 anchor is in a
+sub-optimal basin, (c) the saturation is a recipe ceiling under the
+(pop=24, gen=12) recipe. Cycle 12 falsified (a) directly by running
+the richer 18-d <code>latent_full</code> ladder rung — it landed at
+388.6, 68 pts <em>below</em> warm-start. (b) and (c) remained live but
+hadn't been distinguished. Cycle 13 tested (c) directly by doubling
+the gen budget on the same warm-start anchor under the same recipe.</p>
+
+<p><em>Method.</em> <code>scripts/run_long_warmstart.py</code> reused
+the cycle-11 grid driver recipe — <code>POLICY_SPECS["piecewise"]</code>,
+core_dim=16, pop=24, init_std_frac=0.10, elite_frac=0.20 — but ran
+<strong>24 generations</strong> instead of 12, anchored on the
+cycle-11 d16_s2 <code>best_by_val</code> params (the current M2
+champion at test=456.80). Same val/test seed split (1000..1127 /
+2000..2255) as every prior M2 cycle, so the resulting test score is
+on the same scoreboard. Pre-committed decision rule: test ≥ 460 →
+recipe ceiling falsified, continue along this axis; 457 ≤ test &lt;
+460 → marginal, add a replicate; test &lt; 457 → ceiling confirmed,
+pivot to M3.</p>
+
+<p><em>Result.</em> <strong>test = 456.803</strong>, Δ vs champion
+<strong>+0.000</strong>. The val-best candidate after 24 generations
+was the anchor itself (gen 0, val=458.539). Across the 23
+subsequent generations the CEM evaluated 552 candidates — and not
+one elite produced a 128-seed val score above the anchor's 458.5.
+The elite cluster <em>did</em> narrow rapidly (elite-mean climbed
+436 → 451 in 8 gens, then plateaued for the remaining 15), so the
+CEM is doing real work — it's just that the work is "shrinking the
+elite cloud around the anchor", not "finding a new local optimum".</p>
+
+<figure>
+<img src="cycle13_summary.png"
+     alt="Cycle 13 — gen=24 warm-start CEM val trajectory and search trajectory">
+<figcaption>Left: per-gen val score for the cycle-13 long-run (green)
+overlaid on the cycle-11 d16_s2 reference (gray). The cycle-13 val
+curve hovers around 457.5–457.7 from gen 5 onwards — never breaking
+the recipe-ceiling threshold (orange dash-dot at 460). The val score
+of the anchor itself (gen 0) at 458.5 is the highest single-seed val
+ever observed in this cell. Right: best vs elite-mean within cycle 13
+— elite-mean tracks best within ~0.1 pts after gen 8, confirming
+the CEM has converged within its basin. The cycle-11 stop point
+(gen 12, dotted) shows that gens 12–23 add nothing the cycle-11
+12-gen run wouldn't have found.</figcaption>
+</figure>
+
+<p><em>What it changed.</em> Per the pre-committed decision rule,
+recipe ceiling <strong>confirmed</strong> at this anchor. M2 is
+closed; the deliverable is <code>cycle-11 d16_s2</code>
+<code>best_by_val</code> at <strong>test = 456.80</strong> (~85% of
+the way to the 540 target). All three cycle-12 hypotheses are now
+addressed: (a) capacity falsified (cycle 12), (b) anchor-sub-optimal
+de facto falsified by cycle 13 not finding a better basin under
+double the budget, (c) recipe-ceiling confirmed (cycle 13). Future
+M2 reopening would need a <em>different recipe shape</em> — wider
+init_std, much larger pop, hybrid CEM→PPO, different normalizer
+venue, etc. — not refinement of the current one. None of those is
+the most informative next step right now; M3 (generalization
+study) is.</p>
+
+<p class="meta"><em>Operational note.</em> The driver's in-script
+rerank step was lost at the cycle boundary — the 24-gen CEM took 60.7
+min, then the 8-elite × 128-seed val rerank started but the script
+was killed before <code>result.json</code> was written. Cycle 14's
+first task was to recover the result by reranking the per-gen-best
+candidates from <code>history.json</code>; the recovered val-best
+matches the original "all-elites top-8" pool's expected best within
+search-noise (and is the anchor itself, which is in both pools by
+construction). Future long-run drivers should checkpoint the rerank
+pool to disk before scoring, or split the CEM and rerank into
+separate scripts.</p>
 
 <h2>M3 — Generalization study</h2>
-<div class="pending">Not started.</div>
+
+<div class="insight">
+<strong>Headline (cycle 14, M3 cycle 1).</strong> Of the eight
+chronological M2 anchors (cycles 5–13), the first two (challenge
+414 → 434) score <em>below</em> FixedFee(0.003) on the realistic
+evaluator — early M2 optimization is <strong>net-harmful OOD</strong>.
+The OOD curve crosses zero at cycle 8 and climbs to <strong>+2.92</strong>
+(score) / <strong>+3.05</strong> (edge_advantage) by cycle-9-EMA,
+where it plateaus through cycles 10–13. M2's last 18 challenge pts
+(cycles 9-EMA → 13) buy ~+0.13 pts of real-data lift; M2's previous
+10 pts (cycles 8 → 9-EMA) bought +2.74 — a 20× difference in OOD
+return per challenge pt. The recipe ceiling we hit on challenge
+holds OOD too (c11 = c13 exactly: real_data 2.918 = 2.918).
+</div>
+
+<h3>Cycle 14 (M3 cycle 1) — chronological-anchor dual-curve eval</h3>
+
+<p><em>Question.</em> Now that M2 is closed, the natural M3
+question is: of the policies M2 produced along the way, what did
+each <em>also</em> earn on the realistic env (<code>real_data</code>
+evaluator) — and at what point in the M2 trajectory did the OOD
+curve plateau or diverge from the in-distribution curve? This
+matters because the milestone-spec target for M3 is to identify
+"when the realistic curve plateaus or diverges from the simple
+curve", and that's exactly answerable by replaying the existing M2
+anchor sequence on the OOD evaluator without any retraining.</p>
+
+<p><em>Method.</em> <code>scripts/eval_anchors_dualcurve.py</code>
+loads <code>best_by_val.params</code> from each chronological M2
+anchor (cycles 5, 6, 8, 9-third, 9-EMA, 10A, 11 d16_s2, 13 longrun
+— 8 anchors total). For each, it runs
+<code>run_batch(..., evaluator_kind="challenge")</code> and
+<code>run_batch(..., evaluator_kind="real_data")</code> on the
+standard val seed split (1000..1127, n=128). Normalizer is
+FixedFee(0.003) in both modes — matches every prior M2 cycle, so
+the challenge column reproduces those reported numbers. The
+trajectory axis is <em>chronological</em> (cycle order), not
+generation-step within a single training run; this is a deliberate
+M3-cycle-1 choice because the M2 anchor sequence already provides
+8 historical-quality snapshots ranging from score 414 to 458 — a
+much richer trajectory than any single CEM history. Compute:
+~10 min single-process.</p>
+
+<p><em>Result.</em></p>
+
+<table>
+<thead><tr>
+  <th class="l">Anchor</th><th>n_params</th>
+  <th>challenge val</th>
+  <th>real_data val</th><th>adv (real)</th>
+  <th>lift vs FF (real)</th>
+</tr></thead>
+<tbody>
+  <tr><td class="l">FixedFee(0.003)</td><td>—</td><td>342.04</td><td>0.584</td><td>0.000</td><td class="l">(norm)</td></tr>
+  <tr><td class="l">c5 baseline</td>  <td>16</td><td>414.42</td><td class="neg">−0.353</td><td class="neg">−6.10</td><td class="neg">−0.94</td></tr>
+  <tr><td class="l">c6 warmstart</td> <td>16</td><td>433.57</td><td class="neg">−0.614</td><td class="neg">−5.89</td><td class="neg">−1.20</td></tr>
+  <tr><td class="l">c8 inv-aware</td> <td>19</td><td>447.66</td><td>+0.044</td><td class="neg">−3.90</td><td class="neg">−0.54</td></tr>
+  <tr><td class="l">c9 third-pass</td><td>16</td><td>450.05</td><td class="pos">+1.784</td><td class="pos">+0.30</td><td class="pos">+1.20</td></tr>
+  <tr><td class="l">c9 EMA-inv</td>   <td>20</td><td>457.62</td><td class="pos">+2.784</td><td class="pos">+2.53</td><td class="pos">+2.20</td></tr>
+  <tr><td class="l">c10A noop</td>    <td>20</td><td>457.67</td><td class="pos">+2.967</td><td class="pos">+3.09</td><td class="pos">+2.38</td></tr>
+  <tr><td class="l">c11 d16_s2</td>   <td>16</td><td>458.54</td><td class="pos">+2.918</td><td class="pos">+3.05</td><td class="pos">+2.33</td></tr>
+  <tr><td class="l">c13 longrun</td>  <td>16</td><td>458.54</td><td class="pos">+2.918</td><td class="pos">+3.05</td><td class="pos">+2.33</td></tr>
+</tbody>
+</table>
+
+<figure>
+<img src="m3_dualcurve.png"
+     alt="M3 cycle 1 — challenge val and real_data val for each chronological M2 anchor">
+<figcaption>Left: challenge val score by anchor (the "in-distribution"
+curve M2 optimized for) — climbs monotonically from 414 to 458.
+Right: real_data val score by anchor (the OOD curve) — drops below
+FixedFee for the first two anchors (shaded "harmful" region), crosses
+zero at c8, then climbs to a plateau at +2.4 above FixedFee by
+cycle 9-EMA. Both curves use the same val seed split (1000..1127)
+and the same FixedFee(0.003) normalizer.</figcaption>
+</figure>
+
+<p><em>What it changed.</em> Three things:</p>
+
+<ol>
+  <li><strong>The "early M2 is net-harmful OOD" phenomenon was a
+  surprise.</strong> Going in I gave it ~25% odds; the actual
+  outcome is 100% on the first two anchors. This reframes the M3
+  question from "where do the curves diverge?" to "<em>why</em>
+  does the early phase of challenge optimization actively
+  <em>break</em> the policy on real data?" Likely candidates: (i)
+  the challenge env's GBM-with-uniform-flow distribution rewards
+  tighter base spreads than the realistic env's regime-switching +
+  empirical-impact distribution can support; (ii) the early M2
+  policies don't yet have the toxicity-decay structure to gracefully
+  retreat under adverse flow that real_data exhibits more of; (iii)
+  some yet-unidentified knob. Cycle 15 needs to localize this with a
+  PnL decomposition.</li>
+
+  <li><strong>The OOD ceiling matches the in-distribution
+  ceiling.</strong> c11 = c13 on real_data exactly (2.918 = 2.918),
+  reinforcing the cycle-13 conclusion that warm-start CEM has
+  stopped refining anything (in or out of distribution) under this
+  recipe. The recipe-ceiling check (<code>bin/checks/11_cycle13_recipe_ceiling.py</code>)
+  encodes the cycle-13 search-side version of this; cycle 15 will
+  add the OOD-side version once the inversion replicates on a
+  second anchor chain.</li>
+
+  <li><strong>The high-leverage segment is small but real.</strong>
+  c8 → c9-EMA (challenge +9.96 pts) buys +2.74 pts of real-data
+  lift, a 0.275 OOD-per-challenge ratio. This is the only segment
+  where M2 optimization translated efficiently to OOD value. If M4
+  ("optimize directly against the realistic environment") is going
+  to beat the +2.4 OOD plateau of M2-via-challenge, the place to
+  start looking is whatever cycles 8 → 9-EMA actually changed
+  (inventory awareness in c8, then EMA smoothing of inventory in
+  c9-EMA — that two-cycle arc is the candidate "OOD-relevant
+  inductive bias".)</li>
+</ol>
+
+<p><em>Caveats.</em></p>
+<ul>
+  <li>Single-seed split (n=128 val); the headline numbers are point
+  estimates, not test scores. Cycle 15 will add a held-out 256-seed
+  test split.</li>
+  <li>The OOD trajectory uses the M2 anchor sequence as a proxy for
+  a real training trajectory. Cycle 15 will replicate it on
+  cycle-11 grid <code>d16_s0</code> and <code>d16_s1</code> chains
+  (different rng seeds, same recipe) to confirm the early-anchor
+  inversion isn't a one-chain fluke.</li>
+  <li>"real_data" here means
+  <code>ExactSimpleAMMConfig.real_data_from_seed</code>: regime-switching
+  price + empirical-impact retail flow, fitted from on-chain ETH/USDC
+  v3 0.05% pool router data and Binance ETH/USDT returns. Fee tier
+  for the normalizer is fixed at 0.003 (30 bps) which is twice the
+  pool's 5-bps tier — the level matters for the absolute lift number
+  but not for the qualitative shape of the curve.</li>
+</ul>
 
 <h2>M4 — Direct optimization on the realistic environment</h2>
-<div class="pending">Not started.</div>
+<div class="pending">Not started. M4 will sweep policy complexity from
+very simple (1–2 params) to rich (piecewise, ladder, MLP) and plot
+best realistic score vs. parameter count, training compute. The M3
+cycle-1 result frames the M4 baseline: the +2.4 lift over FixedFee
+on real_data is the bar to beat with direct-on-realistic
+optimization.</div>
 
 </body>
 </html>

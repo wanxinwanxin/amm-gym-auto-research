@@ -1,0 +1,11 @@
+[06:49:29] baseline FixedFee(0.003) on val seeds (challenge & real_data)…
+[06:50:34]   FixedFee | challenge_val=342.038 | real_data_val=  0.584  (64.1s)
+[06:51:32]   c5 baseline    (piecewise               , n=16) | chal_val=414.422 (prior_test=414.01) | real_val=-0.353 adv=-6.103 | real_lift_vs_FF=-0.937 | 58.4s
+[06:52:32]   c6 warmstart   (piecewise               , n=16) | chal_val=433.566 (prior_test=432.75) | real_val=-0.614 adv=-5.893 | real_lift_vs_FF=-1.198 | 59.8s
+[06:53:34]   c8 inv-aware   (inventory_aware_piecewise, n=19) | chal_val=447.655 (prior_test=446.44) | real_val= 0.044 adv=-3.900 | real_lift_vs_FF=-0.540 | 62.6s
+[06:54:38]   c9 third-pass  (piecewise               , n=16) | chal_val=450.046 (prior_test=448.81) | real_val= 1.784 adv=+0.297 | real_lift_vs_FF=+1.200 | 64.0s
+[06:55:43]   c9 EMA-inv     (ema_inventory_piecewise , n=20) | chal_val=457.620 (prior_test=456.64) | real_val= 2.784 adv=+2.527 | real_lift_vs_FF=+2.200 | 64.8s
+[06:56:48]   c10A noop      (piecewise               , n=20) | chal_val=457.668 (prior_test=456.74) | real_val= 2.967 adv=+3.087 | real_lift_vs_FF=+2.383 | 65.2s
+[06:57:54]   c11 d16_s2     (piecewise               , n=16) | chal_val=458.539 (prior_test=456.80) | real_val= 2.918 adv=+3.053 | real_lift_vs_FF=+2.334 | 65.3s
+[06:58:58]   c13 longrun    (piecewise               , n=16) | chal_val=458.539 (prior_test=456.80) | real_val= 2.918 adv=+3.053 | real_lift_vs_FF=+2.334 | 64.6s
+[06:58:58]   -> wrote /sessions/gifted-amazing-bohr/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle14-m3-dualcurve-bootstrap/results/dualcurve.json
