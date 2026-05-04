@@ -2,3 +2,9 @@
 # Cycle artifacts live under research/experiments/ and must be tracked.
 !experiments/
 !experiments/**
+
+# bin/checks/05_results_dir_unlink_blocked.py drops un-deletable
+# tmp files in here as part of the falsifying test for the unlink-
+# blocked-in-results-dir workaround. They should never be committed.
+experiments/.checks_tmp/
+experiments/.checks_tmp/**

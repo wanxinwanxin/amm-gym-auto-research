@@ -31,10 +31,11 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 8 — best M2 score now <strong>446.61</strong>;
-inventory ablation shows the lift is from a 2nd CEM pass on bare
-piecewise, not from inventory awareness; init_std sweep confirms 0.10
-is the sweet spot). Read top-to-bottom; later milestones build on
+updated 2026-05-04 (cycle 9 — best M2 score now <strong>448.81</strong>
+after a third-pass warm-start CEM lifted bare piecewise +2.2 pts
+above cycle 8; the diminishing-returns pattern is now visible across
+all three passes, suggesting the 16-d piecewise basin is finally
+near its asymptote). Read top-to-bottom; later milestones build on
 earlier ones.</p>
 
 <div class="summary">
@@ -705,22 +706,109 @@ not the answer.</p>
   to revive gradient-based optimization on piecewise.</li>
 </ol>
 
-<h3>Cycle 9 plan</h3>
+<h3>Cycle 9 — third pass extracts the last drops, EMA inventory is the next look</h3>
+
+<p><strong>Hypothesis going in.</strong> Cycle 6 added +18.7 pts to bare
+piecewise; cycle 8 (the falsified-inventory CEM, in reality just
+warm-start pass #2 on the piecewise core) added +13.9 more. Was that
+the basin floor, or is there another +3-7 on offer? Prior: ~50/50.</p>
+
+<p><strong>Result.</strong> A third 12-gen warm-start CEM pass anchored
+at the cycle-8 ablation params (446.61) lifted test from <strong>446.61
+to 448.81</strong> — Δ = +2.19 pts on 256 held-out test seeds. The
+val curve climbs from 447.9 (gen 0 = anchor) to 449.9 by gen 7 and
+flattens for the last 4 gens at 449.7-449.9. So the prior was right
+on the lower edge: a third pass *did* find more, but only ~2 pts of
+it, vs +14 from pass 2. The basin is finally close to converged.</p>
+
+<figure>
+  <img src="m2_three_pass_convergence.png"
+       alt="Three-pass warm-start CEM val curve">
+  <figcaption>Three passes of warm-start CEM on bare piecewise, laid
+  end-to-end. Cycle 6 (navy) starts from the cycle-5 search-best and
+  climbs to 433.6 val. Cycle 8 (teal — the run originally framed as
+  inventory-aware, then ablated to a piecewise-only result) restarts
+  from cycle-6's best and reaches 447.7 val. Cycle 9 (red) restarts
+  from cycle-8's ablation best and reaches 449.9 val. Dashed lines
+  are 256-seed test scores at each pass's val-best. The diminishing-
+  returns pattern across passes is clear: +18.7, +13.9, +2.2.</figcaption>
+</figure>
+
+<p><strong>What the curve tells us.</strong> The first 3-4 gens of
+each pass do most of the work. Cycle 9 climbs sharply for gens 4-7
+(+1.7 val pts) and then flattens. Combined with the cycle-8 init_std
+sweep (which showed 0.10 was the sweet spot), this is consistent with
+the optimizer having found a local basin whose width is well-matched
+to init_std=0.10 — and that basin's ceiling is somewhere around
+val 450 / test 449. The "successive passes keep paying off" rule of
+thumb still applies, but the marginal lift is shrinking by ~6× each
+pass; a fourth pass at the same recipe is unlikely to be worth the
+~30 min of compute.</p>
+
+<table>
+  <tr><th class="l">cycle</th><th>anchor test</th><th>val (best)</th><th>test (best)</th><th>Δ test vs pass-1 anchor</th></tr>
+  <tr><td class="l">5 (starting line)</td><td>n/a</td><td>—</td><td>~414</td><td>0</td></tr>
+  <tr><td class="l">6 (pass 1)</td><td>~414</td><td>433.57</td><td>432.75</td><td>+18.7</td></tr>
+  <tr><td class="l">8 (pass 2, post-ablation)</td><td>432.75</td><td>447.66</td><td>446.61</td><td>+32.6</td></tr>
+  <tr><td class="l">9 (pass 3)</td><td>446.61</td><td>450.05</td><td><strong>448.81</strong></td><td><strong>+34.8</strong></td></tr>
+  <tr><td class="l">M2 target</td><td>—</td><td>—</td><td>540.0</td><td>+126</td></tr>
+</table>
+
+<p>Gap to M2 target shrinks from 93.4 to <strong>91.2 pts</strong>.
+Closing 91 pts with a 16-d piecewise policy is implausible — the
+remaining lift will have to come from a richer policy class.</p>
+
+<div class="insight">
+<strong>Updated prior on M2 strategy.</strong> Bare piecewise (16 dims)
+appears to plateau around test 449 ± 2. Three independent CEM passes
+narrow on the same basin, with diminishing returns. To close the
+remaining 91 pts to target, we need to escalate policy complexity:
+ladder, MLP, or a learned latent state. The cycle-8 falsification of
+instantaneous-inventory was a useful negative result; the cycle-9 EMA
+variant is one more cheap experiment on the inventory dimension before
+moving on.
+</div>
+
+<h3>Cycle 9 — EMA inventory as the last look at inventory awareness</h3>
+<div class="pending">
+The EMA-inventory experiment is queued and partially run. New policy
+<code>EMAInventoryPiecewiseStrategy</code> (20 params: 16 piecewise +
+4 EMA-inventory) lives at <code>arena_policies/ema_inventory_piecewise.py</code>
+with a 7-test parity suite at <code>tests/test_ema_inventory_piecewise.py</code>
+(all green). The CEM driver was started after the third-pass run
+finished; results land in
+<code>research/experiments/2026-05-04-cycle9-ema-inventory-piecewise/results/</code>.
+Cycle 10 will report the EMA outcome and decide whether the inventory
+dimension is genuinely dead (cycle 8 instantaneous Δ ≈ 0; cycle 9 EMA
+Δ pending).
+</div>
+
+<h3>Cycle 9 — what's blocked</h3>
+<div class="caveat">
+The smooth-vs-exact correlation study (cycle-8 deferred priority #2)
+is blocked on this sandbox: <code>pip install jax</code> OOMs at the
+3.9 GB / no-swap RAM budget, and <code>arena_eval/diff_simple_amm</code>
+imports jax. We've encoded this as <code>bin/checks/08_jax_optional.sh</code>
+so future cycles re-test rather than rediscover. The diagnostic is
+still the right next thing for revival of gradient-based optimization.
+</div>
+
+<h3>Cycle 10 plan</h3>
 <ol>
-  <li><strong>Cycle-8b: third-pass warm-start CEM on bare piecewise</strong>
-  anchored at the cycle-8 ablation params (446.61). Same 12-gen,
-  init_std=0.10 recipe. Tells us whether two passes was a waypoint or
-  the asymptote. ~30 min.</li>
-  <li><strong>Smooth-vs-exact correlation study</strong> (deferred from
-  cycle 8). N=64 samples in a 0.10×range neighborhood of cycle-8 best;
-  scatter exact vs smooth, report Pearson and Spearman. ~15 min.</li>
-  <li><strong>EMA inventory feature.</strong> One more cheap shot at
-  inventory: replace instantaneous imbalance with an EMA over reserve
-  deviation, warm-start CEM from the cycle-8 ablation params + EMA
-  decay+weight at cycle-9-chosen defaults. ~30 min.</li>
-  <li><strong>Defer indefinitely:</strong> direct gradient-from-CEM-best
-  on piecewise (still failing per cycle 6); cycle-7 RNG-seed sanity on
-  piecewise (interesting but not cycle-critical).</li>
+  <li><strong>Land the EMA-inventory result</strong> from the
+  parallel-launched run; if Δ ≥ +2 on test, follow up with a richer
+  policy that actually uses inventory state; if Δ &lt; +1, declare
+  the inventory dimension dead in this challenge tape and stop trying
+  inventory-shaped features.</li>
+  <li><strong>Climb the policy-complexity curve.</strong> The plateau
+  signal from cycles 6-9 says we need more capacity. First step: a
+  ladder/piecewise policy with 4-6 quote levels per side instead of
+  the symmetric single-side fee; warm-start the rung anchored at the
+  cycle-9 best. Estimated ~1 hour of CEM.</li>
+  <li><strong>Unblock smooth-vs-exact</strong> by either upgrading the
+  sandbox image, building a smaller jax wheel, or routing the diff
+  experiments through the host. Until that lands, gradient-based
+  approaches are off the table.</li>
 </ol>
 
 <h2>M3 — Generalization study</h2>

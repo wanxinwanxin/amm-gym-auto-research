@@ -22,6 +22,11 @@ from arena_policies.latent_ladder import (
     LatentToxicityParams,
     LatentToxicityStrategy,
 )
+from arena_policies.ema_inventory_piecewise import (
+    EMAInventoryPiecewiseParams,
+    EMAInventoryPiecewiseState,
+    EMAInventoryPiecewiseStrategy,
+)
 from arena_policies.inventory_aware_piecewise import (
     InventoryAwarePiecewiseParams,
     InventoryAwarePiecewiseState,
@@ -55,6 +60,9 @@ __all__ = [
     "BeliefStateControllerParams",
     "BeliefStateControllerState",
     "BeliefStateControllerStrategy",
+    "EMAInventoryPiecewiseParams",
+    "EMAInventoryPiecewiseState",
+    "EMAInventoryPiecewiseStrategy",
     "InventoryAwarePiecewiseParams",
     "InventoryAwarePiecewiseState",
     "InventoryAwarePiecewiseStrategy",

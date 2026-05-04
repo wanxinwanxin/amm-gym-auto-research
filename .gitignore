@@ -5,3 +5,7 @@ __pycache__/
 *.egg-info/
 .claude/
 
+# bin/checks/05_results_dir_unlink_blocked.py creates throwaway tmp
+# files that the sandbox cannot unlink (that's the whole point of
+# the check). Keep them out of git.
+research/experiments/.checks_tmp/

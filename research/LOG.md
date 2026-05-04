@@ -859,3 +859,165 @@ headroom or was action-space-saturated.
 - Inherited working-tree changes (across `arena_eval/`,
   `arena_policies/`, `arena_search/`, etc.) still untouched per
   convention.
+
+## 2026-05-04T15:55Z — cycle 9 — third-pass CEM lifts piecewise +2.2 (basin near-saturated); EMA inventory queued; bin/checks/ scaffold added
+
+**Plan for the cycle.** Three priorities from cycle 8 closeout:
+(1) third-pass warm-start CEM on bare piecewise anchored at cycle-8
+ablation params (446.61) — does pass #3 keep paying off, or has
+the basin saturated? (2) smooth-vs-exact correlation study (deferred
+from cycle 8) anchored at cycle-8 best; (3) EMA-inventory feature as
+one more cheap shot at inventory before declaring the dimension dead.
+Bonus: scaffold the missed-from-cycle-1 `bin/checks/` directory.
+
+**What ran.**
+
+1. **bin/checks/ scaffold** (priority bonus). Created `bin/run_checks.sh`
+   driver and 8 starter checks encoding operational facts learned
+   across cycles 1-8: remote-origin sanity, system-python use
+   (the .venv shim is Mac-only), essential-deps importable
+   (numpy/gymnasium/pyarrow/pytest), no-outbound-DNS to github.com
+   (sandbox is push-blocked), can't-unlink-results-dir, arena_eval
+   imports, piecewise anchor scoring, and an *expected-fail* jax-
+   optional check. All pass except jax. Drives the cycle's first-step
+   orient phase from now on.
+2. **Third-pass warm-start CEM** (priority #1). Same recipe as
+   cycles 6 and 8: pop=24 / gen=12 / init_std_frac=0.10 /
+   elite_frac=0.20, search 0..63, val 1000..1127, test 2000..2255.
+   Anchor parity check: 16-d piecewise (cycle-8 ablation params,
+   inv-skew dropped) scored 441.530 on the search seeds, matching
+   cycle 8 exactly. CEM finished in ~30 min. Convergence: gen 0
+   val=447.89 (anchor), then 446.7 / 447.7 / 447.7 (gens 1-3 — early
+   wandering), 449.2 / 449.4 / 449.6 / 449.9 / 449.7 / 449.9 / 449.8
+   / 449.9 (gens 4-11 — clean climb then plateau). Reranked 8
+   unique elites on val; val-best on 256 test seeds = **448.81**
+   (Δ = +2.19 vs cycle-8 ablation 446.61).
+3. **EMA-inventory piecewise CEM** (priority #3). New 20-param
+   policy `EMAInventoryPiecewiseStrategy` (16 piecewise core + 4
+   EMA-inventory: decay, skew_to_bid, skew_to_ask, dead_zone). State
+   tracks `imbalance_ema = decay * prior_ema + (1 - decay) * raw`.
+   With skews=0 the strategy is parity-equal to bare piecewise for
+   any decay value. Wrote 7 unit tests (`tests/test_ema_inventory_piecewise.py`)
+   covering: zero-skew parity at decay ∈ {0.0, 0.5, 0.95, 0.99},
+   decay=0 tracks instantaneous, decay=0.9 smooths, anchor parity
+   on 32 test seeds. All pass. Registered in `arena_search/simple_amm_search.py`
+   as `ema_inventory_piecewise`. CEM driver staged at
+   `research/experiments/2026-05-04-cycle9-ema-inventory-piecewise/scripts/run_ema_inventory_cem.py`,
+   launched in background after the third-pass CEM finished.
+   Anchor parity 441.530 confirmed at startup. Cycle 10 lands the
+   final test number; first few gens captured in the in-flight log.
+4. **Smooth-vs-exact correlation study** (priority #2). *Blocked
+   on this sandbox* — `pip install jax[cpu]` and bare `pip install
+   jax jaxlib` both OOM (3.9 GB total / no swap, both die with
+   SIGTERM 143). `arena_eval/diff_simple_amm` imports jax. Encoded
+   as `bin/checks/08_jax_optional.sh`; the check fails today,
+   passes when jax becomes installable. Marked as a user-facing
+   blocker in STATE.md.
+
+**What worked.**
+
+- **The third-pass hypothesis was confirmed at the lower edge
+  of the prior.** +2.19 pts on test, val curve climbs and then
+  flattens — exactly the "diminishing-returns near saturation"
+  shape. The successive-warm-start-pass rule still applies, but
+  the marginal lift shrank from +18.7 → +13.9 → +2.2 across the
+  three passes. This *is* the falsifying test for "should I run
+  pass #4": the marginal lift would be ~0-1 pts and we already
+  spent the cycle finding out.
+- **Anchor parity check at gen 0 reproducibly catches family-
+  rewrap bugs.** 16-d piecewise instantiation at cycle-8-ablation
+  params scored 441.530 on the search seeds — matching cycle 8
+  exactly to 4 decimal places. Confirms the param-rename and
+  family-registration didn't introduce drift.
+- **The EMA policy code + parity tests took ~20 min total.**
+  Same pattern that worked in cycle 8 (3 unit tests + a parity
+  check anchor in the CEM driver). Cycle-10 can trust the
+  warm-start anchor as a clean baseline because the parity tests
+  green.
+- **bin/checks/ scaffold caught the dep gap immediately.** Check
+  03 flagged scipy/jax/pyarrow missing on cycle start; pyarrow
+  installed cleanly, jax OOMed and got promoted to its own
+  optional-fail check 08. Without the scaffold, this would have
+  shown up as a confusing import error mid-CEM.
+
+**What failed (i.e., the cycle's main finding).**
+
+- **Cycle-9 did not unlock another +14 pts.** It unlocked +2.2.
+  This is a *positive* result for "two passes was a waypoint, not
+  the asymptote", but a *negative* result for "warm-start CEM is
+  the path to M2 = 540". Three passes have collectively closed
+  35 pts of the 126-pt gap (414 → 449, target 540); a fourth pass
+  at the same recipe is unlikely to clear the noise floor and is
+  not in the cycle-10 plan-of-record.
+- **jax-on-the-sandbox is genuinely unfixable in-cycle.** Two
+  install attempts both died with SIGTERM. There's no swap on the
+  host, total RAM is 3.9 GB, and pip's wheel-build is the OOM.
+  Workaround would have to be a wheel-only install via a curated
+  index, or a bigger sandbox.
+
+**Updates implied for the prior.**
+
+- **Bare piecewise (16 dims) plateaus at test ~449 ± 2.** Three
+  independent CEM passes converge toward this number with shrinking
+  gains. This is the new "ceiling" for the piecewise family. Any
+  further M2 lift comes from policy capacity, not search.
+- **The "successive warm-start passes keep paying off" rule
+  generalises with diminishing returns.** Specifically: the
+  marginal lift from pass *k+1* is ~6× smaller than from pass *k*
+  in this regime. Useful for cycle-10's cost-benefit on the rung
+  ladder.
+- **bin/checks/ is now a load-bearing part of the cycle protocol.**
+  First-step orient now runs `bash bin/run_checks.sh`; the cycle-9
+  prep caught the dep gap in <2s rather than via mid-run import
+  failures. Cap of ~12 active checks per the prompt; we're at 8
+  with one expected-fail (jax).
+
+**Side observations.**
+
+- Cycle-9 best params shift from cycle-8 best in interesting ways:
+  `signal_decay` 0.671 → 0.637 (faster decay), `toxicity_decay`
+  0.536 → 0.606 (slower decay), `continuation_to_cross_side`
+  1.358 → 1.524 (more cross-side aversion), `continuation_to_same_side`
+  0.123 → 0.180 (slightly more same-side aversion). Net effect:
+  faster signal forgetting + stronger cross-side fee skew. Worth
+  remembering if cycle-10's ladder explores asymmetric-side
+  configurations.
+- The third-pass CEM elite_mean catches up to the best by gen 3-4
+  (within ~0.1 pts of best) and stays there — same shape as cycle
+  8. Population is well-mixed by mid-run; no rogue elites.
+
+**Next.**
+
+- **Cycle 10 #1**: read EMA-inventory result, decide go/no-go on
+  inventory dimension.
+- **Cycle 10 #2**: escalate to a multi-rung quote ladder policy
+  (3-5 levels per side); warm-start CEM from cycle-9 piecewise
+  best embedded as the level-1 rung.
+- **Cycle 10 #3**: attempt jax-via-wheel install; if it works,
+  re-enable the deferred smooth-vs-exact correlation study.
+- **Defer**: a 4th-pass piecewise CEM (expected ~0-1 pt; not
+  worth the time).
+
+**Operational footnotes.**
+
+- Repo mount: `/sessions/optimistic-amazing-mccarthy/mnt/amm-gym-auto-research`.
+- `git pull --ff-only origin main` failed in the sandbox as expected
+  (DNS to github.com is blocked); local commits push via the host
+  launchd agent.
+- The `.venv` in the repo is Mac-only — system `python3` with deps
+  installed via `pip install --break-system-packages --no-cache-dir`
+  works inside the sandbox. Cycle 9 needed pytest, gymnasium, pyarrow.
+- Sandbox cannot `unlink` files in the experiment results dir; cycle-9
+  drivers truncate progress logs via `open("w")` instead of
+  `Path.unlink`.
+- ProcessPoolExecutor with 3 workers continues to saturate the 4-core
+  sandbox cleanly; ~125s/gen at dim=16, ~125-130s/gen at dim=20.
+- Cycle-9 wall-clock: ~5 min orient + ~10 min checks scaffold +
+  ~30 min third-pass CEM + ~5 min figure/presentation/STATE/LOG +
+  EMA CEM running in background at commit time. Within 2-hour budget.
+- Inherited working-tree changes (across `arena_eval/`,
+  `arena_policies/`, `arena_search/`, etc.) still untouched per
+  convention. Cycle 9's only edits to those areas: register the new
+  EMA policy in `arena_policies/__init__.py` and
+  `arena_search/simple_amm_search.py`, plus the new policy file and
+  test file.

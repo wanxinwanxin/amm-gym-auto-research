@@ -1,0 +1,48 @@
+[15:17:17] Cycle-9 third-pass piecewise warm-start CEM | dim=16 pop=24 gen=12 elite_n=4 init_std_frac=0.1 workers=3 rng_seed=0
+[15:17:17] Anchor: {'base_fee': 0.0016550408798529576, 'base_spread': 0.004243130017056316, 'signal_decay': 0.6710204554398381, 'toxicity_decay': 0.5359985273747493, 'small_trade_threshold': 0.0035434960848610567, 'large_trade_threshold': 0.010026395287212322, 'continuation_small': -0.0002902772323995477, 'continuation_medium': 0.007132694969980573, 'continuation_large': 0.01823001527951129, 'reversal_small': 0.01193099991680676, 'reversal_medium': 0.02189557268220984, 'reversal_large': 0.07594344828226333, 'continuation_to_same_side': 0.12260500653949676, 'continuation_to_cross_side': 1.3580492898846743, 'toxicity_to_mid': 0.009952017339294478, 'toxicity_to_side': 0.06882714964266168}
+[15:17:17] Search seeds: 0..63 (n=64)
+[15:17:17] Val seeds:    1000..1127 (n=128)
+[15:17:17] Test seeds:   2000..2255 (n=256)
+[15:17:32] Anchor search-seed score: 441.530 (cycle-8 ablation == bare piecewise best)
+[15:20:01]   gen  0: best=441.530 elite_mean=431.528 val=447.890 (119.7s+29.1s)
+[15:22:34]   gen  1: best=439.392 elite_mean=437.326 val=446.715 (124.8s+27.8s)
+[15:24:58]   gen  2: best=440.811 elite_mean=440.256 val=447.672 (117.3s+27.2s)
+[15:27:24]   gen  3: best=441.584 elite_mean=441.473 val=447.726 (117.7s+28.4s)
+[15:29:55]   gen  4: best=442.575 elite_mean=442.464 val=449.233 (122.1s+29.0s)
+[15:32:26]   gen  5: best=443.256 elite_mean=443.076 val=449.403 (122.2s+28.8s)
+[15:34:57]   gen  6: best=443.609 elite_mean=443.421 val=449.573 (121.8s+28.8s)
+[15:37:28]   gen  7: best=443.787 elite_mean=443.664 val=449.878 (122.0s+28.7s)
+[15:40:00]   gen  8: best=443.936 elite_mean=443.827 val=449.688 (123.4s+28.9s)
+[15:42:31]   gen  9: best=444.107 elite_mean=443.989 val=449.892 (122.3s+29.1s)
+[15:45:04]   gen 10: best=444.048 elite_mean=443.907 val=449.841 (122.6s+29.6s)
+[15:47:37]   gen 11: best=444.195 elite_mean=444.048 val=449.940 (123.8s+29.7s)
+[15:47:37] CEM complete in 1805.0s (30.1 min)
+[15:47:37] Reranking top-8 unique elites on val seeds, then scoring val-best on test…
+[15:52:37]   Best-by-val | val=450.046 | test=448.807 | adv=+53.809  (60.0s) | cycle8_starting_line=446.613
+[15:52:37]   Δ vs cycle-8 ablation best: +2.194
+[15:52:37]   -> wrote /sessions/optimistic-amazing-mccarthy/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle9-third-pass-piecewise-cem/results/third_pass_cem_test.json
+[15:52:37] {
+  "params": {
+    "base_fee": 0.0010961817003102218,
+    "base_spread": 0.003931111503793118,
+    "signal_decay": 0.6367571135399961,
+    "toxicity_decay": 0.6064692471845741,
+    "small_trade_threshold": 0.003171255695540588,
+    "large_trade_threshold": 0.011319249648044023,
+    "continuation_small": -0.00015591126987869486,
+    "continuation_medium": 0.006940032532688121,
+    "continuation_large": 0.019723982319179253,
+    "reversal_small": 0.007656598125130473,
+    "reversal_medium": 0.018245357928591773,
+    "reversal_large": 0.07854278268370844,
+    "continuation_to_same_side": 0.18010401320853392,
+    "continuation_to_cross_side": 1.5240919566392965,
+    "toxicity_to_mid": 0.008502069716200773,
+    "toxicity_to_side": 0.07281885171822046
+  },
+  "val_score": 450.0464522326216,
+  "val_edge_advantage": 55.7627473367687,
+  "test_score": 448.80742435892375,
+  "test_edge_advantage": 53.80915004009056,
+  "test_n_seeds": 256
+}
