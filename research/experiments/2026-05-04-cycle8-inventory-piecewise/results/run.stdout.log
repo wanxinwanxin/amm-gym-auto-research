@@ -1,0 +1,20 @@
+[12:29:15] Cycle-8 inventory-aware piecewise warm-start CEM | dim=19 pop=24 gen=12 elite_n=4 init_std_frac=0.1 workers=3 rng_seed=0
+[12:29:15] Anchor (inv-skew zeros at end): {'base_fee': 0.002367347771481619, 'base_spread': 0.004308002150845519, 'signal_decay': 0.5512724333509836, 'toxicity_decay': 0.552468164452998, 'small_trade_threshold': 0.004129871044378966, 'large_trade_threshold': 0.009904163985697503, 'continuation_small': -0.00012073758590954386, 'continuation_medium': 0.012093232860869314, 'continuation_large': 0.02, 'reversal_small': 0.016296159249685895, 'reversal_medium': 0.01927342926722678, 'reversal_large': 0.07813813355714157, 'continuation_to_same_side': 0.22765645382739977, 'continuation_to_cross_side': 0.8964001772946211, 'toxicity_to_mid': 0.012437665162005649, 'toxicity_to_side': 0.06301381267531339, 'inventory_skew_to_bid': 0.0, 'inventory_skew_to_ask': 0.0, 'inventory_skew_dead_zone': 0.0}
+[12:29:15] Search seeds: 0..63 (n=64)
+[12:29:15] Val seeds:    1000..1127 (n=128)
+[12:29:15] Test seeds:   2000..2255 (n=256)
+[12:29:28] Anchor search-seed score: 427.521 (zero-skew == piecewise)
+[12:31:51]   gen  0: best=427.521 elite_mean=424.645 val=433.566 | inv_bid=+0.0007 inv_ask=-0.0049 inv_dz=0.0031 (114.9s+27.7s)
+[12:34:17]   gen  1: best=430.563 elite_mean=429.433 val=437.447 | inv_bid=+0.0017 inv_ask=-0.0040 inv_dz=0.0027 (117.9s+27.8s)
+[12:36:40]   gen  2: best=433.292 elite_mean=432.656 val=439.454 | inv_bid=+0.0023 inv_ask=-0.0047 inv_dz=0.0019 (116.7s+26.9s)
+[12:39:07]   gen  3: best=436.827 elite_mean=435.871 val=443.271 | inv_bid=+0.0012 inv_ask=-0.0044 inv_dz=0.0018 (119.6s+27.4s)
+[12:41:36]   gen  4: best=437.525 elite_mean=437.224 val=443.366 | inv_bid=+0.0009 inv_ask=-0.0039 inv_dz=0.0022 (119.7s+28.6s)
+[12:44:05]   gen  5: best=438.486 elite_mean=438.024 val=444.606 | inv_bid=+0.0010 inv_ask=-0.0037 inv_dz=0.0022 (120.6s+29.1s)
+[12:46:39]   gen  6: best=439.330 elite_mean=439.051 val=445.302 | inv_bid=+0.0008 inv_ask=-0.0032 inv_dz=0.0022 (123.6s+29.9s)
+[12:49:14]   gen  7: best=439.822 elite_mean=439.525 val=446.012 | inv_bid=+0.0009 inv_ask=-0.0032 inv_dz=0.0022 (125.6s+29.6s)
+[12:51:50]   gen  8: best=440.154 elite_mean=440.054 val=446.196 | inv_bid=+0.0009 inv_ask=-0.0033 inv_dz=0.0023 (126.6s+29.8s)
+[12:54:24]   gen  9: best=440.918 elite_mean=440.648 val=447.258 | inv_bid=+0.0008 inv_ask=-0.0033 inv_dz=0.0023 (124.3s+28.8s)
+[12:56:55]   gen 10: best=441.401 elite_mean=441.048 val=447.655 | inv_bid=+0.0008 inv_ask=-0.0034 inv_dz=0.0022 (123.0s+28.6s)
+[12:59:29]   gen 11: best=441.898 elite_mean=441.558 val=447.543 | inv_bid=+0.0008 inv_ask=-0.0034 inv_dz=0.0024 (124.4s+29.8s)
+[12:59:29] CEM complete in 1800.9s (30.0 min)
+[12:59:29] Reranking top-8 unique elites on val seeds, then scoring val-best on test…

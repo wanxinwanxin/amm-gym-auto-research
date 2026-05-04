@@ -1,0 +1,45 @@
+[13:15:41] Cycle-8 init_std sweep | family=submission_compact init_std_frac=0.05 pop=24 gen=5 elite_n=4 workers=3 rng_seed=0
+[13:18:08]   init_std_frac=0.05 gen  0: best=407.353 elite_mean=406.734 val=411.252 (118.1s+29.5s)
+[13:20:37]   init_std_frac=0.05 gen  1: best=408.338 elite_mean=407.606 val=413.630 (120.0s+28.1s)
+[13:23:06]   init_std_frac=0.05 gen  2: best=407.910 elite_mean=407.876 val=412.786 (120.7s+28.5s)
+[13:25:32]   init_std_frac=0.05 gen  3: best=408.219 elite_mean=408.189 val=413.342 (118.5s+27.6s)
+[13:28:00]   init_std_frac=0.05 gen  4: best=408.650 elite_mean=408.595 val=413.750 (119.4s+28.6s)
+[13:28:00]   init_std=0.05 CEM done in 739.1s
+[13:30:51]   init_std=0.05: best_val=413.750 -> test=413.033 (Δ vs starting line +2.257)
+[13:30:51] Cycle-8 init_std sweep | family=submission_compact init_std_frac=0.2 pop=24 gen=5 elite_n=4 workers=3 rng_seed=0
+[13:33:14]   init_std_frac=0.20 gen  0: best=406.172 elite_mean=401.291 val=411.547 (115.3s+27.8s)
+[13:35:39]   init_std_frac=0.20 gen  1: best=406.661 elite_mean=404.907 val=412.296 (117.8s+27.3s)
+[13:38:08]   init_std_frac=0.20 gen  2: best=407.372 elite_mean=406.458 val=412.781 (121.2s+27.9s)
+[13:40:34]   init_std_frac=0.20 gen  3: best=407.839 elite_mean=407.540 val=413.644 (118.2s+27.5s)
+[13:42:58]   init_std_frac=0.20 gen  4: best=408.788 elite_mean=408.467 val=414.512 (117.1s+27.1s)
+[13:42:58]   init_std=0.20 CEM done in 727.3s
+[13:45:42]   init_std=0.20: best_val=414.527 -> test=413.578 (Δ vs starting line +2.802)
+[13:45:42] Cycle-8 init_std sweep | family=submission_compact init_std_frac=0.3 pop=24 gen=5 elite_n=4 workers=3 rng_seed=0
+[13:48:04]   init_std_frac=0.30 gen  0: best=406.172 elite_mean=397.255 val=411.547 (114.4s+27.3s)
+[13:50:27]   init_std_frac=0.30 gen  1: best=404.602 elite_mean=403.603 val=411.047 (116.5s+26.7s)
+[14:26:53]   init_std_frac=0.30 gen  2: best=407.035 elite_mean=405.701 val=412.781 (2158.4s+27.9s)
+[14:29:20]   init_std_frac=0.30 gen  3: best=407.235 elite_mean=406.943 val=412.934 (119.2s+27.4s)
+[14:31:44]   init_std_frac=0.30 gen  4: best=409.090 elite_mean=408.459 val=415.029 (117.5s+27.1s)
+[14:31:44]   init_std=0.30 CEM done in 2762.3s
+[14:34:29]   init_std=0.30: best_val=415.029 -> test=413.881 (Δ vs starting line +3.105)
+=== sweep summary ===
+[
+  {
+    "init_std_frac": 0.05,
+    "test_score": 413.0331539207946,
+    "delta_vs_starting_line": 2.257153920794565,
+    "total_elapsed_s": 739.0701296329498
+  },
+  {
+    "init_std_frac": 0.2,
+    "test_score": 413.57827956586385,
+    "delta_vs_starting_line": 2.8022795658638415,
+    "total_elapsed_s": 727.2577450275421
+  },
+  {
+    "init_std_frac": 0.3,
+    "test_score": 413.88080547054085,
+    "delta_vs_starting_line": 3.104805470540839,
+    "total_elapsed_s": 2762.287855863571
+  }
+]

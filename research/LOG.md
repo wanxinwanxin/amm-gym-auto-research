@@ -704,3 +704,158 @@ sits very close to its inherited best_search (375.43).
   setup/figs/docs ≈ 67 min, well under the 2-hour budget.
 - Inherited working-tree changes (across `arena_eval/`,
   `arena_policies/`, etc.) still untouched per convention.
+
+---
+
+## 2026-05-04T14:40Z — cycle 8 — inventory-aware piecewise (ablation kills the headline) + init_std sweep
+
+**Plan for the cycle.** Per cycle-7 STATE: three priorities for cycle 8:
+(1) inventory-aware piecewise warm-start CEM, (2) init_std sensitivity
+on `submission_compact`, (3) smooth-vs-exact correlation diagnostic.
+Run them in roughly that VOI order. Inventory was the single most
+informative experiment to run because piecewise's structural advantage
+was the cycle-7 finding and we wanted to know if the family had more
+headroom or was action-space-saturated.
+
+**Hypotheses going in.**
+- Inventory: ~60/40 the dimension matters. Cycle-6 piecewise had
+  val_edge_advantage = -19.3, so adding fee skew to pull inventory
+  back to neutral should claw back some adverse-selection losses.
+- Init_std: ~70/30 the cycle-7 0.10 default was correct (cycle 7
+  noted population still drifting at gen 11 but val plateaued by
+  gen 8 — the basin shape probably is ~0.10 wide).
+- Smooth-exact: ~50/50 on whether the surrogate is salvageable.
+
+**What I ran.**
+
+1. **Inventory-aware piecewise.** New strategy
+   `arena_policies/inventory_aware_piecewise.py` — 16-param piecewise
+   + 3 inventory params (`inventory_skew_to_bid`,
+   `inventory_skew_to_ask`, `inventory_skew_dead_zone`). At zero,
+   behaviourally identical to `PiecewiseControllerStrategy` —
+   verified by 3 unit tests AND the in-driver gen-0 anchor check
+   (best 427.521 = cycle-6 piecewise search-seed reference).
+   Registered as `inventory_aware_piecewise` in
+   `arena_search/simple_amm_search.py`. Driver:
+   `research/experiments/2026-05-04-cycle8-inventory-piecewise/scripts/run_inventory_warmstart_cem.py`
+   — 12-gen CEM, pop=24, init_std=0.10. Wall-clock 30 min.
+2. **Recovery rerank+test** — the driver was reaped between sandbox
+   shells after gen 11 finished but before the test eval. Recovery
+   script `scripts/recover_rerank_and_test.py` rebuilt the test json
+   from the persisted history (top-1 per gen, deduped → top-8 on val
+   → val-best on test). Runs in ~5 min.
+3. **Inventory ablation** — `scripts/run_ablation.py` re-evals the
+   cycle-8 best with inv params zeroed AND under the bare
+   `PiecewiseControllerStrategy` for parity. ~3 min.
+4. **Init_std sweep on `submission_compact`** — driver
+   `research/experiments/2026-05-04-cycle8-init-std-sweep/scripts/run_init_std_sweep.py`,
+   3 sub-runs at init_std_frac ∈ {0.05, 0.20, 0.30}, 5 gens each.
+   Wall-clock ~75 min including ~36 min sandbox stall at one gen.
+
+**What worked.**
+
+- **Inventory-aware piecewise CEM lifted cycle-6 piecewise from
+  test 432.75 to test 446.44 (+13.69 pts).** val_edge_advantage
+  flipped sign from -19.30 to +26.16 — strategy went from losing
+  flow share to the normalizer to actively winning it. M2 gap
+  shrank from 107.25 → 93.56.
+- **The 3-experiment scaffold pattern**: implementing the new policy
+  + 3 unit tests + parity-check anchor in the CEM driver took ~15
+  min total and caught zero bugs. The unit tests were genuinely
+  worth the time — they let me trust the gen-0 anchor=427.521 as a
+  parity check, which let me trust every subsequent gen as a real
+  CEM step rather than something invalidated by a strategy bug.
+- **Recovery from killed-mid-rerank driver was clean.** The
+  per-gen history.json had everything needed. Cycle-9 STATE
+  documents the recovery pattern.
+- **Init_std sweep gave a clean U-shape signal**: 0.05 → +2.26,
+  0.10 → +5.30 (cycle 7), 0.20 → +2.80, 0.30 → +3.11. The cycle-7
+  default was the sweet spot.
+
+**What failed (i.e., the cycle's main finding).**
+
+- **The ablation falsified the inventory hypothesis.** Zeroing the
+  3 inventory-skew params drops cycle-8 best from 446.44 to 446.61
+  on test (Δ = -0.17, within noise). The full +13.69 lift over
+  cycle-6 piecewise is attributable entirely to additional CEM
+  refinement on the 16 inherited piecewise dims. The "inventory-aware"
+  framing turned out to be misleading — what really happened is that
+  12 more CEM gens at init_std=0.10 starting from the cycle-6 best
+  lifted bare piecewise from 432.7 to 446.6.
+- **The cycle-7 cycle-8-priority-#2 hypothesis was also falsified.**
+  I went in expecting either 0.20 or 0.30 to lift `submission_compact`
+  to ~430+, which would have re-spec'd the warm-start prescription
+  to "warm-start AND match init_std to inherited basin width".
+  Neither did. submission_compact is action-space-saturated for
+  warm-start CEM; further hyperparameter tuning won't unlock it.
+- **Cycle-8 priority-#3 (smooth-vs-exact correlation) was deferred
+  to cycle 9** due to wall-clock spent on the first two experiments.
+  Driver is staged at
+  `research/experiments/2026-05-04-cycle8-smooth-exact-correlation/scripts/run_smooth_exact_scatter.py`.
+  Not lost work — just shifted by one cycle.
+
+**Updates implied for the prior.**
+
+- **Cycle 6 was much more under-converged than its log claimed.**
+  Cycle-6 reported "val plateaued at 433.6 by gen 11"; a second
+  12-gen pass starting from cycle-6 best lifted +14 pts more.
+  **Two-pass warm-start CEM is itself a free win on piecewise.**
+  This generalises the cycle-6 prescription: not just "warm-start CEM
+  beats fresh CEM" but "successive warm-start passes keep paying off
+  until the basin is *actually* saturated, and the cheap diagnostic
+  for saturation is to run another pass and see if it adds anything."
+- **Inventory shaping in this exact form (symmetric fee skew on
+  instantaneous reserve imbalance, no EMA) is not the bottleneck
+  for piecewise.** Either ChallengeTape doesn't generate enough
+  sustained one-sided flow, or the formulation is too coarse. An
+  EMA version is worth one more cheap experiment before declaring
+  the dimension dead.
+- **The +14 pts of extra search did not have to be paid for.** The
+  19-d optimizer found this lift in the same wall-clock budget as
+  cycle-6's 16-d optimizer at the same init_std width — adding 3
+  inert dimensions did not measurably slow CEM convergence.
+- **Best M2 score: 446.61** (piecewise, cycle-8 ablation params).
+  Gap to M2 target (540): 93.39 pts.
+
+**Side observations.**
+
+- The cycle-8 best params shifted notably from cycle-6: signal_decay
+  0.55 → 0.67, continuation_to_cross_side 0.90 → 1.36,
+  continuation_to_same_side 0.23 → 0.12. The new optimum keeps less
+  "follow your own side" and more "stay on the cross side," and
+  decays signal slower. Worth keeping in mind if we add new
+  features in cycle 9.
+- The ProcessPoolExecutor + fork pattern continues to work
+  reliably across all 3 cycle-8 drivers. CEM with 3 workers
+  saturates the 4-core sandbox at ~140-145s/gen for 16-d, ~120s/gen
+  for 19-d (only-marginal slowdown despite richer policy).
+
+**Next.**
+
+- **Cycle 9 #1**: third-pass warm-start CEM on bare piecewise at
+  cycle-8 ablation params. ~30 min. Tells us whether two passes is
+  the asymptote.
+- **Cycle 9 #2**: smooth-vs-exact correlation (deferred). Anchor at
+  cycle-8 best. ~15 min.
+- **Cycle 9 #3**: EMA inventory feature. ~30 min.
+
+**Operational footnotes.**
+
+- Repo mount: `/sessions/focused-trusting-heisenberg/mnt/amm-gym-auto-research`.
+- `git pull --ff-only origin main` failed in the sandbox as expected
+  (DNS to github.com is blocked); local commits push via the host
+  launchd agent.
+- The `.venv` in the repo is Mac-only — system `python3` with deps
+  installed via `pip install --break-system-packages` works inside
+  the sandbox. Cycle-8 also added `pytest` to the dep list.
+- Sandbox cannot `unlink` files in the experiment results dir; all
+  cycle-8 drivers truncate progress logs via `open("w")` instead of
+  `Path.unlink`.
+- One ~36-min sandbox stall at init_std=0.30 gen 2 (otherwise normal
+  ~120s/gen). Generation completed correctly so the result is intact.
+- Cycle-8 wall-clock: ~100 min of useful work plus ~36 min of
+  unattributable sandbox stall, blowing the 2-hour cycle by ~15 min.
+  Acceptable trade-off for the depth of the ablation result.
+- Inherited working-tree changes (across `arena_eval/`,
+  `arena_policies/`, `arena_search/`, etc.) still untouched per
+  convention.

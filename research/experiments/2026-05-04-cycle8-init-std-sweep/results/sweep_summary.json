@@ -1,0 +1,20 @@
+[
+  {
+    "init_std_frac": 0.05,
+    "test_score": 413.0331539207946,
+    "delta_vs_starting_line": 2.257153920794565,
+    "total_elapsed_s": 739.0701296329498
+  },
+  {
+    "init_std_frac": 0.2,
+    "test_score": 413.57827956586385,
+    "delta_vs_starting_line": 2.8022795658638415,
+    "total_elapsed_s": 727.2577450275421
+  },
+  {
+    "init_std_frac": 0.3,
+    "test_score": 413.88080547054085,
+    "delta_vs_starting_line": 3.104805470540839,
+    "total_elapsed_s": 2762.287855863571
+  }
+]

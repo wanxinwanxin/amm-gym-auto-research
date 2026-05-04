@@ -1,0 +1,15 @@
+[13:10:35] Loading history…
+[13:10:35] Reranking top-8 on 128 val seeds…
+  gen 11: search=441.898 -> val=447.543
+  gen 10: search=441.401 -> val=447.655
+  gen  9: search=440.918 -> val=447.258
+  gen  8: search=440.154 -> val=446.196
+  gen  7: search=439.822 -> val=446.012
+  gen  6: search=439.330 -> val=445.302
+  gen  5: search=438.486 -> val=444.606
+  gen  4: search=437.525 -> val=443.366
+  rerank done in 227.4s
+[13:14:22] Scoring val-best on 256 test seeds…
+  Best-by-val | val=447.655 | test=446.441 | adv=+26.157 (56.9s)
+  Δ vs cycle-6 piecewise best: +13.694
+  -> wrote /sessions/focused-trusting-heisenberg/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle8-inventory-piecewise/results/inventory_warmstart_cem_test.json

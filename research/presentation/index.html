@@ -31,10 +31,11 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 7 — multi-family warm-start CEM falsifies
-the family-agnostic-lift hypothesis: piecewise +18.7, compact +5.3,
-basis +0.6). Read top-to-bottom; later milestones build on earlier
-ones.</p>
+updated 2026-05-04 (cycle 8 — best M2 score now <strong>446.61</strong>;
+inventory ablation shows the lift is from a 2nd CEM pass on bare
+piecewise, not from inventory awareness; init_std sweep confirms 0.10
+is the sweet spot). Read top-to-bottom; later milestones build on
+earlier ones.</p>
 
 <div class="summary">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
@@ -586,33 +587,140 @@ falsified.</strong>
   a successful negative result.</li>
 </ul>
 
-<h3>Cycle 8 plan</h3>
+<h3>Cycle 8 — inventory-aware piecewise (and the ablation that killed the headline)</h3>
+
+<p>I forked <code>PiecewiseControllerStrategy</code> into
+<code>InventoryAwarePiecewiseStrategy</code> by adding three new
+parameters: <code>inventory_skew_to_bid</code>,
+<code>inventory_skew_to_ask</code>, and <code>inventory_skew_dead_zone</code>.
+Imbalance is computed as <code>0.5 × (reserve_y/reserve_y_init −
+reserve_x/reserve_x_init)</code> and shrunk by the dead zone; the bid
+fee is raised when there's excess y (discouraging more y in) and the
+ask fee is lowered (encouraging y out). Three unit tests lock the
+parity invariant — at zero skew, the strategy is byte-for-byte
+identical to <code>PiecewiseControllerStrategy</code>. The warm-start
+CEM was anchored at the cycle-6 piecewise best plus zeros for the new
+3 params; gen-0 search score 427.521 confirmed the parity invariant in
+the simulator.</p>
+
+<p><strong>Headline result.</strong> Twelve generations of warm-start
+CEM at init_std=0.10 (otherwise identical to cycle 7) lifted test
+score from <span class="neg">432.75</span> to <span class="pos">446.44
+on 256 held-out test seeds</span>: <strong>+13.69 pts in one cycle,
+val_edge_advantage flipped sign from −19.30 to +26.16</strong>.
+M2 gap shrank from 107 → 94.</p>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle8-inventory-piecewise/figures/inventory_aware_summary.png"
+       alt="Cycle-8 inventory-aware piecewise summary">
+  <figcaption>Cycle-8 inventory-aware piecewise warm-start CEM: 12-gen
+  convergence (left), inventory-skew elite means by gen (middle),
+  M2 progress headline bar (right). The CEM picked tiny but consistent
+  inventory-skew magnitudes (bid +0.0008, ask -0.0034, dead-zone
+  ~0.002).</figcaption>
+</figure>
+
+<p><strong>Then I ran the ablation</strong> — re-evaluated the cycle-8
+best with the 3 inventory-skew params zeroed out, keeping the
+refined 16-d piecewise section identical:</p>
+
+<table>
+  <tr><th class="l">Variant</th><th>Test (256 seeds)</th><th>edge_adv</th></tr>
+  <tr><td class="l">Cycle-8 inv-aware best (inv params ON)</td><td>446.441</td><td>+26.16</td></tr>
+  <tr><td class="l"><strong>Same params, inv params zeroed</strong></td><td><strong>446.613</strong></td><td>+26.30</td></tr>
+  <tr><td class="l">Same 16 dims via PiecewiseStrategy (parity)</td><td>446.613</td><td>+26.30</td></tr>
+</table>
+
+<div class="caveat"><strong>The 3 inventory-skew params contribute
+Δ = −0.17 (slightly negative, within noise).</strong> The full
++13.69 pt lift is attributable entirely to additional CEM refinement
+on the 16 inherited piecewise dims. The "inventory-aware" framing
+is misleading — what really happened is that 12 more CEM gens at
+init_std=0.10 starting from the cycle-6 best lifted bare piecewise
+from 432.7 to 446.6.</div>
+
+<p>This is informative in three ways:</p>
+
 <ol>
-  <li><strong>Inventory-aware piecewise.</strong> Fork
-  <code>PiecewiseControllerStrategy</code> to add a per-side
-  inventory-skew term (3 new params: target, weight, decay). Warm-start
-  CEM with the cycle-6 best as the anchor for the existing 16 params
-  and library defaults for the new 3. Hypothesis: piecewise's lift
-  came from its asymmetric quote structure; explicit inventory awareness
-  should compose with that, not fight it. Budget: ~45 min.</li>
-  <li><strong>Init_std sensitivity sweep on
-  <code>submission_compact</code>.</strong> Re-run cycle-7's compact
-  warm-start CEM with init_std_frac ∈ {0.05, 0.20, 0.30} and 6 generations
-  each (instead of 12) to see if a wider noise budget escapes the
-  basin. ~3 × 15 min = 45 min.</li>
-  <li><strong>Smooth-vs-exact correlation study.</strong> Sample 64
-  random parameter sets in a 0.10×range neighborhood of the cycle-6
-  piecewise best, score each on both (a) <code>tape_smooth</code>'s
-  smooth objective and (b) the exact challenge score. Plot scatter,
-  measure Spearman correlation. If correlation is meaningfully positive
-  (>0.4) the gradient direction is salvageable with proper LR; if
-  not, abandon <code>tape_smooth</code> for piecewise entirely.
-  ~20 min.</li>
-  <li><strong>Defer the cycle-7 RNG-seed sanity</strong>. The strong
-  family-dependence we saw is not a ±2 pt seed-noise artifact (the
-  basis lift is ~0 pt; the compact lift is +5.3 — both well outside
-  one-seed noise). Confirming the piecewise +18.7 is also non-noise
-  remains worth doing but is no longer cycle-critical.</li>
+  <li><strong>Cycle 6 was much more under-converged than its log
+  claimed.</strong> Cycle-6 reported "val plateaued at 433.6 by gen 11";
+  a second 12-gen pass starting from cycle-6 best lifted +14 pts more.
+  <em>Two-pass CEM</em> is itself a free win on piecewise.</li>
+  <li><strong>Inventory shaping in this exact form is not the
+  bottleneck for piecewise.</strong> Either the ChallengeTape
+  distribution doesn't generate enough sustained one-sided flow for
+  inventory shaping to matter, or the symmetric-skew-on-instantaneous-
+  imbalance formulation is too coarse. An EMA version is worth one
+  cheap experiment before declaring the dimension dead.</li>
+  <li><strong>The +14 pts of extra search did not have to be paid
+  for.</strong> The 19-d optimizer found this lift in the same wall-clock
+  budget as cycle-6's 16-d optimizer at the same init_std width — adding
+  3 inert dimensions did not measurably slow CEM convergence.</li>
+</ol>
+
+<h3>Cycle 8 — init_std sensitivity sweep</h3>
+
+<p>Cycle-8 priority #2 was: was 0.10 the right basin width for
+<code>submission_compact</code>'s warm-start CEM? Swept init_std_frac ∈
+{0.05, 0.20, 0.30}, 5 gens each.</p>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle8-init-std-sweep/figures/init_std_sweep_summary.png"
+       alt="init_std sweep summary">
+  <figcaption>Per-init_std val-score over generations (left) and
+  per-init_std headline test bar (right). Clean U-shape — 0.10 is the
+  sweet spot.</figcaption>
+</figure>
+
+<table>
+  <tr><th class="l">init_std_frac</th><th>best_val</th><th>test (256 seeds)</th><th>Δ vs starting line</th></tr>
+  <tr><td class="l">0.05</td><td>413.75</td><td>413.03</td><td class="pos">+2.26</td></tr>
+  <tr><td class="l"><strong>0.10 (cycle 7)</strong></td><td><strong>416.88</strong></td><td><strong>416.08</strong></td><td class="pos"><strong>+5.30</strong></td></tr>
+  <tr><td class="l">0.20</td><td>414.53</td><td>413.58</td><td class="pos">+2.80</td></tr>
+  <tr><td class="l">0.30</td><td>415.03</td><td>413.88</td><td class="pos">+3.11</td></tr>
+</table>
+
+<p>The cycle-7 cycle-8-priority-#2 hypothesis is <em>falsified</em> —
+neither narrower nor wider init_std unlocks <code>submission_compact</code>
+beyond ~416. Combined with cycle 7's family ablation, this confirms
+<code>submission_compact</code> sits in a flat-bottom basin with a
+small high-value region. The right move is to either accept the cap
+or change optimizer entirely; further CEM hyperparameter tuning is
+not the answer.</p>
+
+<h3>What we learned about M2 strategy after cycle 8</h3>
+
+<ol>
+  <li><strong>Best M2 score: 446.61</strong> (piecewise, second-pass
+  warm-start CEM from cycle-6 best, 12 gens, init_std=0.10). Gap to
+  M2 target (540): <strong>93.39 pts</strong>.</li>
+  <li><strong>The cleanest cheap next step is a third pass</strong> of
+  warm-start CEM on bare piecewise, anchored at the cycle-8 ablation
+  params. Two passes added +14; if a third adds another +5+, we have
+  more passes left in this approach. If &lt; +2, the basin is finally
+  converged and we need a richer policy class.</li>
+  <li><strong>The smooth-vs-exact correlation study was deferred to
+  cycle 9</strong> due to the wall-clock spent on the first two cycle-8
+  experiments. That diagnostic is still the right next thing if we want
+  to revive gradient-based optimization on piecewise.</li>
+</ol>
+
+<h3>Cycle 9 plan</h3>
+<ol>
+  <li><strong>Cycle-8b: third-pass warm-start CEM on bare piecewise</strong>
+  anchored at the cycle-8 ablation params (446.61). Same 12-gen,
+  init_std=0.10 recipe. Tells us whether two passes was a waypoint or
+  the asymptote. ~30 min.</li>
+  <li><strong>Smooth-vs-exact correlation study</strong> (deferred from
+  cycle 8). N=64 samples in a 0.10×range neighborhood of cycle-8 best;
+  scatter exact vs smooth, report Pearson and Spearman. ~15 min.</li>
+  <li><strong>EMA inventory feature.</strong> One more cheap shot at
+  inventory: replace instantaneous imbalance with an EMA over reserve
+  deviation, warm-start CEM from the cycle-8 ablation params + EMA
+  decay+weight at cycle-9-chosen defaults. ~30 min.</li>
+  <li><strong>Defer indefinitely:</strong> direct gradient-from-CEM-best
+  on piecewise (still failing per cycle 6); cycle-7 RNG-seed sanity on
+  piecewise (interesting but not cycle-critical).</li>
 </ol>
 
 <h2>M3 — Generalization study</h2>

@@ -1,97 +1,92 @@
 # State — current cycle
 
-**Last updated**: 2026-05-04 (cycle 7)
+**Last updated**: 2026-05-04 (cycle 8 — closed)
 
 ## Active milestone
 
-**M2 — Optimize against the simple-AMM challenge.** Cycle 7 ran
-warm-start CEM on `submission_compact` and `submission_basis`,
-falsifying the cycle-6 hypothesis that warm-start CEM lifts ~+19 pts
-across all policy families. Best M2 score remains 432.75
-(piecewise, cycle 6). Gap to target: **107.25 pts**.
+**M2 — Optimize against the simple-AMM challenge.** Cycle 8 closed
+with a clean +13.7 pt M2 lift but the headline ablation flipped the
+attribution: the "inventory-aware piecewise" framing turned out to be
+a misnomer. The full lift came from a second pass of warm-start CEM
+on bare piecewise, not from the new inventory dimension.
 
-## Current sub-task
+**Best M2 score: 446.61** (piecewise, cycle-8 ablation params, 256
+test seeds). Up from cycle-6's 432.75. Gap to M2 target (540): 93.39
+pts.
 
-Cycle 7 finished:
+## Cycle-8 results (final)
 
-- **`submission_compact` warm-start CEM** (rng_seed=0): 410.78 →
-  416.08 on test (val 416.88). Δ = +5.30 pts. Wall-clock 28.6 min.
-  Population still drifting upward at gen 11 (best_search +1.0
-  pt/gen) but val plateaued by gen 8 — suggests the basin shape is
-  flat or the val noise floor is ~1 pt.
-- **`submission_basis` warm-start CEM** (rng_seed=0): 380.26 →
-  380.82. Δ = +0.56 pts (≤ val noise floor). Wall-clock 27.8 min.
-  Population fully collapsed by gen 5: gen-over-gen val change
-  ≤0.05 from gen 4. The inherited 14×22 CEM was already converged
-  in this basin; warm-start refinement at 0.10×range adds nothing.
-- **Multi-family figure** (`figures/family_comparison.png`,
-  `figures/family_lift_bar.png`) and presentation update (cycle-7
-  section) committed.
+1. **Inventory-aware piecewise warm-start CEM** — test 446.44 (val
+   447.66, edge_advantage flipped from −19.30 to +26.16).
+2. **Inventory ablation** — zeroing the 3 new inv-skew params drops
+   the score by Δ = −0.17. Inventory dimension contributes nothing.
+   The +13.69 pt lift over cycle-6 is entirely from refined 16-d
+   piecewise dims found by the second-pass CEM.
+3. **Init_std sweep on `submission_compact`** — clean U-shape:
+   0.05 → +2.26, 0.10 → +5.30 (cycle 7), 0.20 → +2.80, 0.30 → +3.11.
+   Cycle-7 default was the sweet spot; submission_compact is action-
+   space saturated at this seed budget.
+4. **Smooth-vs-exact correlation study** — *deferred to cycle 9* due
+   to wall-clock spent on (1)+(3). Driver staged at
+   `research/experiments/2026-05-04-cycle8-smooth-exact-correlation/scripts/run_smooth_exact_scatter.py`.
 
-## Hypothesis going into cycle 8
+## Hypothesis going into cycle 9
 
-The cycle-6 +18.7 pt warm-start lift is **not family-agnostic** — it
-depends on (a) how under-converged the inherited optimizer was and
-(b) whether the policy's action-space has structure to refine. Three
-priorities for cycle 8, in order of value-of-information:
+The cycle-6 piecewise CEM was much further from convergence than its
+log claimed. Two passes of warm-start CEM (cycle 6 then cycle 8)
+added +33 pts over the cycle-5 starting line (414 → 446.6). Prior:
+**~50/50 a third pass adds another +3-7 pts** before the basin is
+truly converged.
 
-1. **Inventory-aware piecewise**: piecewise's structural advantage
-   (large/medium/small × continuation/reversal) is doing real work.
-   Adding a 3-param inventory-skew term with warm-start CEM should
-   tell us whether the family has more headroom than the current
-   432.7 wall, or whether we're action-space-saturated.
-2. **Init_std sensitivity on `submission_compact`**: was the +5.3 a
-   ceiling or a width-of-noise artifact? Sweep init_std_frac ∈
-   {0.05, 0.20, 0.30} with 6-gen CEM each. If 0.20 or 0.30 lifts to
-   ~430+, the cycle-6 prescription should be re-spec'd to "warm-start
-   AND match init_std to inherited basin width."
-3. **Smooth-vs-exact correlation study**: gradient via tape_smooth
-   is dead from CEM-best (cycle 6). A scatter of 64 random
-   neighborhood points (smooth_score vs exact_score) tells us whether
-   the surrogate is salvageable or fundamentally miscalibrated.
+## Cycle-9 plan-of-record
 
-## Next action (cycle 8)
-
-1. **Implement `InventoryAwarePiecewise`** — fork
-   `arena_policies.PiecewiseControllerStrategy`, add 3 inventory-skew
-   parameters, register in `POLICY_SPECS`. Warm-start CEM from
-   cycle-6 best. Budget: ~45 min.
-2. **Init_std sweep on `submission_compact`** — copy cycle-7 driver,
-   parametrize `init_std_frac`, run 3 sub-runs of 6 gens each.
-   Budget: ~45 min.
-3. **Smooth-vs-exact scatter** — 64 sample points in a 0.10×range
-   neighborhood of cycle-6 piecewise best, score each on both
-   surrogates, plot. Budget: ~20 min.
-4. Update presentation with the cycle-8 outcomes and pick cycle-9
-   direction based on whichever signal is strongest.
+1. **Cycle-8b: third-pass warm-start CEM on bare piecewise.** Anchor
+   at cycle-8 ablation params (446.61). Same 12-gen / pop=24 /
+   init_std=0.10 recipe. Tells us whether two passes was a waypoint or
+   the asymptote. Budget: ~30 min.
+2. **Smooth-vs-exact correlation study** (deferred from cycle 8).
+   Driver already staged at
+   `research/experiments/2026-05-04-cycle8-smooth-exact-correlation/scripts/run_smooth_exact_scatter.py`.
+   Anchor at cycle-8 best instead of cycle-6 best. ~15 min.
+3. **EMA inventory feature.** Cheap second shot at inventory:
+   replace instantaneous imbalance with an EMA over reserve deviation;
+   warm-start CEM from the cycle-8 ablation params + EMA decay+weight
+   defaults. ~30 min.
+4. Update presentation; pick cycle-10 direction based on whichever
+   signal is strongest.
 
 ## Blockers for user
 
 None. Push topology unchanged: sandbox commits to local `main`; host
-launchd agent ships to `origin` every 15 min. Sandbox-side
-`git pull` fails on DNS to github.com — expected, no action needed.
+launchd agent ships to `origin` every 15 min.
 
 ## Operational notes
 
 - **Repo path on this machine**:
-  `/sessions/trusting-great-dijkstra/mnt/amm-gym-auto-research`
+  `/sessions/focused-trusting-heisenberg/mnt/amm-gym-auto-research`
   (each cycle gets a different sandbox name; always confirm with
   `pwd`).
 - **The host `.venv/bin/python` is Mac-Homebrew-only** and points
   into a path that doesn't exist on the Linux sandbox. Use system
   `python3` (3.10.12) directly. Project deps to install once per
   fresh sandbox: `pip install --break-system-packages gymnasium
-  pyarrow "jax[cpu]"`. Cycle 6 lost ~5 min figuring this out;
-  cycle 7 carried over the same setup in ~30 s.
-- **Cannot `unlink` files in the sandbox results dir** — the cycle-7
-  driver opens log files in `"w"` mode to truncate instead of
-  deleting. Pattern: `with logfile.open("w") as _f: _f.write("")`.
-- **CPU**: 4 cores. Cycle-7 used 3 workers per CEM run; ~145s/gen
-  ≈ same wall-clock as cycle-6 piecewise despite differing param
-  counts (16, 20, 32). The bottleneck is `run_batch` × 64 search
-  seeds, not policy inference.
+  pyarrow "jax[cpu]" pytest`.
+- **Cannot `unlink` files in the sandbox results dir** — drivers open
+  log files in `"w"` mode to truncate instead of deleting.
+- **CPU**: 4 cores. Each CEM run uses 3 workers; ~120-145s/gen at
+  pop=24.
+- **Cycle-8 wall-clock**: ~30 min inventory CEM + ~5 min recovery
+  rerank/test + ~12 min ablation/figures + ~45 min init_std sweep
+  (with one 36-min sandbox stall at gen 2 of init_std=0.30) +
+  ~10 min docs. Total ~100 min of useful work, plus ~36 min of
+  unattributable sandbox stall.
+- **Driver-killed-mid-rerank recovery pattern**: the inventory CEM
+  process was reaped between sandboxes after gen 11 finished but
+  before the test eval. Recovery is straightforward — the per-gen
+  history JSON has every elite's params, so a recovery script can
+  re-rerank the dedup'd top-N on val and re-score val-best on test.
+  Pattern documented in
+  `research/experiments/2026-05-04-cycle8-inventory-piecewise/scripts/recover_rerank_and_test.py`.
 - **Inherited working-tree changes** (across `arena_eval/`,
   `arena_policies/`, `arena_search/`, `tests/`, etc.) still
   untouched per the convention from earlier cycles.
-- **Cycle-7 wall-clock**: ~57 min CEM (28.6 + 27.8) + 10 min
-  setup/figs/docs = ~67 min, well under the 2-hour budget.

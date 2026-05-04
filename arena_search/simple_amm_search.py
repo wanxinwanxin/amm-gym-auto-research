@@ -11,6 +11,8 @@ from arena_eval.exact_simple_amm import FixedFeeStrategy, run_batch
 from arena_policies import (
     BeliefStateControllerParams,
     BeliefStateControllerStrategy,
+    InventoryAwarePiecewiseParams,
+    InventoryAwarePiecewiseStrategy,
     InventoryToxicityParams,
     InventoryToxicityStrategy,
     LatentCompetitionParams,
@@ -27,6 +29,8 @@ from arena_policies import (
     PiecewiseControllerStrategy,
     ReactiveControllerParams,
     ReactiveControllerStrategy,
+    RetailRecaptureParams,
+    RetailRecaptureStrategy,
     SubmissionBasisParams,
     SubmissionBasisStrategy,
     SubmissionCompactParams,
@@ -73,6 +77,30 @@ INVENTORY_TOXICITY_PARAM_RANGES: dict[str, tuple[float, float]] = {
     "max_fee": (0.005, 0.03),
 }
 
+INVENTORY_AWARE_PIECEWISE_PARAM_RANGES: dict[str, tuple[float, float]] = {
+    # Inherited piecewise ranges (must match PIECEWISE_CONTROLLER_PARAM_RANGES below).
+    "base_fee": (0.0001, 0.01),
+    "base_spread": (0.0, 0.01),
+    "signal_decay": (0.2, 0.99),
+    "toxicity_decay": (0.2, 0.995),
+    "small_trade_threshold": (0.0005, 0.01),
+    "large_trade_threshold": (0.003, 0.03),
+    "continuation_small": (-0.01, 0.02),
+    "continuation_medium": (-0.01, 0.03),
+    "continuation_large": (-0.01, 0.02),
+    "reversal_small": (0.0, 0.04),
+    "reversal_medium": (0.0, 0.06),
+    "reversal_large": (0.0, 0.08),
+    "continuation_to_same_side": (-2.0, 3.0),
+    "continuation_to_cross_side": (-1.5, 2.0),
+    "toxicity_to_mid": (0.0, 0.08),
+    "toxicity_to_side": (0.0, 0.12),
+    # New inventory-skew ranges.
+    "inventory_skew_to_bid": (-0.05, 0.05),
+    "inventory_skew_to_ask": (-0.05, 0.05),
+    "inventory_skew_dead_zone": (0.0, 0.5),
+}
+
 PIECEWISE_CONTROLLER_PARAM_RANGES: dict[str, tuple[float, float]] = {
     "base_fee": (0.0001, 0.01),
     "base_spread": (0.0, 0.01),
@@ -109,6 +137,19 @@ BELIEF_STATE_PARAM_RANGES: dict[str, tuple[float, float]] = {
     "toxicity_weight": (0.0, 0.02),
     "flow_skew_weight": (-0.03, 0.03),
     "fair_gap_weight": (0.0, 0.05),
+}
+
+RETAIL_RECAPTURE_PARAM_RANGES: dict[str, tuple[float, float]] = {
+    "base_fee": (0.0005, 0.01),
+    "min_fee": (0.0, 0.004),
+    "max_fee": (0.004, 0.05),
+    "fair_decay": (0.6, 0.995),
+    "vol_decay": (0.4, 0.995),
+    "impact_floor": (0.00005, 0.005),
+    "retail_threshold": (1.0, 8.0),
+    "retail_slope": (0.2, 4.0),
+    "recapture_decay": (0.1, 0.99),
+    "capture_weight": (0.0, 4.0),
 }
 
 LATENT_FLOW_PARAM_RANGES: dict[str, tuple[float, float]] = {
@@ -259,10 +300,20 @@ POLICY_SPECS: dict[str, PolicySpec] = {
         strategy_cls=PiecewiseControllerStrategy,
         param_ranges=PIECEWISE_CONTROLLER_PARAM_RANGES,
     ),
+    "inventory_aware_piecewise": PolicySpec(
+        params_cls=InventoryAwarePiecewiseParams,
+        strategy_cls=InventoryAwarePiecewiseStrategy,
+        param_ranges=INVENTORY_AWARE_PIECEWISE_PARAM_RANGES,
+    ),
     "belief_state": PolicySpec(
         params_cls=BeliefStateControllerParams,
         strategy_cls=BeliefStateControllerStrategy,
         param_ranges=BELIEF_STATE_PARAM_RANGES,
+    ),
+    "retail_recapture": PolicySpec(
+        params_cls=RetailRecaptureParams,
+        strategy_cls=RetailRecaptureStrategy,
+        param_ranges=RETAIL_RECAPTURE_PARAM_RANGES,
     ),
     "latent_flow": PolicySpec(
         params_cls=LatentFlowParams,
@@ -313,6 +364,7 @@ class SearchConfig:
     normalizer_fee: float = 0.003
     policy_family: str = "reactive"
     evaluator_kind: str = "challenge"
+    submission_liquidity_fraction: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -322,6 +374,17 @@ class CandidateEvaluation:
     edge_mean_submission: float
     edge_mean_normalizer: float
     edge_advantage_mean: float
+    retail_edge_mean_submission: float
+    retail_edge_mean_normalizer: float
+    arb_loss_mean_submission: float
+    arb_loss_mean_normalizer: float
+    annualized_edge_return_mean_submission: float
+    annualized_retail_edge_return_mean_submission: float
+    annualized_arb_loss_return_mean_submission: float
+    retail_markout_bps_mean_submission: float
+    arb_markout_bps_mean_submission: float
+    initial_value_mean: float
+    episode_seconds_mean: float
     metadata: dict[str, object]
 
 
@@ -349,6 +412,7 @@ def evaluate_controller_params(params: Any, config: SearchConfig) -> CandidateEv
         config.seeds,
         normalizer_fee=config.normalizer_fee,
         evaluator_kind=config.evaluator_kind,
+        submission_liquidity_fraction=config.submission_liquidity_fraction,
     )
 
 
@@ -358,6 +422,7 @@ def evaluate_params_on_seeds(
     *,
     normalizer_fee: float = 0.003,
     evaluator_kind: str = "challenge",
+    submission_liquidity_fraction: float = 1.0,
 ) -> CandidateEvaluation:
     normalized = params.normalized()
     strategy_cls = _strategy_cls_for_params(normalized)
@@ -366,6 +431,7 @@ def evaluate_params_on_seeds(
         seeds,
         normalizer_strategy_factory=lambda: FixedFeeStrategy(normalizer_fee, normalizer_fee),
         evaluator_kind=evaluator_kind,
+        submission_liquidity_fraction=submission_liquidity_fraction,
     )
     return CandidateEvaluation(
         params=normalized,
@@ -373,6 +439,17 @@ def evaluate_params_on_seeds(
         edge_mean_submission=result.edge_mean_submission,
         edge_mean_normalizer=result.edge_mean_normalizer,
         edge_advantage_mean=result.edge_advantage_mean,
+        retail_edge_mean_submission=result.retail_edge_mean_submission,
+        retail_edge_mean_normalizer=result.retail_edge_mean_normalizer,
+        arb_loss_mean_submission=result.arb_loss_mean_submission,
+        arb_loss_mean_normalizer=result.arb_loss_mean_normalizer,
+        annualized_edge_return_mean_submission=result.annualized_edge_return_mean_submission,
+        annualized_retail_edge_return_mean_submission=result.annualized_retail_edge_return_mean_submission,
+        annualized_arb_loss_return_mean_submission=result.annualized_arb_loss_return_mean_submission,
+        retail_markout_bps_mean_submission=result.retail_markout_bps_mean_submission,
+        arb_markout_bps_mean_submission=result.arb_markout_bps_mean_submission,
+        initial_value_mean=result.initial_value_mean,
+        episode_seconds_mean=result.episode_seconds_mean,
         metadata=result.metadata,
     )
 
@@ -457,6 +534,7 @@ def random_search_with_validation(
             fixed_validation_seeds,
             normalizer_fee=config.normalizer_fee,
             evaluator_kind=config.evaluator_kind,
+            submission_liquidity_fraction=config.submission_liquidity_fraction,
         )
         fresh_validation_seeds_current = _sample_fresh_validation_seeds(
             fresh_rng,
@@ -470,6 +548,7 @@ def random_search_with_validation(
                 fresh_validation_seeds_current,
                 normalizer_fee=config.normalizer_fee,
                 evaluator_kind=config.evaluator_kind,
+                submission_liquidity_fraction=config.submission_liquidity_fraction,
             )
             if fresh_validation_seeds_current
             else None
@@ -491,6 +570,7 @@ def random_search_with_validation(
         fixed_validation_seeds,
         normalizer_fee=config.normalizer_fee,
         evaluator_kind=config.evaluator_kind,
+        submission_liquidity_fraction=config.submission_liquidity_fraction,
         top_k=rerank_top_k,
     )
     return SearchStudyResult(
@@ -549,6 +629,7 @@ def cross_entropy_search_with_validation(
             fixed_validation_seeds,
             normalizer_fee=config.normalizer_fee,
             evaluator_kind=config.evaluator_kind,
+            submission_liquidity_fraction=config.submission_liquidity_fraction,
         )
         fresh_validation_seeds_current = _sample_fresh_validation_seeds(
             fresh_rng,
@@ -562,6 +643,7 @@ def cross_entropy_search_with_validation(
                 fresh_validation_seeds_current,
                 normalizer_fee=config.normalizer_fee,
                 evaluator_kind=config.evaluator_kind,
+                submission_liquidity_fraction=config.submission_liquidity_fraction,
             )
             if fresh_validation_seeds_current
             else None
@@ -583,6 +665,7 @@ def cross_entropy_search_with_validation(
         fixed_validation_seeds,
         normalizer_fee=config.normalizer_fee,
         evaluator_kind=config.evaluator_kind,
+        submission_liquidity_fraction=config.submission_liquidity_fraction,
         top_k=rerank_top_k,
     )
     return SearchStudyResult(
@@ -614,8 +697,12 @@ def _strategy_cls_for_params(params: Any) -> type:
         return InventoryToxicityStrategy
     if isinstance(params, PiecewiseControllerParams):
         return PiecewiseControllerStrategy
+    if isinstance(params, InventoryAwarePiecewiseParams):
+        return InventoryAwarePiecewiseStrategy
     if isinstance(params, BeliefStateControllerParams):
         return BeliefStateControllerStrategy
+    if isinstance(params, RetailRecaptureParams):
+        return RetailRecaptureStrategy
     if isinstance(params, LatentFlowParams):
         return LatentFlowStrategy
     if isinstance(params, LatentFairParams):
@@ -658,6 +745,7 @@ def _rerank_candidates(
     *,
     normalizer_fee: float,
     evaluator_kind: str,
+    submission_liquidity_fraction: float,
     top_k: int,
 ) -> list[CandidateEvaluation]:
     unique = _dedupe_candidates(candidates)[:top_k]
@@ -667,6 +755,7 @@ def _rerank_candidates(
             validation_seeds,
             normalizer_fee=normalizer_fee,
             evaluator_kind=evaluator_kind,
+            submission_liquidity_fraction=submission_liquidity_fraction,
         )
         for candidate in unique
     ]

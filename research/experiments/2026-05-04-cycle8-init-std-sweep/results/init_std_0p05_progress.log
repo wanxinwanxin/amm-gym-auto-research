@@ -1,0 +1,8 @@
+[13:15:41] Cycle-8 init_std sweep | family=submission_compact init_std_frac=0.05 pop=24 gen=5 elite_n=4 workers=3 rng_seed=0
+[13:18:08]   init_std_frac=0.05 gen  0: best=407.353 elite_mean=406.734 val=411.252 (118.1s+29.5s)
+[13:20:37]   init_std_frac=0.05 gen  1: best=408.338 elite_mean=407.606 val=413.630 (120.0s+28.1s)
+[13:23:06]   init_std_frac=0.05 gen  2: best=407.910 elite_mean=407.876 val=412.786 (120.7s+28.5s)
+[13:25:32]   init_std_frac=0.05 gen  3: best=408.219 elite_mean=408.189 val=413.342 (118.5s+27.6s)
+[13:28:00]   init_std_frac=0.05 gen  4: best=408.650 elite_mean=408.595 val=413.750 (119.4s+28.6s)
+[13:28:00]   init_std=0.05 CEM done in 739.1s
+[13:30:51]   init_std=0.05: best_val=413.750 -> test=413.033 (Δ vs starting line +2.257)

@@ -22,6 +22,11 @@ from arena_policies.latent_ladder import (
     LatentToxicityParams,
     LatentToxicityStrategy,
 )
+from arena_policies.inventory_aware_piecewise import (
+    InventoryAwarePiecewiseParams,
+    InventoryAwarePiecewiseState,
+    InventoryAwarePiecewiseStrategy,
+)
 from arena_policies.piecewise_controller import (
     PiecewiseControllerParams,
     PiecewiseControllerState,
@@ -31,6 +36,11 @@ from arena_policies.reactive_controller import (
     ReactiveControllerParams,
     ReactiveControllerState,
     ReactiveControllerStrategy,
+)
+from arena_policies.retail_recapture import (
+    RetailRecaptureParams,
+    RetailRecaptureState,
+    RetailRecaptureStrategy,
 )
 from arena_policies.submission_safe import (
     SubmissionBasisParams,
@@ -45,6 +55,9 @@ __all__ = [
     "BeliefStateControllerParams",
     "BeliefStateControllerState",
     "BeliefStateControllerStrategy",
+    "InventoryAwarePiecewiseParams",
+    "InventoryAwarePiecewiseState",
+    "InventoryAwarePiecewiseStrategy",
     "InventoryToxicityParams",
     "InventoryToxicityState",
     "InventoryToxicityStrategy",
@@ -64,6 +77,9 @@ __all__ = [
     "ReactiveControllerParams",
     "ReactiveControllerState",
     "ReactiveControllerStrategy",
+    "RetailRecaptureParams",
+    "RetailRecaptureState",
+    "RetailRecaptureStrategy",
     "SubmissionBasisParams",
     "SubmissionBasisStrategy",
     "SubmissionCompactParams",
