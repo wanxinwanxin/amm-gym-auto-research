@@ -11,7 +11,7 @@
 # broken.
 set -u
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
 if python3 -c "import jax" >/dev/null 2>&1; then
     ver="$(python3 -c 'import jax; print(jax.__version__)')"
