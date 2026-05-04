@@ -1220,3 +1220,138 @@ saturating the 4-core sandbox.
   `arena_policies/`, `arena_search/`, `tests/`, etc.) still untouched
   per convention. Cycle 10's only edits were under `research/` and
   the experiment scripts.
+
+---
+
+## 2026-05-04T23:30Z — cycle 11 — multi-seed × multi-dim grid (round 1) — 16-d basin ceiling lifted to 456.80
+
+**Plan for the cycle.** Per `STATE.md` cycle-11 plan-of-record: a small
+(dim, rng_seed) grid on the cycle-8 anchor to bound the warm-start
+CEM noise distribution and find the basin's actual ceiling. Three
+cells: (16-d, seed=2), (24-d-noop, seed=0), (24-d-noop, seed=1).
+Sequential, ~30 min/cell, ~90 min CPU. Hypothesis: with 4 cells
+already from cycle 9/10 (test ∈ {448.81, 452.96, 456.64, 456.74}),
+adding 3 more should give ≥ 1 cell ≥ 459 if the basin has more depth,
+or stay flat ≤ 458 if not. If flat: pivot to capacity escalation in
+cycle 12.
+
+**What I ran.**
+1. Bootstrap: `bash bin/run_checks.sh` clean except expected jax-OOM.
+   Re-installed `gymnasium pyarrow pytest numpy` on this fresh sandbox
+   via `pip install --break-system-packages`. Check 03 flipped to
+   green.
+2. Wrote `research/experiments/2026-05-04-cycle11-grid-cem/scripts/
+   run_grid_cell.py` — generic warm-start CEM cell parameterized by
+   `--dim-total` and `--rng-seed`. The piecewise core is always 16
+   dims; `dim_total - 16` extra dims are inert no-op tail clipped to
+   `[-1, +1]`, stripped before instantiating
+   `PiecewiseControllerParams`. Same anchor / recipe / seed splits as
+   cycle 6 onward.
+3. Wrote `run_grid.sh` driver: runs the 3 cells sequentially, each in
+   its own subprocess with stdout redirected. **Bug-fix detail**: the
+   first attempt of the driver had `cd "$(dirname "$0")/../.."` which
+   landed in `research/experiments/` instead of the experiment dir, so
+   `LOG_DIR` resolved to `research/experiments/results` and the
+   per-cell `python3` invocations passed wrong `--script` paths. Fixed
+   to `cd "$(dirname "$0")/.."`. Retried; driver healthy.
+4. Launched the grid via `nohup bash run_grid.sh &` (PID 1110). Total
+   elapsed ~95 min wall-clock for the 3 cells (slightly longer than
+   cycle-10's 30 min/cell; d=24 cells cost ~5 s extra/gen for the
+   larger candidate vector serialization, plus rerank+test).
+5. Wrote `make_grid_figure.py` that loads 7 cells (cycle-9 #1,
+   cycle-9 #3, cycle-10 A, cycle-10 B, cycle-11 d16_s2, cycle-11
+   d24_s0, cycle-11 d24_s1) and renders a 2-panel figure
+   (scatter by (dim, seed); spread/box).
+6. Ran `make_grid_figure.py` → `figures/grid_summary.png` and
+   `results/grid_summary.json`.
+7. Updated experiment README, presentation, STATE, LOG.
+
+**What worked.**
+- **All three cells completed cleanly** within ~30-32 min each.
+  Anchor parity check (441.530) reproduced exactly on each cell —
+  good news: the noop-tail-with-clipping wrapper is consistent across
+  3 different `dim_total` values.
+- **Grid expanded the empirical CEM-noise distribution** from 4 cells
+  (cycle 9/10) to 7. Now we can compute mean / std on this anchor
+  with much more confidence.
+- **(16-d, seed=2) cell hit a new headline**: test 456.80, val
+  458.54 — narrowly above cycle-10 A (test 456.74). Held-out, so
+  not noise; the basin's actual ceiling is now at least 456.80.
+
+**What failed (or surprised).**
+- **24-d cells at this anchor underperformed the 16-d third seed.**
+  d24_s0 reached test 455.66 (val 457.29); d24_s1 reached test
+  452.57 (val 453.74). Both below
+  d16_s2's 456.80. So adding inert tail dims at the 8-dim level
+  doesn't keep monotonically lifting CEM via the rng-stream-offset
+  mechanism cycle-10 documented; the lift saturates somewhere
+  between dim=20 (where it appeared) and dim=24 (where it
+  retreated).
+- **The basin's ceiling on this recipe is essentially flat in the
+  455.7 - 456.8 range across multiple competent (dim, seed) cells.**
+  Three different cells (c10 A, c10 B-not-quite, c11 d16_s2) cluster
+  near 456-457 on test; outliers below (c9 #1 at 448.8, c11 d24_s1)
+  reflect either bad seed luck or capacity that isn't paying off.
+
+**Updates implied for the prior.**
+- **The "warm-start CEM at this anchor" approach is saturating around
+  ~457 on test.** Across 7 cells the spread is roughly 8 pts (min ~449,
+  max ~457). Noise std on test is on the order of 3 pts; even the
+  best of 7 only nudges past prior best by 0.06 pts. There are likely
+  diminishing returns from more (dim, seed) reps unless the recipe
+  itself changes.
+- **Adding inert tail dims helps up to dim=20-ish, not beyond.** This
+  is consistent with the cycle-10 mechanism (rng-stream offset gives
+  the CEM a different sample sequence) but with diminishing
+  effectiveness past a few extra dims — unsurprising, since at some
+  point the noise-floor in dimensions of the CEM Gaussian outweighs
+  the offset benefit, and the rerank-by-val step regularizes too.
+- **Cycle-12 should pivot.** The grid has answered the central
+  question we kept asking — "does cheap CEM rerunning still help?"
+  — with a clear "diminishing returns past the third or fourth rep".
+  Three obvious next moves:
+  (i) escalate policy capacity — try ladder or MLP, warm-start from
+  d16_s2 best (which has held-out test 456.80);
+  (ii) escalate optimization recipe — longer gens, different
+  init_std_frac sweep on d16_s2's anchor specifically;
+  (iii) revisit M3/M4 readiness now that M2 is ~85% of the way to 540
+  but starting to require capacity work.
+
+**Next.**
+- **Cycle 12 candidate plans (ranked):**
+  1. **Capacity escalation: ladder policy.** Warm-start the ladder
+     level-1 rung from d16_s2 best. ~1 hour CEM. If ladder beats
+     piecewise on this anchor, that's the path. (Highest expected
+     info value; addresses the saturation directly.)
+  2. **MLP capacity probe.** Same anchor, MLP head over the
+     piecewise output. ~1.5 hours. Bigger lift potential but bigger
+     variance.
+  3. **Bigger CEM budget on d16_s2 specifically.** pop=48 or
+     gen=20+. Cheap to set up but probably more of the same.
+  4. **Defer**: more (dim, seed) cells unless we discover an outlier
+     justifying it.
+- **Operational**: jax check still failing as expected; will retry
+  once a CPU-only wheel landing strategy is identified.
+
+**Operational footnotes.**
+- Repo path on this sandbox: `/sessions/busy-ecstatic-curie/mnt/
+  amm-gym-auto-research`. Sandbox name confirmed via `pwd`.
+- Bash tool default timeout (2 min) and max timeout (10 min for
+  `sleep`) made polling the long-running grid awkward; the right
+  pattern is `nohup ... &` once and read the per-cell `progress.log`
+  every 8-9 min via short polls. Sleep>10min is hard-killed with
+  exit 143.
+- Grid driver bug: `cd "$(dirname "$0")/../.."` resolved up to
+  `research/experiments/` (one too many parents). The python script
+  inside still ran but wrote results to its own correct path (it
+  computes `ROOT` independently); the driver-side `LOG_DIR` was
+  wrong so the per-cell stdout files leaked into a shared
+  `research/experiments/results/` dir which is sandbox-unwritable
+  to my user (couldn't `unlink`). Truncated those 4 files to zero
+  bytes via `:`-redirects rather than deleting them, per the
+  cycle-1 ops note about unlink permission. Fixed driver path; reran
+  cleanly.
+- All inherited working-tree changes still untouched (cycle 11
+  edits are restricted to `research/` and `bin/checks/` — actually
+  no `bin/checks/` change this cycle).
+

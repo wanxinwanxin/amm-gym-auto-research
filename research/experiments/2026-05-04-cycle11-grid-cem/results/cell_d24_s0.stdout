@@ -1,0 +1,57 @@
+[22:15:38] Cycle-11 grid cell d24_s0 | core_dim=16 tail_dim=8 total_dim=24 pop=24 gen=12 elite_n=4 init_std_frac=0.1 workers=3 rng_seed=0
+[22:15:38] Anchor (piecewise core only): {'base_fee': 0.0016550408798529576, 'base_spread': 0.004243130017056316, 'signal_decay': 0.6710204554398381, 'toxicity_decay': 0.5359985273747493, 'small_trade_threshold': 0.0035434960848610567, 'large_trade_threshold': 0.010026395287212322, 'continuation_small': -0.0002902772323995477, 'continuation_medium': 0.007132694969980573, 'continuation_large': 0.01823001527951129, 'reversal_small': 0.01193099991680676, 'reversal_medium': 0.02189557268220984, 'reversal_large': 0.07594344828226333, 'continuation_to_same_side': 0.12260500653949676, 'continuation_to_cross_side': 1.3580492898846743, 'toxicity_to_mid': 0.009952017339294478, 'toxicity_to_side': 0.06882714964266168}
+[22:15:38] Anchor (noop tail of 8 inert dims): all zeros
+[22:15:38] Search seeds: 0..63 (n=64)
+[22:15:38] Val seeds:    1000..1127 (n=128)
+[22:15:38] Test seeds:   2000..2255 (n=256)
+[22:15:52] Anchor search-seed score: 441.530 (parity check)
+[22:18:12]   gen  0: best=441.530 elite_mean=436.654 val=447.890 (112.0s+27.9s)
+[22:20:37]   gen  1: best=443.897 elite_mean=440.720 val=450.683 (117.2s+27.7s)
+[22:23:00]   gen  2: best=443.704 elite_mean=442.948 val=450.898 (115.6s+27.3s)
+[22:25:25]   gen  3: best=447.426 elite_mean=445.198 val=454.731 (117.3s+27.5s)
+[22:27:49]   gen  4: best=448.557 elite_mean=447.981 val=454.763 (116.0s+27.8s)
+[22:30:14]   gen  5: best=449.488 elite_mean=448.924 val=455.785 (117.6s+27.8s)
+[22:32:40]   gen  6: best=449.978 elite_mean=449.659 val=455.917 (117.6s+27.9s)
+[22:35:06]   gen  7: best=449.861 elite_mean=449.673 val=456.041 (117.8s+28.0s)
+[22:37:31]   gen  8: best=450.133 elite_mean=449.898 val=456.288 (117.3s+27.9s)
+[22:39:57]   gen  9: best=450.289 elite_mean=450.133 val=456.590 (118.4s+27.8s)
+[22:42:24]   gen 10: best=450.489 elite_mean=450.316 val=457.294 (118.7s+28.3s)
+[22:44:51]   gen 11: best=450.522 elite_mean=450.477 val=456.351 (119.2s+28.3s)
+[22:44:51] CEM complete in 1739.0s (29.0 min)
+[22:44:51] Reranking top-8 unique elites on val seeds, then scoring val-best on test…
+[22:49:34]   Best-by-val | val=457.294 | test=455.656 | adv=+41.497  (57.0s) | cycle8_starting_line=446.613
+[22:49:34]   Δ vs cycle-8 ablation best: +9.043
+[22:49:34]   -> wrote /sessions/busy-ecstatic-curie/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle11-grid-cem/results/cell_d24_s0/result.json
+[22:49:34] {
+  "params": {
+    "base_fee": 0.0010274035449130132,
+    "base_spread": 0.004973250433368439,
+    "signal_decay": 0.7731272360591235,
+    "toxicity_decay": 0.5613013893446858,
+    "small_trade_threshold": 0.002944024075116538,
+    "large_trade_threshold": 0.009617898038678494,
+    "continuation_small": -0.0003943867015281442,
+    "continuation_medium": 0.006170718476071142,
+    "continuation_large": 0.018453891977803213,
+    "reversal_small": 0.012287687680415958,
+    "reversal_medium": 0.022004947062714504,
+    "reversal_large": 0.07528898808036472,
+    "continuation_to_same_side": 0.36027926987977543,
+    "continuation_to_cross_side": 1.5292952340805204,
+    "toxicity_to_mid": 0.01188577466155212,
+    "toxicity_to_side": 0.0598512499569655,
+    "noop_0": 0.07321366753713407,
+    "noop_1": 0.0836045233233188,
+    "noop_2": -0.01946744686478838,
+    "noop_3": 0.18028313801963083,
+    "noop_4": 0.0018044237825896809,
+    "noop_5": -0.12704634183112848,
+    "noop_6": -0.06628008806314331,
+    "noop_7": -0.07537329204930823
+  },
+  "val_score": 457.2941424328939,
+  "val_edge_advantage": 44.34605240941158,
+  "test_score": 455.6558270883488,
+  "test_edge_advantage": 41.497041801427464,
+  "test_n_seeds": 256
+}

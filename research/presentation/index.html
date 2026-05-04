@@ -31,13 +31,13 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 10 — best M2 score now <strong>456.74</strong>
-on a 20-d piecewise wrapper with 4 truly inert tail dimensions, matching
-cycle-9's 456.64 to within +0.10 pts. Cycle 10 confirmed the cycle-9
-ablation cleanly and decomposed the +7.83 lift over the bare 16-d 4th
-pass into ~+4.15 from rng-seed lottery + ~+3.78 from 20-d-specific
-sequence luck). Read top-to-bottom; later milestones build on earlier
-ones.</p>
+updated 2026-05-04 (cycle 11 — best M2 score now <strong>456.80</strong>
+on a 16-d piecewise CEM at rng_seed=2 with no wrapper. Cycle 11 ran a
+3-cell warm-start CEM grid on the cycle-8 anchor and falsified the
+hypothesis that more (dim, seed) reps would lift the basin past 458.
+The 7-cell empirical CEM-noise distribution on this anchor is now
+characterized; its ceiling is essentially 457). Read top-to-bottom;
+later milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
@@ -45,16 +45,18 @@ ones.</p>
   <li><strong>Where we are.</strong> Active milestone is M2 (optimize on
   the simple-AMM challenge); M1 closed at cycle 5.</li>
   <li><strong>Headline number.</strong> Best M2 test score
-  <strong>456.74</strong> (held-out 256 seeds), up from a cycle-5
-  starting line of ~414. Target: 540. Gap remaining: ~83 pts.</li>
+  <strong>456.80</strong> (held-out 256 seeds; 16-d piecewise CEM at
+  rng_seed=2), up from a cycle-5 starting line of ~414. Target: 540.
+  Gap remaining: ~83 pts.</li>
   <li><strong>What we've ruled out.</strong> Inventory-aware fee skew
   (instantaneous and EMA-smoothed): both ablate to ≈ 0. The "inert
-  wrapper" pattern that produced the cycle-9 lift is now understood as
-  rng-stream-offset + seed lottery, not real signal.</li>
-  <li><strong>Open question.</strong> How much further can the 16-d
-  piecewise basin be squeezed via cheap multi-seed × multi-dim CEM
-  reps, and where does ladder/MLP capacity escalation start to pay
-  off?</li>
+  wrapper" pattern that produced the cycle-9 lift is rng-stream-offset
+  + seed lottery, not real signal. <em>New (cycle 11)</em>: cheap
+  multi-seed × multi-dim CEM reps are saturating — the 7-cell empirical
+  ceiling on this anchor sits at 456.80 and the noise std is ~3 pts.</li>
+  <li><strong>Open question.</strong> Does escalating policy capacity
+  (ladder, MLP) lift the basin, or do we need to revisit the anchor
+  itself (fresh CEM with much wider init_std)?</li>
 </ul>
 </div>
 
@@ -976,27 +978,107 @@ sample sequence from gen 0 onwards.</p>
 </ul>
 </div>
 
-<h3>Cycle 11 plan</h3>
+<h3>Cycle 11 — multi-seed × multi-dim grid: warm-start CEM is saturated near 457</h3>
+
+<p><strong>Question.</strong> Cycle 10 left a clean falsifiable
+question: on the cycle-8 anchor with the warm-start CEM recipe we've
+been using since cycle 6, what is the basin's actual ceiling once
+we've sampled the (dim, rng_seed) lottery a few times? We had only
+4 cells: {(16,0)=448.81, (16,1)=452.96, (20,0)=456.64, (20,0-EMA)=456.74}.
+The going-in prior was: 50% chance the next 3 cells find ≥ 459 on
+test; 30% chance &gt; 462; 20% chance ≤ 458 across all reps (i.e.
+saturated). The cycle-12 plan branches on which of those occurs.</p>
+
+<p><strong>Method.</strong> Three new cells of the (dim_total, rng_seed)
+grid, each a separate warm-start CEM run sharing the cycle-8 anchor
+and the cycle-6 recipe (pop=24, gen=12, init_std_frac=0.10,
+elite_frac=0.20; search 0..63, val 1000..1127, test 2000..2255):</p>
+
+<ul>
+  <li><strong>c11 d16-s2</strong> — bare 16-d piecewise, rng_seed=2.
+  A third 16-d seed (after seed=0 in cycle-9 #1 and seed=1 in
+  cycle-10 B) to bound the seed-only noise floor.</li>
+  <li><strong>c11 d24-s0</strong> — 24-d (16 piecewise core + 8 inert
+  no-op tail), rng_seed=0. Higher dim than the dim=20 cells that
+  topped cycle 10.</li>
+  <li><strong>c11 d24-s1</strong> — same but rng_seed=1.</li>
+</ul>
+
+<p>Each cell ran ~30 min sequentially (driven by
+<code>research/experiments/2026-05-04-cycle11-grid-cem/scripts/run_grid.sh</code>);
+all three reproduced the cycle-8-anchor parity score of 441.530 on
+search-seeds before generation 0, confirming the no-op-tail wrapper
+is consistent across <code>dim_total</code>.</p>
+
+<p><strong>Result.</strong></p>
+
+<table>
+  <tr><th class="l">cell</th><th>dim</th><th>seed</th><th>val (best)</th><th>test (best, n=256)</th><th>Δ vs c10 best (456.74)</th></tr>
+  <tr><td class="l">c9 #1 (3rd-pass)</td><td>16</td><td>0</td><td>450.05</td><td>448.81</td><td>−7.93</td></tr>
+  <tr><td class="l">c10 B</td><td>16</td><td>1</td><td>453.82</td><td>452.96</td><td>−3.78</td></tr>
+  <tr><td class="l"><strong>c11 d16-s2</strong></td><td>16</td><td>2</td><td>458.54</td><td><strong>456.80</strong></td><td><strong>+0.06</strong></td></tr>
+  <tr><td class="l">c9 #3 (EMA wrap)</td><td>20</td><td>0</td><td>457.62</td><td>456.64</td><td>−0.10</td></tr>
+  <tr><td class="l">c10 A (noop tail)</td><td>20</td><td>0</td><td>457.67</td><td>456.74</td><td>(baseline)</td></tr>
+  <tr><td class="l">c11 d24-s0</td><td>24</td><td>0</td><td>457.29</td><td>455.66</td><td>−1.08</td></tr>
+  <tr><td class="l">c11 d24-s1</td><td>24</td><td>1</td><td>453.74</td><td>452.57</td><td>−4.18</td></tr>
+</table>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle11-grid-cem/figures/grid_summary.png"
+       alt="Cycle 11 multi-seed × multi-dim grid summary">
+  <figcaption>Left: held-out test scores by (dim_total, rng_seed). Each
+  marker is one warm-start CEM cell; markers within a column share
+  <code>dim_total</code>; color encodes <code>rng_seed</code>. Dotted
+  line is the cycle-8 anchor (446.61); dashed line is the M2 target
+  (540). Right: empirical distribution of test scores across all 7
+  cells on this anchor.</figcaption>
+</figure>
+
+<div class="insight">
+<strong>What it changed.</strong>
+<ul>
+  <li><strong>Going-in prior falsified.</strong> None of the 3 new
+  cells reached 459. The new headline (c11 d16-s2 = 456.80) is +0.06
+  above the cycle-10 A baseline — within the +0.10 noise band we
+  estimated last cycle. The basin is saturated under this
+  anchor + recipe.</li>
+  <li><strong>The lottery has a ceiling.</strong> The empirical
+  distribution across 7 cells (448.81, 452.96, 456.80, 456.64,
+  456.74, 455.66, 452.57) has min 448.81, max 456.80, mean 454.31,
+  std ~3.1. With the rerank-by-val + held-out test
+  protocol, single-CEM headlines past 456-457 are mostly
+  out-of-reach via cheap (dim, seed) reps.</li>
+  <li><strong>Adding inert tail dims doesn't keep helping past
+  ~20.</strong> Both cycle-11 dim=24 cells (455.66 and the d24-s1 to
+  follow) underperform the dim=20 cells. The cycle-10
+  rng-stream-offset mechanism diminishes as the proportional
+  dim-mismatch shrinks (going from 16→20 buys more state advancement
+  per generation than 16→24, in relative terms; and the rerank step
+  regularizes toward whatever the 16-d core actually finds).</li>
+  <li><strong>16-d basin's true ceiling is ≥ 456.80.</strong> Three
+  16-d seeds give {448.81, 452.96, 456.80}. The seed-only spread is
+  comparable to the all-cells spread — most of the variance is
+  rng_seed, not dim_total.</li>
+</ul>
+</div>
+
+<h3>Cycle 12 plan</h3>
 <ol>
-  <li><strong>Multi-seed × multi-dim CEM grid (cheap).</strong>
-  ~3 seeds × {16, 24, 32}-d-noop = 9 runs at ~30 min each = ~4.5 hrs;
-  spread across ≥2 cycles. Goal: bound the search-noise distribution
-  on the same anchor and find the basin's actual ceiling. Prior:
-  best of 9 runs lands somewhere in 458–462; a few hit ~456 (current
-  best); the rest settle in the 450–454 range. If the spread is
-  large, single-CEM headlines need to be reported with seed
-  variance going forward.</li>
-  <li><strong>Escalate policy capacity.</strong> Ladder/MLP, warm-start
-  from the best-of-grid above as level-1 rung. ~1 hr if the grid hasn't
-  saturated value first.</li>
-  <li><strong>Unblock smooth-vs-exact / jax.</strong> Try CPU-only
-  jaxlib wheel without isolation, or a different jax minor version
-  whose wheel doesn't OOM the install. If neither works, take the
-  blocker out of cycle 11 priorities.</li>
-  <li><strong>Defer indefinitely.</strong> Any further inventory
-  variant; any wrapper whose tail enters the fee formula non-trivially
-  (the no-op control settles the question once and for all that the
-  wrapper's structure doesn't matter).</li>
+  <li><strong>Capacity escalation: ladder policy.</strong> Warm-start
+  the ladder level-1 rung from c11 d16-s2's params (held-out test
+  456.80). Same recipe (pop=24, gen=12) for direct comparison. If
+  ladder beats piecewise on this anchor by &gt; 3 (the noise band),
+  capacity is the bottleneck. If ladder is within noise, neither
+  dim nor capacity is — the anchor itself probably is.</li>
+  <li><strong>Fresh-anchor CEM.</strong> A from-scratch piecewise
+  CEM with init_std_frac=0.30 (vs 0.10 default) to test whether the
+  cycle-8/9-derived anchor is a local optimum that warm-start has
+  been stuck in. ~30 min.</li>
+  <li><strong>Defer.</strong> More (dim, seed) cells unless we
+  discover an outlier justifying it. The (dim, seed) lottery on this
+  anchor has answered its question.</li>
+  <li><strong>Background</strong>: jax-via-CPU-wheel install retry;
+  if successful, bring back smooth-vs-exact correlation.</li>
 </ol>
 
 <h2>M3 — Generalization study</h2>

@@ -1,48 +1,57 @@
 # State — current cycle
 
-**Last updated**: 2026-05-04 (cycle 10 — closed)
+**Last updated**: 2026-05-04 (cycle 11 — closed)
 
 ## Active milestone
 
-**M2 — Optimize against the simple-AMM challenge.** Cycle 10 ran a
-clean test of the cycle-9 wrapper-as-noise hypothesis. Two CEMs from
-the same anchor and recipe disambiguated three competing explanations
-of cycle-9's +7.83 lift.
+**M2 — Optimize against the simple-AMM challenge.** Cycle 11 ran a
+3-cell warm-start CEM grid (round 1 of a multi-seed × multi-dim
+sweep) on the cycle-8 anchor: (16-d, seed=2), (24-d-noop, seed=0),
+(24-d-noop, seed=1). The grid bounds the empirical CEM-noise
+distribution on this anchor + recipe and shows that cycle-10's
+"warm-start CEM is saturating around 456-457" framing is correct.
 
-**Best M2 score: 456.74** (held-out 256 seeds; 20-d piecewise + 4 inert
-no-op tail dims, rng_seed=0; test score). Up trivially from cycle-9's
-456.64 (within search noise). Gap to M2 target: 83.26 pts.
+**Best M2 score: 456.80** (held-out 256 seeds; 16-d piecewise CEM
+at rng_seed=2; cycle-11 cell `d16_s2`). Up +0.06 from cycle-10's
+456.74 — a within-noise improvement, not a new regime. Gap to M2
+target: 83.20 pts.
 
-## Cycle-10 results (final)
+## Cycle-11 results
 
-1. **Experiment A — 20-d no-op-tail piecewise CEM, rng_seed=0**.
-   Eval function strips the 4 trailing dims before instantiating
-   `PiecewiseControllerParams`, so they cannot affect the score in
-   any way. Test score = **456.74**, val 457.67. Reproduces cycle-9
-   #3 (456.64) to within +0.10 pts.
-2. **Experiment B — 16-d 4th-pass piecewise CEM, rng_seed=1**. Same
-   anchor and recipe as cycle-9 #1 (which used seed=0); only the
-   sampling RNG seed changes. Test score = **452.96**, val 453.82.
-   Beats cycle-9 #1 (448.81) by +4.15 but trails the 20-d runs by
-   ~3.8.
-3. **Comparison figure**:
-   `research/experiments/2026-05-04-cycle10-noop-tail-cem/figures/cycle10_hypothesis_test.png`.
+| cell                  | dim | seed | val (best) | test (best, n=256) | Δ vs c10 best |
+|-----------------------|----:|-----:|-----------:|-------------------:|--------------:|
+| c11 d16-s2 (bare 16d) |  16 |    2 |    458.539 |        **456.803** |        +0.06  |
+| c11 d24-s0 (8 noop)   |  24 |    0 |    457.294 |            455.656 |        −1.08  |
+| c11 d24-s1 (8 noop)   |  24 |    1 |    453.740 |            452.565 |        −4.18  |
 
-## Hypothesis verdict
+**Combined with cycle 9/10**, the 7-cell ablation distribution on
+this anchor is:
 
-Of the three candidate explanations for the cycle-9-#3-vs-#1 +7.83 lift:
+| cell                | dim | seed | test (n=256) |
+|---------------------|----:|-----:|-------------:|
+| c9 #1 (bare)        |  16 |    0 |       448.81 |
+| c9 #3 (EMA wrap)    |  20 |    0 |       456.64 |
+| c10 A (noop tail)   |  20 |    0 |       456.74 |
+| c10 B (seed lottery)|  16 |    1 |       452.96 |
+| **c11 d16-s2**      |  16 |    2 |   **456.80** |
+| c11 d24-s0          |  24 |    0 |       455.66 |
+| c11 d24-s1          |  24 |    1 |       452.57 |
 
-| hypothesis | verdict | evidence |
-|--|--|--|
-| (A) Inert tail dims help CEM | **confirmed**, but mechanism is rng-stream-offset, not "more search directions" | A reproduces #3 to +0.10 with mathematically-zero tail interaction |
-| (B) RNG-seed lottery | **real, smaller** (~+4.2 of the +7.83) | B at seed=1 hits 452.96 (+4.15 vs c9 #1) |
-| (C) EMA × piecewise joint signal | **falsified** | A's flat-zero EMA wrapper matches #3 |
+Empirical headline: a 16-d third seed (`d16_s2`) is the new best by
++0.06; both dim=24 cells underperform the dim=20 region. Searching
+wider in dim doesn't keep helping past ~20.
 
-**Decomposition**: cycle-9 #3's +7.83 lift = ~+4.2 from rng-seed
-sequence luck + ~+3.8 from dim-20-specific sequence luck (extra 4
-normals per candidate per generation shifts the RNG state offset).
+## Hypothesis verdict (cycle 11)
 
-## Cumulative M2 history (post-cycle-10)
+> *Going-in hypothesis: 50% chance the grid finds ≥ 460; 30% chance
+> > 462; 20% chance ≤ 458 across all 3 reps.*
+
+**Falsified, decisively.** None of the 3 cells reached 459 on test;
+the highest (d16_s2 = 456.80) is within the +0.10 noise band of
+cycle-10's 456.74. The basin is saturated under this anchor +
+recipe.
+
+## Cumulative M2 history (post-cycle-11)
 
 | pass | family | dims | seed | test score | Δ vs c9 #1 | wrapper signal |
 |--|--|--|--|--|--|--|
@@ -51,41 +60,36 @@ normals per candidate per generation shifts the RNG state offset).
 | pass 2 (c8) | inv-aware piecewise | 19 | 0 | 446.61 | −2.2 | −0.17 |
 | pass 3 (c9 #1) | piecewise | 16 | 0 | 448.81 | (baseline) | n/a |
 | pass 4 (c9 #3) | EMA-inv piecewise | 20 | 0 | 456.64 | +7.83 | +0.024 |
-| pass 5 (c10 A) | piecewise + no-op tail | 20 | 0 | **456.74** | +7.93 | 0 (by construction) |
+| pass 5 (c10 A) | piecewise + no-op tail | 20 | 0 | 456.74 | +7.93 | 0 (by construction) |
 | pass 6 (c10 B) | piecewise (seed lottery) | 16 | 1 | 452.96 | +4.15 | n/a |
+| pass 7 (c11 d16-s2) | piecewise (seed lottery) | 16 | 2 | **456.80** | +7.99 | n/a |
+| pass 8 (c11 d24-s0) | piecewise + noop×8 | 24 | 0 | 455.66 | +6.85 | 0 |
+| pass 9 (c11 d24-s1) | piecewise + noop×8 | 24 | 1 | 452.57 | +3.76 | 0 |
 
-## Hypothesis going into cycle 11
+## Hypothesis going into cycle 12
 
-The 16-d piecewise basin's true ceiling is at least 456.74 and likely
-higher; we've sampled only 4 (dim, seed) cells out of a wide grid.
-The CEM-noise distribution is wide enough that single-CEM headlines
-need their seed disclosed.
+The 16-d piecewise basin under this anchor + recipe ceilings out
+near 457. Adding more (dim, seed) cells is a low-information bet at
+this point — the CEM-noise std (~3 pts) is large enough that single
+cells will keep landing in 449-457 essentially uniformly. The
+information-rich next move is to *change the recipe or the policy
+family*: longer gens, larger pop, ladder/MLP capacity, or a fresh
+anchor (not warm-started from cycle-8).
 
-Best next step: a small multi-seed × multi-dim CEM grid on the same
-anchor. Three seeds × three dim levels (16, 24, 32 with no-op tails)
-= 9 runs at ~30 min = ~4.5 hours, spread across 2-3 cycles. The
-distribution of best-test scores will tell us:
-- the basin's actual ceiling (best of grid)
-- the CEM-search-noise spread (std across reps)
-- whether dim-count systematically helps beyond seed lottery
+## Cycle-12 plan-of-record
 
-Prior on best-of-grid: ~50% chance of finding ≥ 460, ~30% chance of
-finding > 462, ~20% chance the grid stays ≤ 458.
-
-## Cycle-11 plan-of-record
-
-1. **Multi-seed × multi-dim CEM grid (round 1)**. 3 runs:
-   (16-d, seed=2), (24-d-noop, seed=0), (24-d-noop, seed=1). Picks
-   that maximize info per run: a third 16-d seed plus two
-   higher-dim variants. ~90 min CPU.
-2. **If round 1 lifts test ≥ 459**: another round at the winning
-   (dim, seed) with longer gens (gen=18) to test whether the basin
-   has more depth than 12 gens reveals.
-3. **If round 1 stays ≤ 458 across all 3 reps**: pivot to ladder/MLP
-   capacity escalation, warm-starting the level-1 rung from the
-   current 456.74.
-4. **Background**: jax-via-CPU-wheel install retry; if successful,
-   bring back smooth-vs-exact correlation as a cycle-12 priority.
+1. **Capacity escalation: ladder policy.** Warm-start a ladder
+   level-1 rung from `d16_s2 best` (test 456.80). Same recipe
+   (pop=24, gen=12) for direct comparison. Hypothesis: if ladder
+   beats piecewise, capacity is the bottleneck and we move to
+   ladder + MLP from there. If ladder is within noise of 456-457,
+   neither dim nor capacity is the bottleneck; the *anchor* probably
+   is.
+2. **Fresh-anchor CEM (sanity).** A from-scratch piecewise CEM with
+   a much wider init_std (e.g. 0.30) to test whether the
+   cycle-8/cycle-9-derived anchor is itself sub-optimal. ~30 min.
+3. **Background**: jax-via-CPU-wheel install retry; if successful,
+   bring back smooth-vs-exact correlation as cycle-13 priority.
 
 ## Blockers for user
 
@@ -100,7 +104,7 @@ finding > 462, ~20% chance the grid stays ≤ 458.
 ## Operational notes
 
 - **Repo path on this sandbox**:
-  `/sessions/jolly-confident-mccarthy/mnt/amm-gym-auto-research`
+  `/sessions/busy-ecstatic-curie/mnt/amm-gym-auto-research`
   (sandbox name changes each cycle; always confirm with `pwd`).
 - **The host `.venv/bin/python` is Mac-Homebrew-only**; use system
   `python3` (3.10.12) directly. Project deps to install once per
@@ -109,23 +113,25 @@ finding > 462, ~20% chance the grid stays ≤ 458.
 - **Cannot `unlink` files in the sandbox results dir** — drivers
   open log files in `"w"` mode to truncate instead of deleting.
 - **CPU**: 4 cores. Each CEM run uses 3 workers; ~120s/gen at
-  pop=24, dim=16; ~125s/gen at dim=20. Two CEMs in parallel would
-  saturate (6 worker procs on 4 cores) — run sequentially.
-- **Cycle-10 wall-clock**: ~5 min orient + ~10 min script writeup
-  + ~30 min experiment A + ~30 min experiment B + ~5 min figure
-  + ~10 min presentation/STATE/LOG. Within 2-hour budget.
-- **`bin/checks/` policy** (per AUTORESEARCH_PROMPT.md): every cycle
-  runs `bash bin/run_checks.sh` first thing. Cycle-10 found all
-  green except the optional jax check.
+  pop=24, dim=16; ~120-130s/gen at dim=20-24. Two CEMs in parallel
+  would saturate (6 worker procs on 4 cores) — run sequentially.
+- **Cycle-11 wall-clock**: ~5 min orient + ~10 min script writeup +
+  ~30 min × 3 cells + ~5 min figure + ~15 min STATE/LOG/presentation
+  + ~5 min commit = ~110 min. Within 2-h budget.
+- **`bin/checks/` policy**: every cycle runs `bash bin/run_checks.sh`
+  first thing. Cycle-11 found all green except the optional jax
+  check.
 - **Inherited working-tree changes** (across `arena_eval/`,
-  `arena_policies/`, `arena_search/`, `tests/`, etc.) still untouched
-  per convention; cycle-10's only edits were under `research/` and
-  experiment scripts.
-- **CEM-determinism subtlety I learned this cycle**: with
-  `np.random.default_rng(seed).normal(mean, std)`, two runs at
-  identical seed but different `len(mean)` produce *identical* first
-  N standard normals where N = min(len) — the larger run just consumes
-  more. So dim=20 vs dim=16 at seed=0 effectively skips ahead in the
-  rng stream by 4 normals per candidate per generation. This is why
-  cycle-9 #3 (and cycle-10 A) diverge from cycle-9 #1 starting at
-  gen 1 even though all three start from the same anchor.
+  `arena_policies/`, `arena_search/`, `tests/`, etc.) still
+  untouched per convention; cycle-11's only edits were under
+  `research/` and the experiment scripts.
+- **Bash-tool polling subtlety**: `sleep N` with N > 600 is killed
+  with exit 143 by the bash tool's max-timeout. Pattern that works:
+  launch via `nohup ... &` once, then poll every 8-9 min by reading
+  `progress.log` directly.
+- **Grid driver path bug** (cycle 11): `cd "$(dirname "$0")/../.."`
+  was one parent too many; corrected to `cd "$(dirname "$0")/.."`
+  before relaunch. The python cell script computes `ROOT`
+  independently from its own file path so it self-corrected even
+  through the broken driver run; only the driver's per-cell
+  stdout-redirect target was wrong.

@@ -1,0 +1,83 @@
+{
+  "cells": [
+    {
+      "label": "c9-#1",
+      "dim_total": 16,
+      "core_dim": 16,
+      "tail_dim": 0,
+      "rng_seed": 0,
+      "wrapper": "bare",
+      "test_score": 448.80742435892375,
+      "val_score": 450.0464522326216
+    },
+    {
+      "label": "c9-#3",
+      "dim_total": 20,
+      "core_dim": 16,
+      "tail_dim": 4,
+      "rng_seed": 0,
+      "wrapper": "EMA-inv (ablated to ~zero signal)",
+      "test_score": 456.64020369438475,
+      "val_score": 457.61991434697063
+    },
+    {
+      "label": "c10-A",
+      "dim_total": 20,
+      "core_dim": 16,
+      "tail_dim": 4,
+      "rng_seed": 0,
+      "wrapper": "noop tail",
+      "test_score": 456.73763636922195,
+      "val_score": 457.66797860145726
+    },
+    {
+      "label": "c10-B",
+      "dim_total": 16,
+      "core_dim": 16,
+      "tail_dim": 0,
+      "rng_seed": 1,
+      "wrapper": "bare",
+      "test_score": 452.96073735521355,
+      "val_score": 453.82361509195545
+    },
+    {
+      "label": "c11-d16-s2",
+      "dim_total": 16,
+      "core_dim": 16,
+      "tail_dim": 0,
+      "rng_seed": 2,
+      "wrapper": "bare",
+      "test_score": 456.8032181567959,
+      "val_score": 458.53908063318073
+    },
+    {
+      "label": "c11-d24-s0",
+      "dim_total": 24,
+      "core_dim": 16,
+      "tail_dim": 8,
+      "rng_seed": 0,
+      "wrapper": "noop tail",
+      "test_score": 455.6558270883488,
+      "val_score": 457.2941424328939
+    },
+    {
+      "label": "c11-d24-s1",
+      "dim_total": 24,
+      "core_dim": 16,
+      "tail_dim": 8,
+      "rng_seed": 1,
+      "wrapper": "noop tail",
+      "test_score": 452.56548141397394,
+      "val_score": 453.74029426743635
+    }
+  ],
+  "summary": {
+    "n": 7,
+    "min": 448.80742435892375,
+    "mean": 454.3100754909804,
+    "median": 455.6558270883488,
+    "max": 456.8032181567959,
+    "std": 3.013659136749528,
+    "argmax_label": "c11-d16-s2"
+  }
+}
