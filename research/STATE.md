@@ -1,145 +1,131 @@
 # State — current cycle
 
-**Last updated**: 2026-05-04 (cycle 9 — closed)
+**Last updated**: 2026-05-04 (cycle 10 — closed)
 
 ## Active milestone
 
-**M2 — Optimize against the simple-AMM challenge.** Cycle 9 ran two
-12-gen warm-start CEMs back-to-back. The first (third-pass on bare
-piecewise) lifted 446.61 → 448.81 (+2.19). The second (EMA-inventory
-piecewise, 20 dims) lifted further to **456.64 on test** (val 457.62) —
-but its ablation showed the entire +10 pt lift is from the CEM
-exploring further within the 16 piecewise dims, *not* from the EMA
-dimension itself (Δ attributable to EMA = +0.024, within noise).
-**The inventory dimension is now genuinely dead** in two independent
-formulations (cycle-8 instantaneous Δ = -0.17; cycle-9 EMA Δ = +0.024).
+**M2 — Optimize against the simple-AMM challenge.** Cycle 10 ran a
+clean test of the cycle-9 wrapper-as-noise hypothesis. Two CEMs from
+the same anchor and recipe disambiguated three competing explanations
+of cycle-9's +7.83 lift.
 
-**Best M2 score: 456.64** (parameterised under
-`ema_inventory_piecewise` but recoverable as bare piecewise — see
-ablation; cycle-9 EMA best, 256 test seeds). Up from cycle-8's 446.61.
-Gap to M2 target: 83.36 pts.
+**Best M2 score: 456.74** (held-out 256 seeds; 20-d piecewise + 4 inert
+no-op tail dims, rng_seed=0; test score). Up trivially from cycle-9's
+456.64 (within search noise). Gap to M2 target: 83.26 pts.
 
-## Cycle-9 results (final)
+## Cycle-10 results (final)
 
-1. **Third-pass warm-start CEM on bare piecewise** (priority #1) —
-   complete. test 448.81 (val 450.05, edge_advantage +53.81 vs
-   FixedFee). Δ vs cycle-8 ablation: +2.19. Convergence shape: val
-   climbs 447.9 → 449.9 over gens 0-7, then flattens through gen 11.
-   Headline figure at
-   `research/experiments/2026-05-04-cycle9-third-pass-piecewise-cem/figures/three_pass_convergence.png`.
-2. **EMA-inventory piecewise CEM + ablation** (priority #3) — complete.
-   New 20-param policy `EMAInventoryPiecewiseStrategy` (16 piecewise
-   core + 4 EMA-inventory: decay, skew_to_bid, skew_to_ask, dead_zone).
-   Anchor parity 441.53 confirmed. CEM val climbs 447.9 → 457.6 over
-   12 gens. Test 456.64 (Δ +10.03 vs cycle-8 ablation). **Ablation:**
-   zeroing the 4 inventory params drops the score by Δ = +0.024 (i.e.
-   negligible). The entire +10 lift is attributable to CEM finding
-   refined 16 piecewise dims while wandering through 4 inert extra
-   dimensions. Same pattern as cycle 8's inventory-aware result, with
-   stronger lift in this case.
-3. **Smooth-vs-exact correlation study** (priority #2) — *blocked
-   on this sandbox*. `pip install jax` OOMs at the 3.9 GB / no-swap
-   RAM budget; `arena_eval/diff_simple_amm` imports jax. Encoded as
-   `bin/checks/08_jax_optional.sh`. Diagnostic value still high for
-   revival of gradient-based optimization.
+1. **Experiment A — 20-d no-op-tail piecewise CEM, rng_seed=0**.
+   Eval function strips the 4 trailing dims before instantiating
+   `PiecewiseControllerParams`, so they cannot affect the score in
+   any way. Test score = **456.74**, val 457.67. Reproduces cycle-9
+   #3 (456.64) to within +0.10 pts.
+2. **Experiment B — 16-d 4th-pass piecewise CEM, rng_seed=1**. Same
+   anchor and recipe as cycle-9 #1 (which used seed=0); only the
+   sampling RNG seed changes. Test score = **452.96**, val 453.82.
+   Beats cycle-9 #1 (448.81) by +4.15 but trails the 20-d runs by
+   ~3.8.
+3. **Comparison figure**:
+   `research/experiments/2026-05-04-cycle10-noop-tail-cem/figures/cycle10_hypothesis_test.png`.
 
-## Cumulative M2 history (post-cycle-9)
+## Hypothesis verdict
 
-| pass | family | dims | test score | Δ vs prior | Δ attrib. inventory |
-|--|--|--|--|--|--|
-| start (c5) | piecewise | 16 | ~414 | — | — |
-| pass 1 (c6) | piecewise | 16 | 432.75 | +18.7 | n/a |
-| pass 2 (c8) | inv-aware piecewise | 19 | 446.61 | +13.9 | -0.17 |
-| pass 3 (c9 #1) | piecewise | 16 | 448.81 | +2.2 | n/a |
-| pass 4 (c9 #3) | EMA-inv piecewise | 20 | **456.64** | +7.8 | +0.02 |
+Of the three candidate explanations for the cycle-9-#3-vs-#1 +7.83 lift:
 
-## Cycle-9 infrastructure
+| hypothesis | verdict | evidence |
+|--|--|--|
+| (A) Inert tail dims help CEM | **confirmed**, but mechanism is rng-stream-offset, not "more search directions" | A reproduces #3 to +0.10 with mathematically-zero tail interaction |
+| (B) RNG-seed lottery | **real, smaller** (~+4.2 of the +7.83) | B at seed=1 hits 452.96 (+4.15 vs c9 #1) |
+| (C) EMA × piecewise joint signal | **falsified** | A's flat-zero EMA wrapper matches #3 |
 
-- **`bin/checks/` scaffold landed.** 8 active checks (1 jax-optional
-  expected to fail). `bin/run_checks.sh` driver iterates over
-  executable scripts, reports one-line summary per check, exits
-  nonzero on any failure. Per the prompt, cycle 1's missed scaffolding
-  obligation was fulfilled here.
-- Active checks: remote-origin sanity, system-python use,
-  essential-deps importable, no-outbound-DNS, results-dir-unlink-
-  blocked, arena_eval-imports, piecewise-anchor-score, jax-optional.
+**Decomposition**: cycle-9 #3's +7.83 lift = ~+4.2 from rng-seed
+sequence luck + ~+3.8 from dim-20-specific sequence luck (extra 4
+normals per candidate per generation shifts the RNG state offset).
 
-## Hypothesis going into cycle 10
+## Cumulative M2 history (post-cycle-10)
 
-The "16-d piecewise plateaus near 449" hypothesis from immediately
-post-third-pass was wrong — the EMA-CEM (with 4 inert extra dims as
-exploration noise) found another +7.8 pts on the same 16 piecewise
-dims. So the right takeaway is: **CEM in higher-dim wraps with inert
-inventory tails is a more effective optimizer of the piecewise core
-than CEM directly on piecewise**. This is consistent with the cycle-7
-finding that adding inert dims doesn't slow CEM; it strengthens that
-into "adding inert dims appears to *help* CEM by giving it more
-random search directions per generation."
+| pass | family | dims | seed | test score | Δ vs c9 #1 | wrapper signal |
+|--|--|--|--|--|--|--|
+| start (c5) | piecewise | 16 | — | ~414 | −34.8 | — |
+| pass 1 (c6) | piecewise | 16 | 0 | 432.75 | −16.0 | n/a |
+| pass 2 (c8) | inv-aware piecewise | 19 | 0 | 446.61 | −2.2 | −0.17 |
+| pass 3 (c9 #1) | piecewise | 16 | 0 | 448.81 | (baseline) | n/a |
+| pass 4 (c9 #3) | EMA-inv piecewise | 20 | 0 | 456.64 | +7.83 | +0.024 |
+| pass 5 (c10 A) | piecewise + no-op tail | 20 | 0 | **456.74** | +7.93 | 0 (by construction) |
+| pass 6 (c10 B) | piecewise (seed lottery) | 16 | 1 | 452.96 | +4.15 | n/a |
 
-The ceiling of bare piecewise is now at least 456.6 — we don't yet
-know how much higher it goes. A 5th pass (24-d wrap with even more
-inert tails? Or pop=48?) is probably the cheapest next experiment.
-Prior: ~60% another +3-7 pts on test; ~30% diminishing returns kick
-in around 458 ± 2; ~10% search has saturated this time.
+## Hypothesis going into cycle 11
 
-The inventory hypothesis is **dead** (Δ ≈ 0 in two independent
-formulations across cycles 8-9). Cycle 10 should not try a third
-inventory variant; the mechanism is genuinely not what's holding
-the score back.
+The 16-d piecewise basin's true ceiling is at least 456.74 and likely
+higher; we've sampled only 4 (dim, seed) cells out of a wide grid.
+The CEM-noise distribution is wide enough that single-CEM headlines
+need their seed disclosed.
 
-## Cycle-10 plan-of-record
+Best next step: a small multi-seed × multi-dim CEM grid on the same
+anchor. Three seeds × three dim levels (16, 24, 32 with no-op tails)
+= 9 runs at ~30 min = ~4.5 hours, spread across 2-3 cycles. The
+distribution of best-test scores will tell us:
+- the basin's actual ceiling (best of grid)
+- the CEM-search-noise spread (std across reps)
+- whether dim-count systematically helps beyond seed lottery
 
-1. **Fifth-pass warm-start CEM with deliberate exploration noise.**
-   Wrap the cycle-9 EMA-best (with inventory tail) under a 24-dim
-   policy by adding 4 *random* but inert dimensions (e.g. extra
-   normalized weights that don't enter the fee formula), and run
-   pop=24/gen=12 warm-start CEM on those 24 dims. Test the
-   "exploration-via-inert-dims" hypothesis directly. ~30 min.
-2. **Escalate policy capacity in earnest.** Ladder/MLP. Warm-start
-   CEM from cycle-9 best embedded as the level-1 rung. ~1 hr.
-3. **Unblock jax** if a small-footprint install is feasible (e.g.
-   wheel index, CPU-only without `pip` build), so the smooth-vs-exact
-   diagnostic and gradient methods come back online.
-4. Update presentation; pick cycle-11 direction based on whichever
-   signal is strongest.
+Prior on best-of-grid: ~50% chance of finding ≥ 460, ~30% chance of
+finding > 462, ~20% chance the grid stays ≤ 458.
+
+## Cycle-11 plan-of-record
+
+1. **Multi-seed × multi-dim CEM grid (round 1)**. 3 runs:
+   (16-d, seed=2), (24-d-noop, seed=0), (24-d-noop, seed=1). Picks
+   that maximize info per run: a third 16-d seed plus two
+   higher-dim variants. ~90 min CPU.
+2. **If round 1 lifts test ≥ 459**: another round at the winning
+   (dim, seed) with longer gens (gen=18) to test whether the basin
+   has more depth than 12 gens reveals.
+3. **If round 1 stays ≤ 458 across all 3 reps**: pivot to ladder/MLP
+   capacity escalation, warm-starting the level-1 rung from the
+   current 456.74.
+4. **Background**: jax-via-CPU-wheel install retry; if successful,
+   bring back smooth-vs-exact correlation as a cycle-12 priority.
 
 ## Blockers for user
 
 - **jax install OOMs on this sandbox.** 3.9 GB total RAM, no swap.
   `pip install jax[cpu]` and `pip install jax jaxlib` both die with
-  exit 143 (SIGTERM, OOM). Either the sandbox needs more RAM/swap, or
-  we need a host-side install path. Documented as a passing-when-
-  failing check (`bin/checks/08_jax_optional.sh`). Push-topology
+  exit 143 (SIGTERM, OOM). Either the sandbox needs more RAM/swap,
+  or we need a host-side install path. Documented as a passing-when-
+  failing check (`bin/checks/08_jax_optional.sh`). Push topology
   unchanged: sandbox commits to local `main`; host launchd agent
   ships to `origin` every 15 min.
 
 ## Operational notes
 
-- **Repo path on this machine**:
-  `/sessions/optimistic-amazing-mccarthy/mnt/amm-gym-auto-research`
+- **Repo path on this sandbox**:
+  `/sessions/jolly-confident-mccarthy/mnt/amm-gym-auto-research`
   (sandbox name changes each cycle; always confirm with `pwd`).
-- **The host `.venv/bin/python` is Mac-Homebrew-only** and points
-  into a path that doesn't exist on the Linux sandbox. Use system
+- **The host `.venv/bin/python` is Mac-Homebrew-only**; use system
   `python3` (3.10.12) directly. Project deps to install once per
   fresh sandbox: `pip install --break-system-packages --no-cache-dir
-  numpy gymnasium pyarrow pytest`. Skip jax until the OOM is
-  resolved.
+  numpy gymnasium pyarrow pytest`. Skip jax until OOM is resolved.
 - **Cannot `unlink` files in the sandbox results dir** — drivers
   open log files in `"w"` mode to truncate instead of deleting.
-- **CPU**: 4 cores. Each CEM run uses 3 workers; ~120-125s/gen at
-  pop=24, dim=16. ~125-130s/gen at dim=20.
-- **Cycle-9 wall-clock**: ~5 min orient + ~10 min checks scaffold
-  + ~30 min third-pass CEM + ~5 min figure/presentation/STATE/LOG
-  + ~30 min EMA CEM (started in parallel with the cleanup work,
-  will run for a few more minutes after the cycle's commit).
-- **`bin/checks/` enforced policy** (per AUTORESEARCH_PROMPT.md):
-  every cycle should run `bash bin/run_checks.sh` first thing in
-  the orient phase. Cycle-9 confirmed all checks green except
-  the optional jax check.
+- **CPU**: 4 cores. Each CEM run uses 3 workers; ~120s/gen at
+  pop=24, dim=16; ~125s/gen at dim=20. Two CEMs in parallel would
+  saturate (6 worker procs on 4 cores) — run sequentially.
+- **Cycle-10 wall-clock**: ~5 min orient + ~10 min script writeup
+  + ~30 min experiment A + ~30 min experiment B + ~5 min figure
+  + ~10 min presentation/STATE/LOG. Within 2-hour budget.
+- **`bin/checks/` policy** (per AUTORESEARCH_PROMPT.md): every cycle
+  runs `bash bin/run_checks.sh` first thing. Cycle-10 found all
+  green except the optional jax check.
 - **Inherited working-tree changes** (across `arena_eval/`,
   `arena_policies/`, `arena_search/`, `tests/`, etc.) still untouched
-  per convention; cycle-9's only edits to those areas were:
-  + `arena_policies/__init__.py` — exported new EMA policy
-  + `arena_policies/ema_inventory_piecewise.py` — new file
-  + `arena_search/simple_amm_search.py` — registered new policy
-  + `tests/test_ema_inventory_piecewise.py` — new file
+  per convention; cycle-10's only edits were under `research/` and
+  experiment scripts.
+- **CEM-determinism subtlety I learned this cycle**: with
+  `np.random.default_rng(seed).normal(mean, std)`, two runs at
+  identical seed but different `len(mean)` produce *identical* first
+  N standard normals where N = min(len) — the larger run just consumes
+  more. So dim=20 vs dim=16 at seed=0 effectively skips ahead in the
+  rng stream by 4 normals per candidate per generation. This is why
+  cycle-9 #3 (and cycle-10 A) diverge from cycle-9 #1 starting at
+  gen 1 even though all three start from the same anchor.

@@ -1103,3 +1103,120 @@ pure no-op tail), warm-start CEM, see if we get the same lift again.
   scripts that take >120s.
 - Wall-clock for cycle 9 total: ~1h 35min of useful work, finishing
   ~16:35. Within 2h budget despite running two CEMs back-to-back.
+
+---
+
+## 2026-05-04T18:15Z — cycle 10 — wrapper-as-noise hypothesis test (A confirmed, mechanism is rng-stream-offset)
+
+**Plan for the cycle.** Cycle-9 follow-up showed a 20-d EMA-inv wrapper
+lifted M2 by +7.83 over the bare 16-d 4th-pass even though the
+ablation said EMA params themselves contribute +0.024. Three
+candidate explanations: (A) inert tails help CEM with random search
+directions, (B) rng-seed lottery, (C) joint EMA×piecewise structure
+the ablation missed. Cycle-10 plan-of-record was to run the cleanest
+form of (A) — a wrapper whose tail dims *cannot* enter the fee formula
+even in principle — and a (B) control with a different rng seed at
+dim=16. Both at same anchor, same recipe, sequential to avoid
+saturating the 4-core sandbox.
+
+**What I ran.**
+1. Bootstrap: `bin/run_checks.sh` clean except the expected
+   jax-OOM. Re-installed `gymnasium` / `pyarrow` / `pytest` on the
+   fresh sandbox via `pip install --break-system-packages`.
+2. Wrote `research/experiments/2026-05-04-cycle10-noop-tail-cem/scripts/run_noop_tail_cem.py`:
+   pop=24, gen=12, dim=20 (16 piecewise + 4 noop). The eval function
+   strips noop_* before instantiating `PiecewiseControllerParams`;
+   noop dims are bounded `[-1, 1]` so they get reasonable CEM std.
+3. Wrote `run_seed_lottery_cem.py`: identical to cycle-9 #1 except
+   `--rng-seed 1`.
+4. Ran A (rng_seed=0) → 29.7 min CEM + ~5 min rerank+test.
+5. Launched B in series. 29.8 min CEM + ~5 min rerank+test.
+6. Built `make_comparison_figure.py` to render the 4-run convergence +
+   bar chart.
+7. Updated experiment README, presentation, STATE, LOG.
+
+**What worked.**
+
+- **Both runs completed within wall-clock budget.** Cycle 10 total
+  ~80 min of useful experiment time (~4 min orient/setup; ~30 min A;
+  ~5 min between; ~30 min B; ~5 min figure/writeup); within the 2-h
+  cycle envelope.
+- **Anchor parity check (441.530 on search seeds) matched cycle-9 #3
+  exactly**, confirming the no-op-tail wrapper preserves the eval
+  semantics of bare piecewise.
+- **A's val-score convergence essentially mirrors cycle-9 #3** (both
+  reach ~457.6 by gen 11; gen 0–2 vals match to 0.001; small
+  divergence from gen 3 onwards consistent with the slight
+  numerical noise of EMA params drifting away from zero in cycle-9
+  #3). Test scores: A = 456.738, cycle-9 #3 = 456.640.
+
+**What failed (or surprised).**
+
+- Initial expectation: A would *exactly* match cycle-9 #3. It
+  matches within +0.10 but not exactly. Cause: in cycle-9 #3 the EMA
+  params drift slightly off zero during CEM, introducing tiny score
+  perturbations per candidate that eventually break the elite
+  selection identity. The cleanest reading: A and cycle-9 #3 sample
+  identical 16-d piecewise vectors at every candidate at every
+  generation (because numpy's `rng.normal(mean, std)` consumes the
+  same 20 standard normals at the same seed, and the first 16 z's
+  are identical given identical mean[:16]/std[:16]); but they assign
+  slightly different scores to those vectors due to nonzero EMA tail
+  in #3.
+
+**Updates implied for the prior.**
+
+- **Hypothesis (C) is dead.** A reproduces cycle-9 #3 to +0.10 pts
+  using *mathematically* zero tail interaction. There was no joint
+  signal the ablation missed.
+- **Mechanism for cycle-9 #3's lift over cycle-9 #1: rng-stream-
+  offset.** Both use rng_seed=0; cycle-9 #1 (dim=16) consumes 16
+  normals per candidate, cycle-9 #3 (dim=20) consumes 20. After gen 0,
+  their RNG states diverge by 92 normals per generation. The dim=20
+  trajectory at this seed lands in a luckier region of the same 16-d
+  basin. There is no geometric "more search directions" effect; this
+  is purely RNG-sequence sensitivity.
+- **Hypothesis (B) (seed lottery) is real but smaller than (A).** B
+  (16-d, seed=1) lifts test to 452.96 (+4.15 vs cycle-9 #1, but
+  -3.78 vs A). So the +7.83 lift decomposes as ~+4.2 from seed
+  lottery + ~+3.8 from dim-20-specific sequence luck.
+- **The 16-d basin's true ceiling is ≥ 456.74 on test.** The
+  cycle-9-main-entry framing of "16-d basin saturates near 449" was
+  wrong; it was just the saturation point at *one specific RNG
+  seed*. The CEM-noise distribution over multiple seeds is wide
+  enough that single-CEM headlines need their seed disclosed (and
+  ideally a few-seed median reported).
+
+**Next.**
+
+- **Cycle 11 #1**: multi-seed × multi-dim CEM grid (~3 seeds × {16,
+  24, 32}-d-noop). 9 runs at ~30 min each is too much for one
+  cycle; do 3-4 per cycle, spread across cycles 11-12. Goal: bound
+  the CEM-noise distribution on this anchor and find the basin's
+  actual best.
+- **Cycle 11 #2** (deferrable): jax-via-CPU-wheel install retry.
+- **Cycle 11/12**: escalate policy capacity (ladder/MLP) once the
+  search-noise picture is clear.
+- **Defer indefinitely**: any further inventory variant; wrappers
+  whose tail enters the fee formula non-trivially (the cleanest
+  test of inert tails has been run — there's nothing left to learn
+  from this class of wrapper).
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/jolly-confident-mccarthy/mnt/amm-gym-auto-research`.
+  Sandbox name confirmed via `pwd`.
+- `git pull --ff-only origin main` not attempted (DNS-blocked check
+  passing); local commits push via host launchd agent.
+- Fresh sandbox required `pip install --break-system-packages
+  gymnasium pyarrow pytest`. `pyarrow` install took ~3 min (45 MB
+  wheel; slow CDN). jax install still OOMs (check 08 still failing as
+  expected).
+- Sequential CEMs are the right call; running two in parallel would
+  saturate the 4-core sandbox (3 workers × 2 = 6 procs).
+- Both cycle-10 CEMs took ~30 min wall-clock for 12 gens + rerank
+  + test, matching cycle-9's per-run budget.
+- Inherited working-tree changes (across `arena_eval/`,
+  `arena_policies/`, `arena_search/`, `tests/`, etc.) still untouched
+  per convention. Cycle 10's only edits were under `research/` and
+  the experiment scripts.

@@ -1,0 +1,48 @@
+[17:35:55] Cycle-10B seed-lottery 16-d piecewise CEM | dim=16 pop=24 gen=12 elite_n=4 init_std_frac=0.1 workers=3 rng_seed=1
+[17:35:55] Anchor: {'base_fee': 0.0016550408798529576, 'base_spread': 0.004243130017056316, 'signal_decay': 0.6710204554398381, 'toxicity_decay': 0.5359985273747493, 'small_trade_threshold': 0.0035434960848610567, 'large_trade_threshold': 0.010026395287212322, 'continuation_small': -0.0002902772323995477, 'continuation_medium': 0.007132694969980573, 'continuation_large': 0.01823001527951129, 'reversal_small': 0.01193099991680676, 'reversal_medium': 0.02189557268220984, 'reversal_large': 0.07594344828226333, 'continuation_to_same_side': 0.12260500653949676, 'continuation_to_cross_side': 1.3580492898846743, 'toxicity_to_mid': 0.009952017339294478, 'toxicity_to_side': 0.06882714964266168}
+[17:35:55] Search seeds: 0..63 (n=64)
+[17:35:55] Val seeds:    1000..1127 (n=128)
+[17:35:55] Test seeds:   2000..2255 (n=256)
+[17:36:09] Anchor search-seed score: 441.530
+[17:38:30]   gen  0: best=441.530 elite_mean=430.157 val=447.890 (112.9s+27.8s)
+[17:40:56]   gen  1: best=440.555 elite_mean=438.181 val=445.843 (117.7s+28.3s)
+[17:43:28]   gen  2: best=443.169 elite_mean=442.287 val=449.295 (123.3s+28.8s)
+[17:45:56]   gen  3: best=443.699 elite_mean=443.023 val=449.593 (119.5s+28.7s)
+[17:48:26]   gen  4: best=446.499 elite_mean=445.122 val=452.223 (121.5s+28.9s)
+[17:50:55]   gen  5: best=446.552 elite_mean=446.317 val=452.027 (120.1s+28.8s)
+[17:53:24]   gen  6: best=447.254 elite_mean=446.853 val=452.821 (120.1s+28.7s)
+[17:55:54]   gen  7: best=447.103 elite_mean=447.021 val=453.183 (121.1s+28.3s)
+[17:58:24]   gen  8: best=447.735 elite_mean=447.527 val=453.622 (122.0s+28.8s)
+[18:00:55]   gen  9: best=447.658 elite_mean=447.589 val=453.483 (121.8s+29.0s)
+[18:03:25]   gen 10: best=447.805 elite_mean=447.671 val=453.051 (121.1s+28.6s)
+[18:05:54]   gen 11: best=448.029 elite_mean=447.803 val=453.460 (121.1s+28.5s)
+[18:05:54] CEM complete in 1785.5s (29.8 min)
+[18:05:54] Reranking top-8 unique elites on val seeds, then scoring val-best on test…
+[18:10:40]   Best-by-val | val=453.824 | test=452.961 | adv=+45.759  (56.8s) | cycle8_starting_line=446.613
+[18:10:40]   Δ vs cycle-8 ablation best: +6.348
+[18:10:40]   -> wrote /sessions/jolly-confident-mccarthy/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle10-noop-tail-cem/results/seed_lottery_cem_test.json
+[18:10:40] {
+  "params": {
+    "base_fee": 0.0012392961925740212,
+    "base_spread": 0.003590347149881819,
+    "signal_decay": 0.7568513206690444,
+    "toxicity_decay": 0.49552817230018753,
+    "small_trade_threshold": 0.0030384312079751448,
+    "large_trade_threshold": 0.009334891052903577,
+    "continuation_small": -0.00016061997618407338,
+    "continuation_medium": 0.006053336474842436,
+    "continuation_large": 0.018031906016071537,
+    "reversal_small": 0.01681174574850225,
+    "reversal_medium": 0.02825807408142994,
+    "reversal_large": 0.07324044766116926,
+    "continuation_to_same_side": 0.12074978729937128,
+    "continuation_to_cross_side": 1.3689553448047196,
+    "toxicity_to_mid": 0.005950936527886234,
+    "toxicity_to_side": 0.07490670821822977
+  },
+  "val_score": 453.82361509195545,
+  "val_edge_advantage": 47.13535967260835,
+  "test_score": 452.96073735521355,
+  "test_edge_advantage": 45.75870831638486,
+  "test_n_seeds": 256
+}

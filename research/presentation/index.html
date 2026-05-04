@@ -31,13 +31,32 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 9 — best M2 score now <strong>456.64</strong>
-after a 4th warm-start CEM pass through the piecewise core, this time
-wrapped with 4 inert "EMA-inventory" dimensions for extra exploration
-noise; the inventory dimension itself is now confirmed dead by ablation
-in two independent formulations, but the wrapper-as-noise pattern
-keeps lifting the piecewise core). Read top-to-bottom; later milestones
-build on earlier ones.</p>
+updated 2026-05-04 (cycle 10 — best M2 score now <strong>456.74</strong>
+on a 20-d piecewise wrapper with 4 truly inert tail dimensions, matching
+cycle-9's 456.64 to within +0.10 pts. Cycle 10 confirmed the cycle-9
+ablation cleanly and decomposed the +7.83 lift over the bare 16-d 4th
+pass into ~+4.15 from rng-seed lottery + ~+3.78 from 20-d-specific
+sequence luck). Read top-to-bottom; later milestones build on earlier
+ones.</p>
+
+<div class="summary">
+<strong>At a glance.</strong>
+<ul>
+  <li><strong>Where we are.</strong> Active milestone is M2 (optimize on
+  the simple-AMM challenge); M1 closed at cycle 5.</li>
+  <li><strong>Headline number.</strong> Best M2 test score
+  <strong>456.74</strong> (held-out 256 seeds), up from a cycle-5
+  starting line of ~414. Target: 540. Gap remaining: ~83 pts.</li>
+  <li><strong>What we've ruled out.</strong> Inventory-aware fee skew
+  (instantaneous and EMA-smoothed): both ablate to ≈ 0. The "inert
+  wrapper" pattern that produced the cycle-9 lift is now understood as
+  rng-stream-offset + seed lottery, not real signal.</li>
+  <li><strong>Open question.</strong> How much further can the 16-d
+  piecewise basin be squeezed via cheap multi-seed × multi-dim CEM
+  reps, and where does ladder/MLP capacity escalation start to pay
+  off?</li>
+</ul>
+</div>
 
 <div class="summary">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
@@ -49,6 +68,41 @@ the realistic mode actually look like the chain? (M2) can we beat the
 benchmark scoring rule? (M3) does training in the easy mode generalize
 to the realistic mode? (M4) how does optimal realistic performance
 scale with policy complexity?
+</div>
+
+<div class="summary">
+<strong>Glossary.</strong>
+<ul>
+  <li><strong>Piecewise (policy family).</strong> A 16-parameter fee
+  controller with a small/medium/large size-bucket structure plus
+  continuation/reversal weights, signal/toxicity decays, and base
+  fee/spread terms. Best-performing simple family on M2 to date.</li>
+  <li><strong>CEM (cross-entropy method).</strong> A black-box
+  optimizer: each generation, draw a population from a Gaussian over
+  the current mean/std, score them, take the top-elite fraction
+  (here 20%), refit mean/std, repeat. Warm-start = initialize the mean
+  at a known-good anchor.</li>
+  <li><strong>Anchor.</strong> The starting point for warm-start CEM
+  — typically the best params from the previous cycle.</li>
+  <li><strong>edge_advantage.</strong> Submission's mean PnL minus the
+  fixed-fee normalizer's mean PnL across the seed batch (in
+  challenge-mode units). Drives the score together with the
+  challenge's exposure-and-fee structure.</li>
+  <li><strong>Held-out seeds.</strong> Seeds 2000..2255 (n=256), used
+  only for the final test score; never seen during search (0..63) or
+  validation (1000..1127).</li>
+  <li><strong>Init_std (init_std_frac).</strong> The Gaussian std in
+  generation 0 of CEM, expressed as a fraction of each parameter's
+  full range. We use 0.10 throughout.</li>
+  <li><strong>Inert tail / no-op tail.</strong> Extra parameters in the
+  CEM search vector that <em>cannot</em> influence the score — used
+  to test whether wider sampling helps CEM regardless of structure.</li>
+  <li><strong>RNG-stream-offset.</strong> Different dim counts in
+  CEM's per-candidate sampling consume different numbers of standard
+  normals, advancing the RNG state at different rates and producing
+  different sample sequences from gen 1 onwards even at the same
+  seed.</li>
+</ul>
 </div>
 
 <h2>M1 — Validating the realistic simulator against on-chain markout</h2>
@@ -830,17 +884,19 @@ about CEM."
 <h3>Cycle 9 — updated cumulative M2 progression</h3>
 
 <table>
-  <tr><th class="l">pass</th><th class="l">family / wrapper</th><th>dims</th><th>val (best)</th><th>test (best)</th><th>Δ test vs prior</th><th>Δ test attrib. inventory</th></tr>
-  <tr><td class="l">start (c5)</td><td class="l">piecewise</td><td>16</td><td>—</td><td>~414</td><td>—</td><td>n/a</td></tr>
-  <tr><td class="l">pass 1 (c6)</td><td class="l">piecewise</td><td>16</td><td>433.6</td><td>432.75</td><td>+18.7</td><td>n/a</td></tr>
-  <tr><td class="l">pass 2 (c8)</td><td class="l">inv-aware piecewise</td><td>19</td><td>447.7</td><td>446.61</td><td>+13.9</td><td>−0.17</td></tr>
-  <tr><td class="l">pass 3 (c9 #1)</td><td class="l">piecewise</td><td>16</td><td>450.0</td><td>448.81</td><td>+2.2</td><td>n/a</td></tr>
-  <tr><td class="l">pass 4 (c9 #3)</td><td class="l">EMA-inv piecewise</td><td>20</td><td>457.6</td><td><strong>456.64</strong></td><td><strong>+7.8</strong></td><td>+0.02</td></tr>
-  <tr><td class="l">M2 target</td><td class="l">—</td><td>—</td><td>—</td><td>540.0</td><td>+126</td><td>—</td></tr>
+  <tr><th class="l">pass</th><th class="l">family / wrapper</th><th>dims</th><th>seed</th><th>val (best)</th><th>test (best)</th><th>Δ test vs c9 #1</th><th>Δ test attrib. wrapper signal</th></tr>
+  <tr><td class="l">start (c5)</td><td class="l">piecewise</td><td>16</td><td>—</td><td>—</td><td>~414</td><td>—</td><td>—</td></tr>
+  <tr><td class="l">pass 1 (c6)</td><td class="l">piecewise</td><td>16</td><td>0</td><td>433.6</td><td>432.75</td><td>−16.0</td><td>n/a</td></tr>
+  <tr><td class="l">pass 2 (c8)</td><td class="l">inv-aware piecewise</td><td>19</td><td>0</td><td>447.7</td><td>446.61</td><td>−2.2</td><td>−0.17</td></tr>
+  <tr><td class="l">pass 3 (c9 #1)</td><td class="l">piecewise</td><td>16</td><td>0</td><td>450.0</td><td>448.81</td><td>(baseline)</td><td>—</td></tr>
+  <tr><td class="l">pass 4 (c9 #3)</td><td class="l">EMA-inv piecewise</td><td>20</td><td>0</td><td>457.6</td><td>456.64</td><td>+7.8</td><td>+0.02</td></tr>
+  <tr><td class="l">pass 5 (c10 A)</td><td class="l">piecewise + no-op tail</td><td>20</td><td>0</td><td>457.7</td><td><strong>456.74</strong></td><td><strong>+7.9</strong></td><td>0 (by construction)</td></tr>
+  <tr><td class="l">pass 6 (c10 B)</td><td class="l">piecewise (seed lottery)</td><td>16</td><td>1</td><td>453.8</td><td>452.96</td><td>+4.2</td><td>n/a</td></tr>
+  <tr><td class="l">M2 target</td><td class="l">—</td><td>—</td><td>—</td><td>—</td><td>540.0</td><td>+91</td><td>—</td></tr>
 </table>
 
-<p>Cumulative lift from the cycle-5 starting line: <strong>+42.6 pts
-on test</strong>. Gap to target shrinks to <strong>83.4 pts</strong>.</p>
+<p>Cumulative lift from the cycle-5 starting line: <strong>+42.7 pts
+on test</strong>. Gap to target: <strong>83.3 pts</strong>.</p>
 
 <h3>Cycle 9 — what's blocked</h3>
 <div class="caveat">
@@ -852,23 +908,95 @@ so future cycles re-test rather than rediscover. The diagnostic is
 still the right next thing for revival of gradient-based optimization.
 </div>
 
-<h3>Cycle 10 plan</h3>
+<h3>Cycle 10 — what was the cycle-9 wrapper actually doing?</h3>
+
+<p><strong>Question.</strong> Cycle 9 ran two CEMs from the same anchor:
+a bare 16-d piecewise pass (test 448.81) and a 20-d EMA-inventory
+wrapper (test 456.64). The cycle-9 ablation said the four EMA params
+themselves contributed only +0.024 to the score, so where did the
++7.83 lift come from? We had three competing stories: (A) inert tail
+dims help CEM by adding random search directions; (B) it's just
+rng-seed lottery (different sample sequences from the same seed);
+(C) the EMA wrapper had real signal the linear ablation missed. The
+right next experiment is the one that disambiguates them.</p>
+
+<p><strong>Method.</strong> Two CEMs sharing the cycle-8 anchor and
+recipe (pop=24, gen=12, init_std_frac=0.10, elite=0.20, search/val/test
+seed splits). <em>Experiment A</em> — a 20-d CEM whose trailing four
+dims are <em>truly</em> inert: the eval function strips them before
+instantiating <code>PiecewiseControllerParams</code>, so the score is
+mathematically invariant in those dims. RNG seed = 0 (matches cycle-9
+#3). <em>Experiment B</em> — the same 16-d 4th-pass piecewise CEM as
+cycle-9 #1, but with <code>rng_seed=1</code>. Different seed = different
+sample sequence from gen 0 onwards.</p>
+
+<p><strong>Result.</strong></p>
+
+<table>
+  <tr><th class="l">run</th><th>dim</th><th>seed</th><th>val (best)</th><th>test (best, n=256)</th><th>Δ vs c9 #1</th></tr>
+  <tr><td class="l">c9 #1 (3rd-pass)</td><td>16</td><td>0</td><td>450.05</td><td>448.81</td><td>(baseline)</td></tr>
+  <tr><td class="l">c9 #3 (EMA wrap)</td><td>20</td><td>0</td><td>457.62</td><td>456.64</td><td>+7.83</td></tr>
+  <tr><td class="l"><strong>c10 A</strong> (no-op tail)</td><td>20</td><td>0</td><td>457.67</td><td><strong>456.74</strong></td><td><strong>+7.93</strong></td></tr>
+  <tr><td class="l"><strong>c10 B</strong> (seed lottery)</td><td>16</td><td>1</td><td>453.82</td><td><strong>452.96</strong></td><td><strong>+4.15</strong></td></tr>
+</table>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle10-noop-tail-cem/figures/cycle10_hypothesis_test.png"
+       alt="Cycle 10 hypothesis test convergence and bar chart">
+  <figcaption>Left: CEM val-score convergence by generation, all four
+  runs starting from the same cycle-8 anchor (446.61). Right: held-out
+  test scores at the val-best params. Cycle-10 A reproduces cycle-9 #3
+  to within +0.10 pts despite using <em>truly</em> inert tail dims;
+  cycle-10 B (16-d, seed=1) lands above cycle-9 #1 but below the 20-d
+  runs. Together these decompose the +7.83 cycle-9-#3-vs-#1 lift.</figcaption>
+</figure>
+
+<div class="insight">
+<strong>What it changed.</strong>
+<ul>
+  <li><strong>Hypothesis (A) is confirmed cleanly.</strong> A 20-d
+  wrapper with mathematically-zero tail interaction reproduces cycle-9
+  #3 to within +0.10 pts. The EMA wrapper's structure was
+  <em>completely</em> immaterial — the four extra dims could be any
+  ignored noise.</li>
+  <li><strong>Hypothesis (C) is killed.</strong> The cycle-9 ablation
+  was correct; there was no joint EMA × piecewise interaction the
+  ablation missed.</li>
+  <li><strong>Mechanism: rng-stream-offset.</strong> In numpy,
+  <code>rng.normal(mean, std)</code> with a 20-vector consumes 20
+  standard normals per candidate; with a 16-vector it consumes 16. At
+  the same seed, the dim=20 trajectory's RNG state advances 92 normals
+  per generation faster than dim=16, producing different downstream
+  candidates from gen 1 onwards. Wider sampling is, in this sense,
+  equivalent to a different RNG seed — not "more search directions"
+  in any geometrical sense.</li>
+  <li><strong>Hypothesis (B) is real but smaller.</strong> Cycle-10 B
+  shows a different seed at dim=16 already buys +4.15. The remaining
+  ~+3.78 is dim-20-specific sequence luck at this seed.</li>
+</ul>
+</div>
+
+<h3>Cycle 11 plan</h3>
 <ol>
-  <li><strong>"Inert exploration noise" pass</strong>. Wrap cycle-9
-  best under a 24-dim policy by adding 4 inert dimensions that *do
-  not* enter the fee formula at all (e.g. extra normalised weights
-  that are normalised back out), warm-start CEM at the same recipe.
-  Tests the "wider wrapper accelerates CEM exploration" hypothesis
-  cleanly. ~30 min.</li>
-  <li><strong>Escalate policy capacity in earnest.</strong> Ladder /
-  MLP. Warm-start from the cycle-9 best as level-1 rung. ~1 hr.</li>
-  <li><strong>Unblock smooth-vs-exact</strong> by either upgrading the
-  sandbox image, building a smaller jax wheel, or routing the diff
-  experiments through the host. Until that lands, gradient-based
-  approaches are off the table.</li>
-  <li><strong>Defer indefinitely:</strong> any further inventory-shaped
-  variants (two ablations is enough); a 5th pass at bare 16-dim
-  piecewise (the wrapper trick is a strict superset).</li>
+  <li><strong>Multi-seed × multi-dim CEM grid (cheap).</strong>
+  ~3 seeds × {16, 24, 32}-d-noop = 9 runs at ~30 min each = ~4.5 hrs;
+  spread across ≥2 cycles. Goal: bound the search-noise distribution
+  on the same anchor and find the basin's actual ceiling. Prior:
+  best of 9 runs lands somewhere in 458–462; a few hit ~456 (current
+  best); the rest settle in the 450–454 range. If the spread is
+  large, single-CEM headlines need to be reported with seed
+  variance going forward.</li>
+  <li><strong>Escalate policy capacity.</strong> Ladder/MLP, warm-start
+  from the best-of-grid above as level-1 rung. ~1 hr if the grid hasn't
+  saturated value first.</li>
+  <li><strong>Unblock smooth-vs-exact / jax.</strong> Try CPU-only
+  jaxlib wheel without isolation, or a different jax minor version
+  whose wheel doesn't OOM the install. If neither works, take the
+  blocker out of cycle 11 priorities.</li>
+  <li><strong>Defer indefinitely.</strong> Any further inventory
+  variant; any wrapper whose tail enters the fee formula non-trivially
+  (the no-op control settles the question once and for all that the
+  wrapper's structure doesn't matter).</li>
 </ol>
 
 <h2>M3 — Generalization study</h2>
