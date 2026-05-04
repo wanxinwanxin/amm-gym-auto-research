@@ -165,9 +165,15 @@ agent and it will create a single scheduled task whose body is the
 > ### Cycle protocol (do these steps in order, every cycle)
 >
 > 1. **Orient (≤10% of cycle).** `cd` to repo root, run
->    `bash scripts/git_unstick.sh`, then `git status`,
->    `git pull --ff-only origin main`. Read `research/STATE.md` and the last
->    1–2 entries of `research/LOG.md`. Skim `git log --oneline -20`.
+>    `bash bin/run_checks.sh` (which itself calls
+>    `scripts/git_unstick.sh` as step 0 to clear any stale .git/*.lock
+>    files left by killed prior runs — do NOT improvise ad-hoc
+>    `mv .git/index.lock ...` commands; the centralised script is the
+>    only sanctioned path so user-facing approval prompts stay
+>    deterministic). Surface any check whose result flipped this cycle.
+>    Then `git status`, `git pull --ff-only origin main`. Read
+>    `research/STATE.md` and the last 1–2 entries of `research/LOG.md`.
+>    Skim `git log --oneline -20`.
 > 2. **Plan (≤10%).** Decide the single most valuable next step toward the
 >    active milestone. If the previous cycle was mid-experiment, prefer
 >    continuing it. Write the plan as the first thing in this cycle's LOG

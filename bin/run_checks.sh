@@ -17,6 +17,16 @@ set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHECKS_DIR="$ROOT/bin/checks"
 
+# Step 0: clear stale .git/*.lock files BEFORE running any check or git
+# operation. This sandbox's FUSE mount refuses unlink but allows rename,
+# so leftover locks from a killed prior run jam every git command until
+# they're moved aside. Centralising this in one place means the cycle
+# agent never needs to improvise ad-hoc `mv .git/index.lock ...` commands
+# (which produced one approval-prompt per variation under the old setup).
+if [[ -x "$ROOT/scripts/git_unstick.sh" ]]; then
+    (cd "$ROOT" && bash scripts/git_unstick.sh) || true
+fi
+
 if [[ ! -d "$CHECKS_DIR" ]]; then
     echo "no $CHECKS_DIR — nothing to run"
     exit 0
