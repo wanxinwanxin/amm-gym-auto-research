@@ -88,4 +88,11 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 1: bootstrapping; M1 plan sketched.
+See `research/STATE.md`. As of cycle 7: M1 closed (cycle 5); M2 active.
+Best M2 test score = **432.75** (piecewise warm-start CEM, cycle 6);
+M2 target = 540, gap = 107.25 pts. Cycle 7 falsified the hypothesis
+that warm-start CEM lifts ~+19 pts on every policy family
+(submission_compact +5.3, submission_basis +0.6). Cycle 8 plan:
+inventory-aware piecewise + init_std sweep + smooth-vs-exact
+correlation. The cumulative narrative is in
+`research/presentation/index.html`.

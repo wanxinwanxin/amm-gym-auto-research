@@ -1,0 +1,51 @@
+[09:24:47] Cycle-7 warm-start CEM | family=submission_compact pop=24 gen=12 elite_n=4 init_std_frac=0.1 workers=3 rng_seed=0
+[09:24:47] Search seeds: 0..63 (n=64)
+[09:24:47] Val seeds:    1000..1127 (n=128)
+[09:24:47] Test seeds:   2000..2255 (n=256)
+[09:24:47] Anchor params dim=20 (warm-start mean = inherited best-by-val)
+[09:27:10]   gen  0: best_search=407.117 elite_mean=405.800 median=398.565 fixed_val=411.894 adv=-27.006 (114.1s search + 28.4s val)
+[09:29:36]   gen  1: best_search=408.635 elite_mean=407.352 median=405.132 fixed_val=413.917 adv=-42.603 (118.8s search + 27.6s val)
+[09:32:03]   gen  2: best_search=408.446 elite_mean=408.135 median=406.564 fixed_val=413.242 adv=-30.263 (118.2s search + 28.4s val)
+[09:34:26]   gen  3: best_search=409.070 elite_mean=408.822 median=407.910 fixed_val=414.609 adv=-56.337 (116.6s search + 27.0s val)
+[09:36:48]   gen  4: best_search=409.636 elite_mean=409.595 median=408.984 fixed_val=415.055 adv=-56.188 (114.2s search + 26.9s val)
+[09:39:09]   gen  5: best_search=410.136 elite_mean=409.986 median=409.584 fixed_val=415.610 adv=-58.214 (114.5s search + 27.0s val)
+[09:41:30]   gen  6: best_search=410.455 elite_mean=410.428 median=410.227 fixed_val=416.055 adv=-58.378 (114.4s search + 26.7s val)
+[09:43:51]   gen  7: best_search=410.758 elite_mean=410.633 median=410.415 fixed_val=416.331 adv=-55.353 (113.8s search + 27.0s val)
+[09:46:13]   gen  8: best_search=411.051 elite_mean=410.924 median=410.608 fixed_val=416.614 adv=-55.278 (114.6s search + 26.9s val)
+[09:48:35]   gen  9: best_search=411.340 elite_mean=411.151 median=410.919 fixed_val=416.728 adv=-45.363 (114.9s search + 27.3s val)
+[09:50:58]   gen 10: best_search=411.437 elite_mean=411.350 median=411.157 fixed_val=416.882 adv=-44.819 (115.7s search + 27.4s val)
+[09:53:21]   gen 11: best_search=411.402 elite_mean=411.391 median=411.268 fixed_val=416.815 adv=-45.393 (116.0s search + 27.4s val)
+[09:53:21] CEM complete in 1714.0s (28.6 min)
+[09:53:21] Reranking top-8 unique elites on 128 val seeds, then scoring val-best on 256 test seeds…
+[09:57:57]   Best-by-val | val_score=416.882 | test_score=416.077 | adv=-46.982  (55.2s) | starting_line=410.776
+[09:57:57]   Δ vs starting line: +5.301
+[09:57:57]   -> wrote /sessions/trusting-great-dijkstra/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle7-multi-family-warmstart-cem/results/warmstart_cem_submission_compact_test.json
+[09:57:57] {
+  "params": {
+    "base_fee": 0.0025315753713858204,
+    "min_fee": 0.0017369482316504914,
+    "max_fee": 0.020672392278197824,
+    "flow_fast_decay": 0.2229324626045049,
+    "flow_slow_decay": 0.9396572185034338,
+    "size_fast_decay": 0.401603763049753,
+    "size_slow_decay": 0.8747748401726279,
+    "gap_fast_decay": 0.8941732283346266,
+    "gap_slow_decay": 0.9182401922792415,
+    "toxicity_decay": 0.6650375554211108,
+    "toxicity_weight": 2.288546120055599,
+    "base_spread": 0.005122633460146289,
+    "flow_mid_weight": 0.07943844966331791,
+    "size_mid_weight": 0.047435950418716136,
+    "gap_mid_weight": 0.0030169764777801204,
+    "skew_weight": 0.09831275413989335,
+    "toxicity_side_weight": 0.04726698170939153,
+    "hot_gap_threshold": 0.8927858001169333,
+    "big_trade_threshold": 0.008599978604702907,
+    "hot_fee_bump": 0.009076716538139106
+  },
+  "val_score": 416.88158956107185,
+  "val_edge_advantage": -44.819036659316296,
+  "test_score": 416.0771810340977,
+  "test_edge_advantage": -46.98176821505105,
+  "test_n_seeds": 256
+}

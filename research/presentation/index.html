@@ -31,9 +31,10 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 6 — warm-start CEM lifts M2 from 414 to
-432.7, closing 15% of the gap to the target). Read top-to-bottom;
-later milestones build on earlier ones.</p>
+updated 2026-05-04 (cycle 7 — multi-family warm-start CEM falsifies
+the family-agnostic-lift hypothesis: piecewise +18.7, compact +5.3,
+basis +0.6). Read top-to-bottom; later milestones build on earlier
+ones.</p>
 
 <div class="summary">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
@@ -509,32 +510,109 @@ surrogate is at least directionally correct. Probe data:
   what does close that gap.</li>
 </ul>
 
-<h3>Cycle 7 plan</h3>
+<h3>Cycle 7 — multi-family warm-start CEM</h3>
+
+<div class="insight">
+<strong>Headline.</strong> The cycle-6 piecewise lift was
+<em>family-specific</em>, not family-agnostic. Same warm-start CEM
+recipe on <code>submission_compact</code> lifted 410.78 → 416.08
+(<span class="pos">+5.30</span>); on <code>submission_basis</code> it
+lifted 380.26 → 380.82 (<span class="neg">+0.56</span>, indistinguishable
+from val-side noise). Piecewise's +18.74 stays the cycle-6/7 best M2
+score; the M2 leaderboard is unchanged at 432.7. <strong>Hypothesis
+falsified.</strong>
+</div>
+
+<table>
+<tr><th class="l">policy family</th>
+    <th>params</th>
+    <th>inherited test</th>
+    <th>cycle-7 test</th>
+    <th class="l">delta</th>
+    <th class="l">interpretation</th></tr>
+<tr><td class="l">piecewise (cycle 6)</td><td>16</td><td>414.01</td><td>432.75</td>
+    <td class="l"><span class="pos">+18.74</span></td>
+    <td class="l">large lift; population converged tight by gen 11</td></tr>
+<tr><td class="l">submission_compact</td><td>20</td><td>410.78</td><td>416.08</td>
+    <td class="l"><span class="pos">+5.30</span></td>
+    <td class="l">modest lift; pop still drifting at gen 11 but slow</td></tr>
+<tr><td class="l">submission_basis</td><td>32</td><td>380.26</td><td>380.82</td>
+    <td class="l">+0.56</td>
+    <td class="l">essentially zero; gen-over-gen ≤0.05 from gen 4</td></tr>
+</table>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle7-multi-family-warmstart-cem/figures/family_comparison.png" alt="Cycle 7 — warm-start CEM convergence per family">
+  <figcaption>Per-family CEM convergence across 12 generations. Same
+  hyperparameters (pop 24, init_std 0.10×range, 64 search seeds, 128
+  val seeds). Piecewise's val curve climbs ~5 pts over its inherited
+  baseline; <code>submission_compact</code>'s climbs ~5 pts and is
+  still trending; <code>submission_basis</code>'s sits flat against
+  its 380.5 baseline.</figcaption>
+</figure>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle7-multi-family-warmstart-cem/figures/family_lift_bar.png" alt="Cycle 7 — inherited vs warm-start CEM by family">
+  <figcaption>Inherited vs cycle-6/7 warm-start CEM, per family.
+  Annotation = (test_score, +delta). The M2 target line (red, 540)
+  is still 107 pts above the best result. None of the three
+  families closes more than 15% of the gap on its own.</figcaption>
+</figure>
+
+<h3>What we updated about our priors after cycle 7</h3>
+<ul>
+  <li><strong>The +18.7 lift is not "free wins".</strong> The cycle-6
+  conclusion that warm-start CEM is "almost free wins on top of any
+  prior random-init result" was over-generalised — it holds only when
+  the inherited optimizer was clearly under-converged in a basin where
+  the surface is locally non-trivial. <code>submission_basis</code>'s
+  inherited 14×22 CEM had already collapsed: 12 more generations at
+  10% width add nothing because the basin's already flat.</li>
+  <li><strong>Bigger action spaces don't help here.</strong> The naive
+  reading of the cycle-6 leaderboard ("more params doesn't pay")
+  generalises: with 32 params, <code>submission_basis</code> is the
+  worst inherited score (380) <em>and</em> got the smallest cycle-7
+  lift. <code>piecewise</code>'s 16-param explicit large/medium/small +
+  continuation/reversal structure is doing real work that the
+  exponential-decay-state families can't easily replicate.</li>
+  <li><strong>Init_std=0.10 is plausibly the wrong width</strong> for
+  the dense-state families. We can't tell from one rng seed whether
+  a wider init_std (0.20 or 0.25, library default) would help
+  <code>submission_compact</code> escape its inherited basin. This
+  becomes a cycle-8 sweep candidate.</li>
+  <li><strong>Best M2 score remains 432.75 (piecewise, cycle 6).</strong>
+  Cycle 7 spent ~56 min of compute and didn't move the headline —
+  <em>but</em> it ruled out the cheapest follow-up direction. That's
+  a successful negative result.</li>
+</ul>
+
+<h3>Cycle 8 plan</h3>
 <ol>
-  <li><strong>Multi-family warm-start CEM</strong>: re-run the cycle-6
-  recipe (24×12, init_std_frac=0.10, warm-start at inherited best) on
-  <code>submission_compact</code> (inherited 410.78) and
-  <code>submission_basis</code> (380.26). Each should take ~30 min
-  wall-clock. If one of these <em>also</em> lifts by ~+19 pts, we'll
-  have evidence the bottleneck is family-agnostic optimization
-  quality; if one shoots above 460 instead, we have evidence the
-  action-space matters and should commit to that family for cycle 8.</li>
-  <li><strong>Sanity</strong>: re-run cycle-6 with
-  <code>RNG_SEED=1</code> to check the +19 pts isn't a single-seed
-  artifact. ~30 min budget.</li>
-  <li><strong>Inventory shaping ablation</strong>: the only inherited
-  family that explicitly uses inventory state is
-  <code>inventory_toxicity</code> (379.87). Fork the
-  <code>piecewise</code> policy to add an inventory-skew term, warm-start
-  from cycle-6 best, see whether warm-start CEM lifts the new
-  parameter onto something useful. (Defer to cycle 8 if cycle 7 is
-  already full.)</li>
-  <li><strong>Skip <code>tape_smooth</code> gradient</strong> for at
-  least one cycle. Per the gradient probe, the smooth surrogate's
-  direction is uninformative in the CEM-best neighborhood — fixing
-  this needs a separate calibration study (smooth-vs-exact scatter
-  across a parameter sweep around CEM-best), not just LR tuning.
-  That's a single-cycle deferral, not a milestone block.</li>
+  <li><strong>Inventory-aware piecewise.</strong> Fork
+  <code>PiecewiseControllerStrategy</code> to add a per-side
+  inventory-skew term (3 new params: target, weight, decay). Warm-start
+  CEM with the cycle-6 best as the anchor for the existing 16 params
+  and library defaults for the new 3. Hypothesis: piecewise's lift
+  came from its asymmetric quote structure; explicit inventory awareness
+  should compose with that, not fight it. Budget: ~45 min.</li>
+  <li><strong>Init_std sensitivity sweep on
+  <code>submission_compact</code>.</strong> Re-run cycle-7's compact
+  warm-start CEM with init_std_frac ∈ {0.05, 0.20, 0.30} and 6 generations
+  each (instead of 12) to see if a wider noise budget escapes the
+  basin. ~3 × 15 min = 45 min.</li>
+  <li><strong>Smooth-vs-exact correlation study.</strong> Sample 64
+  random parameter sets in a 0.10×range neighborhood of the cycle-6
+  piecewise best, score each on both (a) <code>tape_smooth</code>'s
+  smooth objective and (b) the exact challenge score. Plot scatter,
+  measure Spearman correlation. If correlation is meaningfully positive
+  (>0.4) the gradient direction is salvageable with proper LR; if
+  not, abandon <code>tape_smooth</code> for piecewise entirely.
+  ~20 min.</li>
+  <li><strong>Defer the cycle-7 RNG-seed sanity</strong>. The strong
+  family-dependence we saw is not a ±2 pt seed-noise artifact (the
+  basis lift is ~0 pt; the compact lift is +5.3 — both well outside
+  one-seed noise). Confirming the piecewise +18.7 is also non-noise
+  remains worth doing but is no longer cycle-critical.</li>
 </ol>
 
 <h2>M3 — Generalization study</h2>

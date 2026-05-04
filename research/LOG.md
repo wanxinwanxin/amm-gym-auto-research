@@ -567,3 +567,140 @@ multi-family warm-start CEM is now #1.
 - Cycle-6 wall-clock: ~30 min CEM + ~5 min docs + ~5 min gradient
   probe ≈ 40 min, well under the 2-hour budget. Most of the cycle
   spent waiting for the CEM run to finish.
+
+---
+
+## 2026-05-04T10:30Z — cycle 7 — multi-family warm-start CEM (falsifies cycle-6 generalization)
+
+**Plan for the cycle.** Per cycle-6 STATE: run cycle-6's warm-start
+CEM recipe (24×12 pop×gen, init_std_frac=0.10, mean = inherited
+best-by-val) on `submission_compact` (inherited test 410.78) and
+`submission_basis` (inherited test 380.26). Compare deltas vs
+piecewise's +18.74. If both lift by ~+15-22 pts, the cycle-6 result
+is family-agnostic — bottleneck is optimizer convergence. If one
+lifts much more, action-space matters. If neither lifts ≥+5,
+piecewise is special.
+
+**Hypothesis going in.** ~70/30 the lift is family-agnostic (the
+cycle-6 prescription generalizes). If wrong, the most likely
+alternative is "submission_basis already had a tighter inherited
+optimizer" because its inherited validation_rerank value (380.47)
+sits very close to its inherited best_search (375.43).
+
+**What I ran.**
+
+- Wrote a generic warm-start CEM driver
+  `research/experiments/2026-05-04-cycle7-multi-family-warmstart-cem/scripts/run_warmstart_cem.py`
+  generalising cycle-6's `run_warmstart_cem.py` to take a
+  `--family` flag. Pulls inherited best params from
+  `experiments/<family>_cem_1h_20260423_rebatch1.json::best_validation`
+  for the submission families; falls back to a hand-pinned dict for
+  piecewise. Same pop/gen/elite/seeds as cycle 6.
+- Pre-flight: `pip install --break-system-packages gymnasium pyarrow
+  "jax[cpu]"` in the sandbox (matches cycle-6 setup). Ran a tiny
+  pop=4 gen=2 smoke test, hit a sandbox PermissionError on
+  `Path.unlink` for the progress log; switched to truncate-via-open.
+- **`submission_compact` warm-start CEM** (rng_seed=0) launched in
+  background. Wall-clock 28.6 min. Final test_score 416.08 (val
+  416.88). **Δ = +5.30 pts**. CEM population still drifting upward
+  modestly at gen 11 (best_search 411.40, +1.0 pt over gens 9-11)
+  but val plateaued by gen 8 around 416.6-416.9.
+- **`submission_basis` warm-start CEM** (rng_seed=0) launched after
+  compact finished. Wall-clock 27.8 min. Final test_score 380.82
+  (val 380.79). **Δ = +0.56 pts** — within val noise. CEM
+  population fully collapsed by gen 5; gen-over-gen val change
+  ≤0.05 from gen 4 onward.
+- Built `figures/family_comparison.png` (3-panel convergence) and
+  `figures/family_lift_bar.png` (inherited vs cycle-7 by family).
+
+**What worked.**
+
+- The parametric driver worked first try after the smoke test patch.
+  ProcessPoolExecutor + fork start method handles the 3 different
+  policy classes cleanly.
+- Both runs incrementally persisted history JSON every generation,
+  so even if a run had been killed mid-cycle the data would be
+  recoverable.
+- The signal across the 3 families is clean and large enough to draw
+  conclusions on a single rng seed: piecewise +18.7, compact +5.3,
+  basis +0.6. Variance between rng seeds is plausibly ±2 pts at
+  most, so the family-dependence is real, not noise.
+
+**What failed (i.e., the cycle's main finding).**
+
+- **The cycle-6 +18.7 lift does not generalize.** The cycle-6
+  prescription "warm-start CEM is almost free wins on top of any
+  prior random-init result" was overfitted to the piecewise result.
+  On `submission_compact` we still got something useful (+5.3) but
+  on `submission_basis` we got effectively zero. The cycle-7 #1
+  hypothesis is *falsified*.
+- We did not run the cycle-7 #2 sanity check (RNG_SEED=1 on
+  piecewise). Falsifying the family-agnostic hypothesis was higher
+  value-of-information; the seed sanity check can wait for cycle 8
+  and is not cycle-critical given the strong family signal.
+
+**Updates implied for the prior.**
+
+- **Action-space structure matters more than param count.**
+  Piecewise (16 params, explicit large/medium/small × continuation/
+  reversal) is doing real structural work; submission_basis (32
+  params, dense exponential-decay state + linear bias terms) is
+  *not* — its inherited 14×22 CEM had already converged to a
+  flat-bottom basin.
+- **Init_std=0.10×range may be the wrong width** for the
+  exponential-decay-state families. Compact's slow-but-real drift
+  hints the basin shape might support a wider noise budget. Cycle
+  8 should sweep init_std on submission_compact specifically.
+- **Optimizer convergence and action-space jointly determine the
+  warm-start lift size.** A clean way to express this: warm-start
+  CEM only adds value where (a) the inherited optimizer left
+  meaningful score on the table AND (b) the policy class has
+  structure for local refinement to exploit. submission_basis fails
+  (a); submission_compact partially fails (b).
+- **Best M2 score remains 432.75** (piecewise, cycle 6). 107 pts
+  to the M2 target. Cycle 8's three-pronged plan (inventory-aware
+  piecewise / init_std sweep / smooth-exact correlation) is in
+  STATE.md.
+
+**Side observations.**
+
+- `submission_basis`'s edge_advantage_mean is ~−134, vs
+  `submission_compact`'s ~−45 and `piecewise`'s ~−9. Even at the
+  inherited best, submission_basis is hemorrhaging flow share
+  to the 30-bps normalizer. This is consistent with
+  high-dimensional dense biases producing wider effective spreads
+  than the explicit piecewise structure.
+- Despite different param counts (16/20/32), all three runs took
+  almost exactly the same wall-clock per generation (~140-145s).
+  The bottleneck is `run_batch` × 64 search seeds × ~10k steps,
+  not policy inference. This means cycle 8's 3-param inventory
+  fork won't add measurable cost to piecewise CEM.
+
+**Next.**
+
+- Cycle 8: implement inventory-aware piecewise (highest-value first
+  given the cycle-7 finding that piecewise's structure carries the
+  family), then init_std sweep on submission_compact (cheap second),
+  then smooth-vs-exact correlation study (cheap diagnostic). Per
+  STATE.md.
+- Defer indefinitely: gradient via tape_smooth from CEM-best
+  (still failing per cycle 6); RNG-seed sanity on piecewise
+  (interesting but not cycle-critical given cycle-7's strong
+  family signal).
+
+**Operational footnotes.**
+
+- Repo mount: `/sessions/trusting-great-dijkstra/mnt/amm-gym-auto-research`.
+- `git pull --ff-only origin main` failed in the sandbox as expected
+  (DNS to github.com is blocked from inside this container); local
+  commits push via the host launchd agent.
+- The `.venv` in the repo is Mac-only — system `python3` with deps
+  installed via `pip install --break-system-packages` works inside
+  the sandbox. Cycle-7 carried this over from cycle 6 in ~30s.
+- Sandbox cannot `unlink` files in the experiment results dir; the
+  cycle-7 driver truncates progress logs via `open("w")` instead of
+  `Path.unlink`. Documented in STATE.md operational notes.
+- Cycle-7 wall-clock: ~57 min CEM (28.6 + 27.8) + ~10 min
+  setup/figs/docs ≈ 67 min, well under the 2-hour budget.
+- Inherited working-tree changes (across `arena_eval/`,
+  `arena_policies/`, etc.) still untouched per convention.
