@@ -1,0 +1,37 @@
+{
+  "evaluator_kind": "challenge",
+  "test_seeds_range": [
+    2000,
+    2256
+  ],
+  "policy_family": "piecewise",
+  "source": "experiments/piecewise_cem_1h_20260422.json::best_validation",
+  "params": {
+    "base_fee": 0.0031761646289962934,
+    "base_spread": 0.005382800828473529,
+    "continuation_large": 0.016965089244693893,
+    "continuation_medium": 0.010683567139589125,
+    "continuation_small": 0.0007418160153062712,
+    "continuation_to_cross_side": 0.6711100624350796,
+    "continuation_to_same_side": 0.46227649502613805,
+    "large_trade_threshold": 0.017331678478343653,
+    "reversal_large": 0.06114156688492659,
+    "reversal_medium": 0.023791373551436422,
+    "reversal_small": 0.018651454393049955,
+    "signal_decay": 0.46913194556337184,
+    "small_trade_threshold": 0.004567928620937654,
+    "toxicity_decay": 0.5132485563405016,
+    "toxicity_to_mid": 0.008964552728672,
+    "toxicity_to_side": 0.0438333038385567
+  },
+  "elapsed_s": 51.97240900993347,
+  "score": 414.0095981615039,
+  "edge_mean_submission": 414.0095981615039,
+  "edge_mean_normalizer": 483.26697796143554,
+  "edge_advantage_mean": -69.25737979993167,
+  "retail_edge_mean_submission": 502.12322938326093,
+  "arb_loss_mean_submission": 88.113631221757,
+  "pnl_mean_submission": 353.4063471344974,
+  "pnl_mean_normalizer": 422.54214102804326,
+  "n_seeds": 256
+}

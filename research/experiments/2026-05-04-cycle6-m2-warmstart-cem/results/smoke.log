@@ -1,0 +1,36 @@
+[07:22:59] Cycle-6 warm-start CEM | piecewise | pop=4 gen=2 elite_n=1 init_std_frac=0.1 workers=3
+[07:22:59] Search seeds: 0..15 (n=16)
+[07:22:59] Val seeds:    1000..1015 (n=16)
+[07:22:59] Test seeds:   2000..2015 (n=16)
+[07:22:59] Init mean (inherited best) — score on val seeds will be measured in generation 0 alongside the warm-start population.
+[07:23:08]   gen  0: best_search=421.443 elite_mean=421.443 median=414.756 fixed_val=411.690 adv=-44.165 (  6.2s search +  3.3s val)
+[07:23:19]   gen  1: best_search=422.060 elite_mean=422.060 median=421.376 fixed_val=412.374 adv=-43.944 (  6.9s search +  3.3s val)
+[07:23:19] CEM complete in 19.7s (0.3 min)
+[07:23:19] Reranking top elites on val seeds (already done per-gen) and computing test score on 16 seeds…
+[07:23:29]   Best-by-val | val_score=412.374 | test_score=414.002 | adv=-37.529  (3.3s)
+[07:23:29]   -> wrote /sessions/vibrant-dreamy-volta/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle6-m2-warmstart-cem/results/warmstart_cem_test.json
+[07:23:29] {
+  "params": {
+    "base_fee": 0.002656200155218803,
+    "base_spread": 0.005003181263085151,
+    "signal_decay": 0.5016130015864051,
+    "toxicity_decay": 0.5960192545994326,
+    "small_trade_threshold": 0.004318052674502162,
+    "large_trade_threshold": 0.02108417099790463,
+    "continuation_small": -0.001195651423912289,
+    "continuation_medium": 0.012219063301905315,
+    "continuation_large": 0.019600039210523324,
+    "reversal_small": 0.01919641432933782,
+    "reversal_medium": 0.019301639284532705,
+    "reversal_large": 0.053925204702743694,
+    "continuation_to_same_side": 0.2333703036077502,
+    "continuation_to_cross_side": 0.7481048073203627,
+    "toxicity_to_mid": 0.0009125857975179791,
+    "toxicity_to_side": 0.041426342248583096
+  },
+  "val_score": 412.37439828282925,
+  "val_edge_advantage": -43.944205141130645,
+  "test_score": 414.00211816774515,
+  "test_edge_advantage": -37.52879185127202,
+  "test_n_seeds": 16
+}

@@ -1,0 +1,31 @@
+{
+  "evaluator_kind": "challenge",
+  "test_seeds_range": [
+    2000,
+    2256
+  ],
+  "fixed_fee_best": {
+    "fee_bps": 100.0,
+    "score": 373.7243179274126
+  },
+  "fixed_fee_30bps": {
+    "fee_bps": 30.0,
+    "elapsed_s": 57.90152931213379,
+    "score": 342.8261627551565,
+    "edge_mean_submission": 342.8261627551565,
+    "edge_mean_normalizer": 342.8261627529532,
+    "edge_advantage_mean": 2.203206062034724e-09,
+    "retail_edge_mean_submission": 567.49479345128,
+    "arb_loss_mean_submission": 224.66863069612367,
+    "pnl_mean_submission": 282.57451727335933,
+    "pnl_mean_normalizer": 282.57451727142853,
+    "n_seeds": 256
+  },
+  "piecewise_inherited": {
+    "score": 414.0095981615039,
+    "edge_advantage_mean": -69.25737979993167,
+    "source": "experiments/piecewise_cem_1h_20260422.json::best_validation"
+  },
+  "target_score": 540.0,
+  "starting_gap_to_target": 125.9904018384961
+}

@@ -31,9 +31,9 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-03 (cycle 4 — router-filtered on-chain pull
-falsifies the cycle-3 MEV-shift hypothesis and reframes M1). Read
-top-to-bottom; later milestones build on earlier ones.</p>
+updated 2026-05-04 (cycle 6 — warm-start CEM lifts M2 from 414 to
+432.7, closing 15% of the gap to the target). Read top-to-bottom;
+later milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
@@ -315,22 +315,227 @@ is a cleaner, more useful M1 conclusion than cycle 2's, because it
 points directly to what an extension PR would need to add.
 </div>
 
-<h3>Carried to cycle 5</h3>
-<ul>
-  <li>Either: (a) prototype a sim extension that adds informedness on
-  routed flow (a small directional bias on retail draws conditioned on
-  the next-step Binance tape), and check whether this closes the
-  router-mean gap; or (b) accept the gap as a documented calibration
-  limitation and start M2 — the simple-AMM challenge doesn't depend on
-  realistic-mode calibration.</li>
-  <li>Cycle-5 plan-of-record: do (b) and start M2 by inventorying the
-  policy families in <code>arena_policies/</code> and the search infra
-  in <code>arena_search/simple_amm_search.py</code>; the calibration
-  extension can be a parallel side-track if there's cycle budget.</li>
-</ul>
+<h3>M1 — done (cycle 5 closeout)</h3>
+<p>M1's deliverable as restated above is what we ship: <em>shape match,
+~5 bps LP-favorable level shift on router-equivalent reference, fully
+attributable to missing informedness on aggregator flow.</em> The
+sim-extension side-track (adding direction × forward-Binance-return
+correlation to retail draws) is interesting but not on the M2-M4
+critical path; deferred to a parallel side branch if there's free
+cycle budget later.</p>
 
 <h2>M2 — Optimizing on the differentiable simple-AMM challenge</h2>
-<div class="pending">Not started.</div>
+
+<div class="summary">
+<strong>Status (cycle 5).</strong> Setup complete: scoring rule
+documented, policy families cataloged, starting line measured. Cycle
+6 begins the actual optimization push.
+</div>
+
+<h3>The scoring rule (full reference: <code>research/notes/scoring_rule.md</code>)</h3>
+<p><code>score_challenge(submission_strategy_factory)</code> in
+<code>arena_eval/exact_simple_amm/simulator.py</code>. Returns the
+<em>mean of <code>edge_submission</code> across 1000 seeds</em>, where
+each seed is a 33.3-hour episode (10,000 × 12s steps) of synthetic GBM
+price + Poisson retail flow. Per-seed
+<code>edge_submission</code> accumulates retail trade edges (positive
+when LP earns its quoted spread above fair) and subtracts arbitrageur
+profit (LP losing to arb on the submission venue). The submission
+venue runs against a fixed normalizer <code>FixedFeeStrategy(0.003,
+0.003)</code> (30 bps each side). Score is in token-Y (USDC) units.</p>
+
+<h3>The cycle-5 starting line</h3>
+
+<p>Two reference numbers establish the starting line on the held-out
+test seeds <code>2000:2256</code>:</p>
+
+<ul>
+  <li><strong>Trivial floor</strong>: fixed 30-bps fee scores
+  <strong>342.83</strong> — i.e. quoting at the same spread as the
+  normalizer captures parity (advantage = 0). Best fixed-fee on this
+  evaluator is actually <em>100 bps</em> at <strong>373.72</strong> —
+  the wider fee defends against the in-sim arbitrageur enough to
+  outweigh the lost retail share.</li>
+  <li><strong>Inherited best learnable</strong>: replicating the
+  <code>piecewise</code> CEM best-validation params from
+  <code>experiments/piecewise_cem_1h_20260422.json</code> on the same
+  256 seeds gives <strong>414.01</strong>, matching the inherited
+  test-score of 414.01 to 3 decimal places (clean reproducibility).</li>
+</ul>
+
+<figure>
+  <img src="../experiments/2026-05-03-cycle5-m2-starting-line/figures/m2_starting_line.png" alt="M2 starting-line bar chart and fixed-fee curve">
+  <figcaption>Left: starting-line scores on 256 held-out seeds vs.
+  the M2 target and the clairvoyant-oracle ceiling. Right: fixed-fee
+  score curve — non-monotonic, peaks at 100 bps when paired against a
+  30-bps normalizer.</figcaption>
+</figure>
+
+<table>
+<tr><th class="l">baseline</th><th>score</th><th class="l">notes</th></tr>
+<tr><td class="l">fixed 30bps (trivial)</td><td>342.83</td><td class="l">parity with normalizer</td></tr>
+<tr><td class="l">fixed 100bps (best fixed)</td><td>373.72</td><td class="l">spreads wider, defends against arb</td></tr>
+<tr><td class="l">piecewise CEM (inherited best learnable)</td><td>414.01</td><td class="l">replicate of <code>piecewise_cem_1h_20260422</code></td></tr>
+<tr><td class="l">M2 target</td><td>540.00</td><td class="l">milestone threshold</td></tr>
+<tr><td class="l">structured-retail clairvoyant oracle</td><td>586.51</td><td class="l">sees retail order before quoting</td></tr>
+</table>
+
+<div class="insight">
+<strong>Gap to target = 540 − 414 = 126 points.</strong> The
+clairvoyant oracle (586.5) proves the target is achievable in
+principle, so M2 is asking for ~73% of oracle performance from a
+non-clairvoyant policy. Inherited families that already use the
+richest action space (<code>piecewise</code>,
+<code>submission_compact</code>) sit at the top of the inherited
+leaderboard, so capacity isn't the obvious lever — the missing edge
+is more likely <em>mid-prediction quality</em> and
+<em>inventory-aware quoting</em> (the oracle's
+<code>pnl_advantage</code> is much larger than its
+<code>edge_advantage</code>).
+</div>
+
+<h3>Cycle 6 — warm-start CEM</h3>
+
+<div class="insight">
+<strong>Headline.</strong> Warm-starting CEM at the inherited best
+piecewise params (mean = inherited best, init_std = 10% of each
+range) and running 12 generations × 24 population for ~27 minutes
+lifted the held-out test score from <strong>414.01 → 432.75</strong>
+(<span class="pos">+18.74 pts, +4.5%</span>). Val score 433.57 on
+128 seeds confirms it isn't an over-fit to test.
+The remaining gap to the M2 target is now <strong>107 pts</strong>
+(was 126).
+</div>
+
+<p><strong>Method.</strong> The library's
+<code>cross_entropy_search_with_validation</code> always initializes
+the CEM mean to the dead-center of every parameter range. The
+inherited 14 × 22 CEM converged from there to 414 but its
+search-score curve was still climbing (398.9 → 409.2 across iters
+0–13), so capacity probably wasn't the bottleneck — the optimizer
+hadn't converged. We re-ran CEM with the mean preset to the inherited
+best params (the inherited best <em>is</em> the cycle-0 mean) and a
+narrower initial std (0.10 × range vs the library default 0.25 ×
+range). 24 candidates per generation, first candidate per generation
+deterministically pinned to the current mean for replication.</p>
+
+<p>Search seeds: <code>range(0, 64)</code> (matches inherited).
+Per-iteration validation: <code>range(1000, 1128)</code>, 128 seeds
+(half the inherited val set, halves cost). Final test eval:
+<code>range(2000, 2256)</code>, 256 seeds (matches inherited test
+split). Three of four CPU cores via <code>ProcessPoolExecutor</code>
+to parallelize candidates within a generation.</p>
+
+<figure>
+  <img src="../experiments/2026-05-04-cycle6-m2-warmstart-cem/figures/m2_warmstart_cem.png" alt="Warm-start CEM convergence + headline bar">
+  <figcaption>Left: per-generation curves. <code>best_search</code>,
+  <code>elite_mean</code>, and <code>median</code> all converge tightly
+  by gen 11 — the population collapses to a narrow basin within ~1.5
+  pts. <code>fixed_val</code> on 128 held-out seeds runs ~6 pts above
+  the search-set score throughout, consistent with the inherited
+  report's val-vs-search gap. Right: where the cycle-6 result sits
+  between the starting line, the M2 target (red), and the clairvoyant
+  oracle ceiling (purple).</figcaption>
+</figure>
+
+<table>
+<tr><th class="l">policy</th><th>test score (seeds 2000:2256)</th><th class="l">notes</th></tr>
+<tr><td class="l">fixed 30bps</td><td>342.83</td><td class="l">trivial floor</td></tr>
+<tr><td class="l">piecewise CEM (random init)</td><td>414.01</td><td class="l">inherited; cycle-5 starting line</td></tr>
+<tr><td class="l"><strong>piecewise CEM (warm-start, cycle 6)</strong></td><td><strong>432.75</strong></td><td class="l">+18.74 vs cycle 5</td></tr>
+<tr><td class="l">M2 target</td><td>540.00</td><td class="l">remaining gap = 107.25</td></tr>
+<tr><td class="l">structured-retail clairvoyant oracle</td><td>586.51</td><td class="l">upper bound</td></tr>
+</table>
+
+<h3>What the convergence curve actually shows</h3>
+<p>Three useful signals from the per-generation log:</p>
+<ul>
+  <li><strong>Converged tightly.</strong> By gen 11, best /
+  elite_mean / median sit within 0.5 pts of each other (427.7 / 427.6
+  / 427.2). The CEM population collapsed to a single basin.</li>
+  <li><strong>Gains became sub-pt.</strong> Best-search improved by
+  0.4 pts/gen across gens 8–11 (427.3 → 427.7), down from ~1.5 pts/gen
+  early. Continuing the same CEM in cycle 7 would buy diminishing
+  returns.</li>
+  <li><strong>Edge advantage moved toward zero.</strong>
+  <code>edge_advantage_mean</code> against the 30-bps normalizer went
+  from −86 (gen 0) to −9 (gen 11), then −19 on the val-best params.
+  We're scoring well not by stealing flow from the normalizer but by
+  earning more <em>per</em> trade we get — and the warm-start CEM
+  amplified exactly that pattern (the inherited-best params had
+  <code>continuation_to_cross_side</code> = 0.67, the cycle-6 best
+  bumped that to 0.90 and pushed
+  <code>continuation_large</code>/<code>reversal_large</code> to the
+  upper bounds, i.e. wider asymmetric quotes after a big trade).</li>
+</ul>
+
+<div class="caveat">
+<strong>What didn't work — gradient on <code>tape_smooth</code>.</strong>
+A small Adam probe (2 train seeds × 256 train steps × 2 iters per LR,
+warm-started at the cycle-6 CEM-best params) showed: at LR=1e-5 the
+val score moved by +0.06 in one step (statistically zero given the
+~10-pt seed-slice noise of a 32-seed val), at LR=1e-4 it moved by
+−0.23, and at LR=1e-3 it collapsed from 425 to 280 in two steps.
+The smooth surrogate's gradient direction does not correlate with
+the exact-score gradient near the CEM-best basin — it's noise at
+small LRs and toxic at large ones.
+Smooth-train objective sat at <em>−2,895</em> (vs the exact score of
+~+433): scale and possibly sign of the surrogate are
+miscalibrated in this region. Cycle 7 should not pursue gradient on
+piecewise-from-CEM-best until a separate calibration study (a smooth-
+vs-exact correlation sweep around this point) confirms the
+surrogate is at least directionally correct. Probe data:
+<code>research/experiments/2026-05-04-cycle6-m2-warmstart-cem/results/gradient_probe.json</code>.
+</div>
+
+<h3>What we learned about the optimization landscape</h3>
+<ul>
+  <li><strong>Local refinement matters.</strong> The inherited 14×22
+  CEM didn't converge — it just ran out of generations. Local
+  refinement at the same wall-clock budget added ~+19 pts. CEM with
+  warm-start is almost free wins on top of any prior random-init
+  result.</li>
+  <li><strong>The 432.7 wall is unlikely to be local-optimum-deep.</strong>
+  Population collapsed within 1.5 pts and gen-over-gen gains
+  vanished, but only along the piecewise parameter axes the inherited
+  point already explored. Sister policy families
+  (<code>submission_compact</code> at 410.78 inherited,
+  <code>submission_basis</code> at 380, etc.) have broader action
+  spaces; warm-starting CEM on each of them in turn is a cheap way
+  to test whether the wall is policy-class-specific.</li>
+  <li><strong>The +19 pt lift consumed ~30 minutes of compute</strong>
+  on 3 CPU cores. The remaining 107 pts won't come from another
+  warm-start CEM on the same family. Cycle 7's job is to establish
+  what does close that gap.</li>
+</ul>
+
+<h3>Cycle 7 plan</h3>
+<ol>
+  <li><strong>Multi-family warm-start CEM</strong>: re-run the cycle-6
+  recipe (24×12, init_std_frac=0.10, warm-start at inherited best) on
+  <code>submission_compact</code> (inherited 410.78) and
+  <code>submission_basis</code> (380.26). Each should take ~30 min
+  wall-clock. If one of these <em>also</em> lifts by ~+19 pts, we'll
+  have evidence the bottleneck is family-agnostic optimization
+  quality; if one shoots above 460 instead, we have evidence the
+  action-space matters and should commit to that family for cycle 8.</li>
+  <li><strong>Sanity</strong>: re-run cycle-6 with
+  <code>RNG_SEED=1</code> to check the +19 pts isn't a single-seed
+  artifact. ~30 min budget.</li>
+  <li><strong>Inventory shaping ablation</strong>: the only inherited
+  family that explicitly uses inventory state is
+  <code>inventory_toxicity</code> (379.87). Fork the
+  <code>piecewise</code> policy to add an inventory-skew term, warm-start
+  from cycle-6 best, see whether warm-start CEM lifts the new
+  parameter onto something useful. (Defer to cycle 8 if cycle 7 is
+  already full.)</li>
+  <li><strong>Skip <code>tape_smooth</code> gradient</strong> for at
+  least one cycle. Per the gradient probe, the smooth surrogate's
+  direction is uninformative in the CEM-best neighborhood — fixing
+  this needs a separate calibration study (smooth-vs-exact scatter
+  across a parameter sweep around CEM-best), not just LR tuning.
+  That's a single-cycle deferral, not a milestone block.</li>
+</ol>
 
 <h2>M3 — Generalization study</h2>
 <div class="pending">Not started.</div>

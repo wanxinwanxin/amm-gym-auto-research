@@ -1,0 +1,98 @@
+{
+  "init_params": "cycle-6 CEM best (val=433.566 / test=432.748)",
+  "train_seeds": [
+    0,
+    1
+  ],
+  "val_seeds": [
+    1000,
+    1001,
+    1002,
+    1003,
+    1004,
+    1005,
+    1006,
+    1007,
+    1008,
+    1009,
+    1010,
+    1011,
+    1012,
+    1013,
+    1014,
+    1015,
+    1016,
+    1017,
+    1018,
+    1019,
+    1020,
+    1021,
+    1022,
+    1023,
+    1024,
+    1025,
+    1026,
+    1027,
+    1028,
+    1029,
+    1030,
+    1031
+  ],
+  "note": "Lightweight probe \u2014 2 train seeds \u00d7 2 Adam iters per LR, intended only to record gradient sign + magnitude near the CEM-best basin. Full sweep deferred to cycle 7.",
+  "results": [
+    {
+      "lr": 1e-05,
+      "elapsed_s": 47.78249502182007,
+      "per_iter": [
+        {
+          "iter": 0,
+          "train_obj": -2894.72119140625,
+          "grad_norm": 800.1680908203125,
+          "val_score": 442.21284985030695
+        },
+        {
+          "iter": 1,
+          "train_obj": -2894.67431640625,
+          "grad_norm": 772.90771484375,
+          "val_score": 442.27015429500614
+        }
+      ]
+    },
+    {
+      "lr": 0.0001,
+      "elapsed_s": 47.617833614349365,
+      "per_iter": [
+        {
+          "iter": 0,
+          "train_obj": -2894.72119140625,
+          "grad_norm": 800.1680908203125,
+          "val_score": 441.96003589876324
+        },
+        {
+          "iter": 1,
+          "train_obj": -2894.7021484375,
+          "grad_norm": 671.3258056640625,
+          "val_score": 441.72604277399984
+        }
+      ]
+    },
+    {
+      "lr": 0.001,
+      "elapsed_s": 51.110008001327515,
+      "per_iter": [
+        {
+          "iter": 0,
+          "train_obj": -2894.72119140625,
+          "grad_norm": 800.1680908203125,
+          "val_score": 425.07373393232723
+        },
+        {
+          "iter": 1,
+          "train_obj": -2891.90478515625,
+          "grad_norm": 1811.038818359375,
+          "val_score": 280.34449191701066
+        }
+      ]
+    }
+  ]
+}

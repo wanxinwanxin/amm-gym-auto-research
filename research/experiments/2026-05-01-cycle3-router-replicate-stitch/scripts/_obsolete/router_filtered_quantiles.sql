@@ -1,3 +1,26 @@
+-- =========================================================================
+-- *** OBSOLETE — retained for historical reference only ***
+--
+-- Retired in cycle 5 (2026-05-03). The dex_trades JOIN below was unnecessary
+-- all along: `markout_prod` already exposes `transaction_to_address` as a
+-- top-level column (confirmed via INFORMATION_SCHEMA in cycle 4). Worse, in
+-- practice the JOIN form blew the 1 GB billed-bytes ceiling because the
+-- transaction_hash IN-subquery forced a full-day partition scan on
+-- markout_prod (~1.06 GB billed even after block_number windowing).
+--
+-- USE INSTEAD the direct-filter pattern documented in
+-- `research/notes/data_sources.md` §1 ("Router-filtering markout_prod"):
+--
+--   WHERE LOWER(transaction_to_address) IN UNNEST(router_list)
+--
+-- which bills ~300 MB/day on the canonical pool. The router list itself
+-- is canonical at:
+--   research/experiments/2026-05-03-cycle4-router-confirmed/results/
+--     router_breakdown_2026-04-27.json
+-- =========================================================================
+--
+-- Original cycle-3 header (kept verbatim below for context):
+--
 -- Router-filtered markout pull from markout_prod, joined to dex_trades router-tx-set
 -- via tx_hash (no log_index because markout_prod stores log_index but dex_trades log_index
 -- is row-per-swap-leg, which agrees only sometimes — we use tx-hash-only filter, which is

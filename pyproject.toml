@@ -23,6 +23,13 @@ diff = [
     "jax>=0.10.0",
     "jaxlib>=0.10.0",
 ]
+research = [
+    # Used by research/ figure-build scripts (parquet IO for trade dumps,
+    # plotting, BQ-driven analysis). Not required by any arena_* package.
+    "pyarrow>=15.0",
+    "pandas>=2.0",
+    "matplotlib>=3.8",
+]
 
 [build-system]
 requires = ["setuptools>=68.0"]

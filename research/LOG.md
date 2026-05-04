@@ -292,3 +292,278 @@ either (a) router-filtered mean stays low, or (b) it goes even lower.
 - `pyarrow` re-installed into `.venv`. Install doesn't persist across
   mounts. Cycle-5 cleanup item: pin in `requirements.txt`.
 - Inherited working-tree changes left untouched, as in earlier cycles.
+
+---
+
+## 2026-05-03T14:15Z — cycle 5 — M1 closeout + M2 starting line
+
+**Plan for the cycle.** Per cycle-4 STATE: cleanup pass (retire the
+obsolete cycle-3 SQL template; pin `pyarrow`); then M2 setup —
+document the scoring rule, catalog policy families, run one baseline
+to record the inherited starting score.
+
+**Hypothesis going in.** The inherited best learnable score for
+`evaluator_kind="challenge"` is somewhere around 414 (piecewise CEM,
+`experiments/piecewise_cem_1h_20260422.json`); fixed-fee at 30 bps
+should land in the 340s. M2's gap to the >540 target is therefore
+~125 points.
+
+**What I ran.**
+
+- Cleanup: moved
+  `research/experiments/2026-05-01-cycle3-router-replicate-stitch/scripts/router_filtered_quantiles.sql`
+  into `_obsolete/` with a banner header pointing to the cycle-4
+  direct-filter pattern; left a `README.md` in the parent dir
+  explaining the move. `data_sources.md` already documented the
+  `transaction_to_address` lesson from cycle 4 — no change needed.
+- Pinned `pyarrow>=15.0`, `pandas>=2.0`, `matplotlib>=3.8` under a new
+  `[project.optional-dependencies] research = [...]` group in
+  `pyproject.toml`, so figure-build scripts install cleanly. Not
+  added to base deps because no `arena_*` package imports them.
+- Read `arena_eval/exact_simple_amm/simulator.py` end-to-end to nail
+  down the scoring formula (`score_challenge` → mean `edge_submission`
+  over 1000 seeds; `edge_submission` accumulates retail trade edges
+  minus arbitrageur profit on the submission venue, in token-Y units).
+- Cataloged the 13 policy families registered in
+  `arena_search/simple_amm_search.py::POLICY_SPECS`; pulled
+  best-test scores from inherited `experiments/*_cem_1h_*.json`
+  reports (range 377–414, all on `evaluator_kind="challenge"`).
+- Wrote `research/notes/scoring_rule.md` (full reference: the score
+  formula, the inherited leaderboard, the M2 attack-angle
+  recommendations).
+- Built and ran
+  `research/experiments/2026-05-03-cycle5-m2-starting-line/scripts/run_starting_line.py`:
+  fixed-fee sweep at {1,3,5,10,30,100} bps and a replicate of the
+  inherited piecewise CEM best on test seeds 2000:2256 (256 seeds,
+  matching the inherited test-split).
+- Built `figures/m2_starting_line.png` (bar chart of the starting line
+  vs target/oracle, plus the fixed-fee curve).
+- Updated `presentation/index.html` with the M1 closeout paragraph and
+  a full M2 setup section (scoring rule recap, starting line, figure,
+  cycle-6 plan).
+
+**What worked.**
+
+- **Piecewise replicates exactly**: 414.010 vs the inherited 414.010
+  (3 decimal places). The simulator's seed RNG and evaluator pipeline
+  are deterministic in the policy parameters — clean reproducibility.
+  This is the cycle-5 starting line for M2.
+- The fixed-fee sweep showed a non-monotonic score curve: 30 bps →
+  342.83 (parity with normalizer), 100 bps → 373.72 (peak so far). The
+  100-bps win is interesting because it sacrifices market share to
+  earn more per trade — a pattern the in-sim arbitrageur penalizes
+  less than tighter fees.
+- `data_sources.md` was already in good shape from cycle 4; nothing
+  to add.
+
+**What failed.**
+
+- Wall time blew the 2-hour budget. Total runtime ~3 h on the
+  starting-line script — the 1-bps and 5-bps fixed-fee sweeps each
+  took >1 h because low fees mean lots of retail/arb trades per seed.
+  Mitigation: cycle-6 sweeps stay above 5 bps unless specifically
+  needed; consider adding a process-pool to `run_batch`
+  (currently sequential).
+
+**Updates implied for the prior.**
+
+- The clairvoyant **structured-retail oracle** at score 586.51 (from
+  `experiments/structured_retail_oracle_full_0_999.json`) gives a
+  useful upper-bound reference: M2's >540 target is at ~73% of the
+  oracle, which means M2 isn't impossible but isn't trivial either.
+  Expected by cycle 1 sketch but not directly measured before.
+- **Capacity probably isn't the bottleneck**: the inherited
+  leaderboard's top four policy families (piecewise 414,
+  submission_compact 411, reactive 405, latent_full 390) span very
+  different action-space sizes but cluster within 24 points. The
+  remaining 126 points to target likely come from better
+  optimization and/or inventory-awareness — not from a bigger MLP
+  policy. Plan-of-record for cycle 6: warm-start CEM on piecewise,
+  fall back to gradient via `tape_smooth` if CEM plateaus.
+
+**Next.**
+
+- Cycle 6: warm-start CEM (or `tape_smooth` gradient) on piecewise
+  starting from the inherited best params; push hard on optimization
+  and see how high we can move the 414 starting line. Per
+  `STATE.md::Next action`, also fill in the fixed-fee peak (5–200 bps
+  on a 1-bps grid) as a free sanity check.
+
+**Operational footnotes.**
+
+- Repo mount: `/sessions/funny-laughing-bell/mnt/amm-gym-auto-research`
+  (new mount this cycle).
+- `git pull --ff-only origin main` failed in the sandbox as expected
+  (DNS to github.com is blocked); local commits push via the host
+  launchd agent.
+- `matplotlib` already installed in `.venv`; `pyarrow` not needed for
+  the cycle-5 figure but pinned anyway for future cycles.
+- Inherited working-tree changes still untouched.
+
+---
+
+## 2026-05-04T07:23Z — cycle 6 — M2 warm-start CEM (+18.7 pts on test)
+
+**Plan for the cycle.** Per cycle-5 STATE: warm-start CEM on
+`piecewise` from the inherited best params, with a narrower initial
+std (0.10 × range vs library default 0.25 × range). Population 24,
+generations 12. If CEM stalls, fall back to `tape_smooth` gradient
+ascent. Held-out test split = `range(2000, 2256)`, search seeds =
+`range(0, 64)` to match the inherited-report comparator. Skip the
+fixed-fee fine grid (defer to later cycles — the optimization push
+is the higher-value spend).
+
+**Hypothesis going in.** The inherited 14×22 CEM was still climbing
+at iter 13 (398.9 → 409.2). Local refinement at the inherited best
+params should add 5–25 pts; closing the full 126-pt gap to 540
+probably needs gradient or a different policy family. Prior on this
+cycle's lift: ~+10–20 pts.
+
+**What I ran.**
+
+- Read `arena_search/simple_amm_search.py::cross_entropy_search_with_validation`:
+  hard-coded mean = `0.5*(low+high)`, std = `0.25*(high-low)`. **No
+  warm-start API.** So I wrote a stand-alone CEM in
+  `research/experiments/2026-05-04-cycle6-m2-warmstart-cem/scripts/run_warmstart_cem.py`,
+  mirroring the library's update rule but with `init_mean = inherited_best`,
+  `init_std = 0.10*(high-low)`, and parallelising candidate evals across
+  3 of 4 CPU cores via `ProcessPoolExecutor`. The first candidate of
+  every generation is pinned to the current mean (no noise) so the
+  inherited best is replicated explicitly at gen 0.
+- Read `arena_search/diff_simple_amm_search.py`: the gradient path
+  (`gradient_ascent_search_with_validation`) already supports
+  `init_params=...` and `policy_family="piecewise"`. Tested with
+  LR=1e-3 and 8 train seeds: **the smooth gradient direction makes
+  the validation score WORSE in one Adam step (401.93 → 376.16)**.
+  Gradient norm 4815 — LR was an order of magnitude too big. Logged
+  for cycle 7 follow-up; ran a small LR sweep probe at the end of
+  this cycle (see "Side experiment").
+- Sandbox env: the host `.venv/bin/python` symlinks into a Mac
+  Homebrew path that doesn't exist on this Linux sandbox. Installed
+  the project's deps (`gymnasium`, `pyarrow`, `jax[cpu]`) into the
+  system `python3` instead. Documented for future cycles.
+- Smoke-tested the warm-start CEM with pop=4, gen=2, 16 seeds — the
+  ProcessPool path worked end-to-end, replicated 414 on a 16-seed
+  test, ran in 20 s.
+- **Full warm-start CEM** ran 27.2 min wall-clock (24 candidates × 64
+  search seeds × 12 generations + per-gen val + final rerank + test
+  eval, ~3 workers). Per-generation log streamed to
+  `results/warmstart_cem_progress.log`.
+
+**What worked.**
+
+- **Headline: test_score = 432.748** on held-out seeds 2000:2255
+  (n=256), vs the cycle-5 starting line of 414.010. **Δ = +18.74
+  pts (+4.5%).** Val score on 128 held-out val seeds = 433.566 —
+  consistent with test, so this is real, not val-overfit.
+- **CEM converged tightly within 12 generations**: by gen 11,
+  best_search / elite_mean / median = 427.7 / 427.6 / 427.2 (within
+  0.5 pts of each other — population collapsed to a single basin).
+  The val-best params (selected by reranking the top-8 elites on the
+  fixed val set, not by gen-11 best_search) sat ~5 pts above the
+  gen-11 best_search.
+- **edge_advantage trended toward zero**: gen 0 = -85.9 → gen 11 =
+  -8.9. The cycle-5 inherited point was net-negative against the
+  30 bps normalizer in flow allocation (i.e. losing share but
+  earning more per trade); the cycle-6 warm-start CEM mostly closed
+  that gap, suggesting the optimization moved toward more competitive
+  spreads rather than just wider ones.
+- **Parallelism worked cleanly**. 3-worker ProcessPoolExecutor cut
+  per-generation wall-clock to ~110 s vs the projected ~300 s
+  sequential. The stand-alone CEM is dropped-in compatible with the
+  library's `cross_entropy_search_with_validation` evaluator and
+  produces an equivalent `history` JSON.
+- **Diff vs inherited best params** is informative: the cycle-6
+  best pushes `continuation_to_cross_side` 0.67 → 0.90,
+  `continuation_large` to its upper bound 0.02, and
+  `reversal_large` 0.061 → 0.078. All three move quotes more
+  aggressively after big trades — i.e. the policy is now stronger at
+  recapturing displacement, which is consistent with the
+  edge_advantage drift toward zero.
+
+**What failed.**
+
+- The pre-CEM gradient probe at LR=1e-3 dropped val from 401.9 →
+  376.2 in one step. This is consistent with the gradient norm
+  (~4800) plus LR being together way too aggressive. Either the
+  smooth surrogate's local geometry is much sharper than expected
+  near the inherited point, or the surrogate's objective sign is
+  miscalibrated in some regions (`expected_piecewise_edge` returned
+  -2705 for an 8-tape, 256-step expansion — wildly off from the
+  expected ~+8 pts proportional scaling vs the exact 414 over
+  10,000 steps; needs investigation in cycle 7).
+- The host `.venv` was Mac-only, so the cycle started with a 5-min
+  detour to install deps in system python.
+- Did not run the fixed-fee fine grid this cycle (cycle-5 STATE's
+  optional task). Deferred — the +19 pt CEM lift is the headline; a
+  ±2 pt refinement to the fixed-fee peak would not change the M2
+  story.
+
+**Updates implied for the prior.**
+
+- The 414 wall was an under-converged optimizer, not a real ceiling.
+  Warm-start CEM eats 19 pts essentially for free. **The cycle-5
+  prediction that "more optimization on existing piecewise" was the
+  cheapest first push verified.**
+- We're now at 432.7 / 540 = 80% of target, vs 76.7% at the start
+  of cycle 6. Still 107 pts to go. CEM on piecewise won't get there
+  on its own — the population converged tight. To make the next
+  push, cycle 7 should (a) test whether the warm-start lift is
+  family-agnostic by re-running on `submission_compact` and
+  `submission_basis`, (b) re-attempt gradient with proper LR
+  calibration, (c) try inventory-aware shaping.
+- Updated cycle-7 plan-of-record into `STATE.md` and into the
+  presentation's "Cycle 7 plan" section.
+
+**Side experiment — gradient probe (cycle-6 outcome).**
+
+After CEM finished, ran a small Adam probe from the cycle-6 CEM-best
+point. The first attempt (8 train seeds × 8 iters × 4 LRs) appears
+to have OOM-killed silently — only the LR header line made it to
+stdout before the python process disappeared. Re-ran a tighter
+version (2 train seeds × 256 train_n_steps × 2 Adam iters × 3 LRs;
+results in `gradient_probe.json`):
+
+```
+LR=1e-5: val 442.21 → 442.27   (Δ +0.06; statistically zero on 32 val seeds)
+LR=1e-4: val 441.96 → 441.73   (Δ -0.23; gradient pushes val down)
+LR=1e-3: val 425.07 → 280.34   (catastrophic collapse in 2 steps)
+```
+
+Smooth-train objective sat at -2895 (vs the exact score of ~+433):
+the smooth surrogate's value is in the wrong sign and wildly off in
+scale around the CEM-best basin. At small LRs the surrogate gradient
+is essentially noise vs the exact-score gradient; at big LRs it
+actively destroys the policy. **Conclusion: do not pursue
+gradient-on-piecewise from CEM-best in cycle 7 without first running
+a smooth-vs-exact correlation sweep around the CEM-best point.** This
+flips the cycle-5 plan-of-record (which had gradient as the cycle-6
+fallback if CEM stalled) and reshuffles the cycle-7 priorities —
+multi-family warm-start CEM is now #1.
+
+**Next.**
+
+- Cycle 7: triage gradient_probe.json, then run multi-family
+  warm-start CEM (`submission_compact`, `submission_basis`). If any
+  family lifts >+30 pts from its inherited start, that's the
+  policy-class signal. Otherwise pivot to inventory shaping.
+- Stretch: re-run cycle-6 with `RNG_SEED=1` to confirm the +19 pts
+  isn't a single-seed artifact.
+
+**Operational footnotes.**
+
+- Repo mount: `/sessions/vibrant-dreamy-volta/mnt/amm-gym-auto-research`
+  (each cycle gets a different sandbox name; always confirm with
+  `pwd`).
+- `git pull --ff-only origin main` failed in the sandbox as expected
+  (DNS to github.com is blocked from inside this container); local
+  commits push via the host launchd agent.
+- The `.venv` in the repo is Mac-only — system `python3` with deps
+  installed via `pip install --break-system-packages` works inside
+  the sandbox. Updated cycle-6 experiment README to note this.
+- Inherited working-tree changes (across `arena_eval/`,
+  `arena_policies/`, etc.) still untouched per the convention from
+  earlier cycles.
+- Cycle-6 wall-clock: ~30 min CEM + ~5 min docs + ~5 min gradient
+  probe ≈ 40 min, well under the 2-hour budget. Most of the cycle
+  spent waiting for the CEM run to finish.

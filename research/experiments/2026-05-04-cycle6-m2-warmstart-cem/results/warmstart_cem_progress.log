@@ -1,0 +1,46 @@
+[07:23:52] Cycle-6 warm-start CEM | piecewise | pop=24 gen=12 elite_n=4 init_std_frac=0.1 workers=3
+[07:23:52] Search seeds: 0..63 (n=64)
+[07:23:52] Val seeds:    1000..1127 (n=128)
+[07:23:52] Test seeds:   2000..2255 (n=256)
+[07:23:52] Init mean (inherited best) — score on val seeds will be measured in generation 0 alongside the warm-start population.
+[07:26:06]   gen  0: best_search=419.074 elite_mean=412.283 median=398.478 fixed_val=426.252 adv=-85.910 (107.7s search + 25.9s val)
+[07:28:19]   gen  1: best_search=419.189 elite_mean=417.734 median=411.463 fixed_val=424.870 adv=-47.062 (107.1s search + 25.9s val)
+[07:30:34]   gen  2: best_search=421.276 elite_mean=420.093 median=417.848 fixed_val=427.176 adv=-50.102 (109.2s search + 25.9s val)
+[07:32:49]   gen  3: best_search=422.886 elite_mean=422.583 median=421.002 fixed_val=429.103 adv=-41.085 (108.5s search + 26.3s val)
+[07:35:06]   gen  4: best_search=424.284 elite_mean=423.653 median=422.600 fixed_val=430.386 adv=-38.510 (110.7s search + 26.6s val)
+[07:37:22]   gen  5: best_search=425.035 elite_mean=424.690 median=423.624 fixed_val=431.241 adv=-32.403 (109.7s search + 26.5s val)
+[07:39:40]   gen  6: best_search=425.324 elite_mean=425.117 median=424.567 fixed_val=431.389 adv=-35.528 (110.0s search + 27.3s val)
+[07:41:58]   gen  7: best_search=426.132 elite_mean=425.856 median=425.018 fixed_val=432.252 adv=-28.267 (111.7s search + 26.5s val)
+[07:44:13]   gen  8: best_search=426.336 elite_mean=426.275 median=425.890 fixed_val=432.760 adv=-34.521 (109.7s search + 25.6s val)
+[07:46:29]   gen  9: best_search=427.236 elite_mean=426.862 median=426.251 fixed_val=433.514 adv=-20.140 (110.2s search + 26.1s val)
+[07:48:46]   gen 10: best_search=427.335 elite_mean=427.239 median=426.837 fixed_val=433.407 adv=-19.026 (110.6s search + 26.2s val)
+[07:51:04]   gen 11: best_search=427.735 elite_mean=427.587 median=427.214 fixed_val=433.372 adv= -8.945 (111.3s search + 26.8s val)
+[07:51:04] CEM complete in 1632.0s (27.2 min)
+[07:51:04] Reranking top elites on val seeds (already done per-gen) and computing test score on 256 seeds…
+[07:55:36]   Best-by-val | val_score=433.566 | test_score=432.748 | adv=-19.303  (54.4s)
+[07:55:36]   -> wrote /sessions/vibrant-dreamy-volta/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle6-m2-warmstart-cem/results/warmstart_cem_test.json
+[07:55:36] {
+  "params": {
+    "base_fee": 0.002367347771481619,
+    "base_spread": 0.004308002150845519,
+    "signal_decay": 0.5512724333509836,
+    "toxicity_decay": 0.552468164452998,
+    "small_trade_threshold": 0.004129871044378966,
+    "large_trade_threshold": 0.009904163985697503,
+    "continuation_small": -0.00012073758590954386,
+    "continuation_medium": 0.012093232860869314,
+    "continuation_large": 0.02,
+    "reversal_small": 0.016296159249685895,
+    "reversal_medium": 0.01927342926722678,
+    "reversal_large": 0.07813813355714157,
+    "continuation_to_same_side": 0.22765645382739977,
+    "continuation_to_cross_side": 0.8964001772946211,
+    "toxicity_to_mid": 0.012437665162005649,
+    "toxicity_to_side": 0.06301381267531339
+  },
+  "val_score": 433.5662552119262,
+  "val_edge_advantage": -17.186847105657993,
+  "test_score": 432.747768827535,
+  "test_edge_advantage": -19.302919510538096,
+  "test_n_seeds": 256
+}
