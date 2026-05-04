@@ -80,6 +80,11 @@ agent and it will create a single scheduled task whose body is the
 >
 > - Python venv at `.venv/`; activate with `source .venv/bin/activate`.
 >   Install missing deps with `pip install` inside the venv.
+> - `jax` / `jaxlib` are available via wheels vendored in `vendored-wheels/`
+>   (the sandbox OOMs on a fresh `pip install jax`). On first need, run
+>   `bin/setup_jax_from_vendored.sh` — it installs from the local wheels
+>   with `--no-index` and is a no-op if jax is already importable.
+>   `bin/checks/08_jax_optional.sh` invokes it automatically.
 > - BigQuery available via the `mcp__bigquery__query` tool.
 >   - The on-chain markout reference table is
 >     **`uniswap-labs.research.markout_prod`** — use this for M1
