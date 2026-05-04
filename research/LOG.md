@@ -1021,3 +1021,85 @@ Bonus: scaffold the missed-from-cycle-1 `bin/checks/` directory.
   EMA policy in `arena_policies/__init__.py` and
   `arena_search/simple_amm_search.py`, plus the new policy file and
   test file.
+
+## 2026-05-04T16:35Z — cycle 9 follow-up — EMA-inventory CEM ran to completion + ablation falsifies inventory (again)
+
+The EMA-inventory CEM that was in flight at the cycle-9 main commit
+finished in the same wall-clock window. Capturing the result + a
+quick ablation here so cycle 10 starts with the right priors.
+
+**EMA-inventory CEM result.**
+- val (128 seeds, 12 gens, pop=24): 457.62
+- test (256 held-out seeds): **456.64**
+- edge_advantage_mean on test: +53.71 (vs FixedFee-0.003)
+- Δ vs cycle-8 ablation (446.61): +10.03
+- Δ vs cycle-9 third-pass (448.81): +7.83
+- Convergence: val climbs 447.9 → 453.8 → 454.8 → 455.6 → 456.3 → 457.1
+  → 457.5 → 457.5 → 457.6 over gens 0-11. Big lift (+5.9 val) in the
+  first 3 gens, smaller-but-steady (+3.8 val) over gens 4-11. Best
+  search-seed score reaches 451.6 by gen 11.
+- Best params (notable): inventory_ema_decay = 0.530 (≈ initial),
+  inventory_skew_to_bid = -0.0024, inventory_skew_to_ask = +0.0028,
+  inventory_skew_dead_zone = 0.056 — *all small or near-init*.
+
+**Ablation (256 test seeds).** Same pattern as cycle 8.
+- Full EMA-aware (20 dims, learned tail): 456.640
+- EMA-zeroed (20 dims, 4 inventory params zeroed): 456.616
+- 16-dim piecewise re-instantiated from same core: 456.616
+- Δ attributable to EMA-inventory dimension: **+0.024** (within noise)
+- Δ attributable to refined piecewise dims: **+10.003** (the entire
+  observed lift)
+
+**What this means.**
+
+1. **The inventory dimension is genuinely dead.** Two independent
+   formulations (instantaneous in cycle 8, EMA-smoothed in cycle 9)
+   both ablate to ≈ 0. ChallengeTape doesn't have the kind of
+   sustained directional flow that inventory awareness handles.
+   Cycle 10 should not try a third inventory variant.
+2. **CEM at higher dim with inert tails seems to *help*, not just
+   not-hurt.** The same anchor + same recipe found:
+   - 448.81 test when run as 16-dim bare piecewise (cycle-9 #1)
+   - 456.64 test when run as 20-dim wrapper with 4 inert dims
+   This is +7.8 pts of lift attributable purely to the wrapper
+   shape. Hypothesis: 4 extra random search directions per generation
+   means CEM samples the piecewise basin from more angles, escapes
+   shallow plateaus that 16-dim-only CEM gets stuck in.
+3. **The "16-d piecewise basin saturates at 449" prior from earlier
+   today was wrong.** The basin's actual ceiling is at least 456.6
+   on test, and we still don't know how high it goes. A fifth pass
+   with deliberate exploration noise (24-dim wrapper with 8 inert
+   tails?) is a clean test of how far this trick goes.
+
+**Updates implied for the prior.**
+
+- Best M2 score: **456.64** (piecewise core, embedded under
+  EMA-inventory wrapper). Gap to M2 target=540: 83.36 pts.
+- Cumulative M2 lift from cycle-5 starting line (~414): +42.6 pts.
+- The "diminishing returns across passes" framing from the cycle-9
+  main entry was based on cycle-9 #1 alone. With cycle-9 #3 added,
+  the pattern is: +18.7 (pass 1) → +13.9 (pass 2) → +2.2 (pass 3
+  bare) → +7.8 (pass 4 with wrapper). Adding the wrapper bumped the
+  marginal lift from ~2 to ~8 pts. So *not* monotonic-decreasing —
+  the search-method choice matters.
+- The cycle-9 main commit's narrative ("16-d basin near-saturated;
+  closing 91 pts needs more capacity") needs softening: more capacity
+  *probably* still helps, but cheap CEM tricks haven't run out.
+
+**Cycle-10 first action**: read these results, then run the cleanest
+form of the wrapper-as-noise experiment — a 24-dim policy with 8
+inert dims that *cannot* enter the fee formula even in principle (a
+pure no-op tail), warm-start CEM, see if we get the same lift again.
+
+**Operational footnotes.**
+- EMA CEM took 31.3 min wall-clock for 12 gens at dim=20 (avg ~157s
+  per gen + val), plus ~5 min rerank+test. Same-shape budget as
+  cycle-8 inventory-aware CEM at dim=19.
+- Ablation script (3 evaluations on 256 test seeds × ~60s each = 3
+  min) ran cleanly in background after the main CEM finished.
+- One quirk: the in-foreground attempt to run the ablation got
+  killed at 2 min by the Bash tool's 2-min default timeout. Backgrounding
+  via nohup worked fine. Keep this in mind for future cycle-end
+  scripts that take >120s.
+- Wall-clock for cycle 9 total: ~1h 35min of useful work, finishing
+  ~16:35. Within 2h budget despite running two CEMs back-to-back.

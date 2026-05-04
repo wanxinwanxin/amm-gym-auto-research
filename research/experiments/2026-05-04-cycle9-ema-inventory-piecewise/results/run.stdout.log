@@ -1,0 +1,52 @@
+[15:53:17] Cycle-9 EMA-inventory piecewise warm-start CEM | dim=20 pop=24 gen=12 elite_n=4 init_std_frac=0.1 workers=3 rng_seed=0
+[15:53:17] Anchor: {'base_fee': 0.0016550408798529576, 'base_spread': 0.004243130017056316, 'signal_decay': 0.6710204554398381, 'toxicity_decay': 0.5359985273747493, 'small_trade_threshold': 0.0035434960848610567, 'large_trade_threshold': 0.010026395287212322, 'continuation_small': -0.0002902772323995477, 'continuation_medium': 0.007132694969980573, 'continuation_large': 0.01823001527951129, 'reversal_small': 0.01193099991680676, 'reversal_medium': 0.02189557268220984, 'reversal_large': 0.07594344828226333, 'continuation_to_same_side': 0.12260500653949676, 'continuation_to_cross_side': 1.3580492898846743, 'toxicity_to_mid': 0.009952017339294478, 'toxicity_to_side': 0.06882714964266168, 'inventory_ema_decay': 0.5, 'inventory_skew_to_bid': 0.0, 'inventory_skew_to_ask': 0.0, 'inventory_skew_dead_zone': 0.0}
+[15:53:17] Search seeds: 0..63 (n=64)
+[15:53:17] Val seeds:    1000..1127 (n=128)
+[15:53:17] Test seeds:   2000..2255 (n=256)
+[15:53:32] Anchor search-seed score: 441.530 (zero-skew == piecewise)
+[15:56:10]   gen  0: best=441.530 elite_mean=434.385 val=447.890 | decay=0.531 sk_bid=-0.0023 sk_ask=+0.0014 (128.6s+29.7s)
+[15:58:44]   gen  1: best=443.735 elite_mean=439.281 val=450.503 | decay=0.517 sk_bid=-0.0062 sk_ask=+0.0009 (125.4s+28.1s)
+[16:01:17]   gen  2: best=446.660 elite_mean=444.807 val=453.832 | decay=0.513 sk_bid=-0.0024 sk_ask=+0.0010 (124.3s+29.3s)
+[16:03:50]   gen  3: best=448.499 elite_mean=447.648 val=454.470 | decay=0.527 sk_bid=-0.0024 sk_ask=+0.0021 (122.5s+30.0s)
+[16:06:28]   gen  4: best=449.647 elite_mean=449.297 val=454.814 | decay=0.539 sk_bid=-0.0030 sk_ask=+0.0022 (127.0s+31.0s)
+[16:09:06]   gen  5: best=450.091 elite_mean=449.886 val=455.626 | decay=0.530 sk_bid=-0.0025 sk_ask=+0.0025 (127.5s+30.7s)
+[16:11:44]   gen  6: best=450.285 elite_mean=450.092 val=456.299 | decay=0.532 sk_bid=-0.0027 sk_ask=+0.0028 (127.7s+30.2s)
+[16:14:23]   gen  7: best=450.844 elite_mean=450.642 val=457.057 | decay=0.530 sk_bid=-0.0025 sk_ask=+0.0029 (128.2s+30.6s)
+[16:17:01]   gen  8: best=450.954 elite_mean=450.596 val=457.469 | decay=0.529 sk_bid=-0.0024 sk_ask=+0.0029 (127.8s+30.2s)
+[16:19:38]   gen  9: best=451.212 elite_mean=450.976 val=457.526 | decay=0.529 sk_bid=-0.0024 sk_ask=+0.0029 (126.5s+30.4s)
+[16:22:15]   gen 10: best=451.544 elite_mean=451.310 val=457.503 | decay=0.530 sk_bid=-0.0024 sk_ask=+0.0028 (128.1s+29.5s)
+[16:24:52]   gen 11: best=451.630 elite_mean=451.496 val=457.620 | decay=0.530 sk_bid=-0.0024 sk_ask=+0.0028 (126.6s+30.5s)
+[16:24:52] CEM complete in 1880.5s (31.3 min)
+[16:24:52] Reranking top-8 unique elites on val seeds, then scoring val-best on test…
+[16:29:59]   Best-by-val | val=457.620 | test=456.640 | adv=+53.709  (61.3s) | cycle8_starting_line=446.613
+[16:29:59]   Δ vs cycle-8 ablation best: +10.027
+[16:29:59]   -> wrote /sessions/optimistic-amazing-mccarthy/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle9-ema-inventory-piecewise/results/ema_inventory_cem_test.json
+[16:29:59] {
+  "params": {
+    "base_fee": 0.000761984474901135,
+    "base_spread": 0.004604305151155076,
+    "signal_decay": 0.7969363072119879,
+    "toxicity_decay": 0.5416567807488939,
+    "small_trade_threshold": 0.003066051132153615,
+    "large_trade_threshold": 0.009393684638874116,
+    "continuation_small": -0.00018602538124208937,
+    "continuation_medium": 0.005902499145617943,
+    "continuation_large": 0.017949353695576917,
+    "reversal_small": 0.012678276795224486,
+    "reversal_medium": 0.023029773655617654,
+    "reversal_large": 0.0718345527941957,
+    "continuation_to_same_side": 0.23756493796484557,
+    "continuation_to_cross_side": 1.4437154543579311,
+    "toxicity_to_mid": 0.0011379921546359765,
+    "toxicity_to_side": 0.07213343745590639,
+    "inventory_ema_decay": 0.5297690369316596,
+    "inventory_skew_to_bid": -0.002394688080385657,
+    "inventory_skew_to_ask": 0.0028457585683660854,
+    "inventory_skew_dead_zone": 0.056265658422830905
+  },
+  "val_score": 457.61991434697063,
+  "val_edge_advantage": 55.45755636717868,
+  "test_score": 456.64020369438475,
+  "test_edge_advantage": 53.709133507610595,
+  "test_n_seeds": 256
+}

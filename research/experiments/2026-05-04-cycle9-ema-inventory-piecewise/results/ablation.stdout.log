@@ -1,0 +1,9 @@
+Re-evaluating cycle-9 EMA best on 256 test seeds…
+  full EMA-aware  : score=456.6402 edge_adv=+53.709 (60.6s)
+  EMA-zeroed (4d) : score=456.6161 edge_adv=+53.706 (60.9s)
+  piecewise (16d) : score=456.6161 edge_adv=+53.706 (59.7s)
+
+  Δ (full vs zeroed)  = +0.024  ← attributable to EMA-inventory dim
+  Δ (zeroed vs c8)    = +10.003  ← attributable to refined piecewise dims (CEM exploration)
+  Δ (full vs c8)      = +10.027  ← total lift
+  -> wrote /sessions/optimistic-amazing-mccarthy/mnt/amm-gym-auto-research/research/experiments/2026-05-04-cycle9-ema-inventory-piecewise/results/ema_inventory_ablation.json

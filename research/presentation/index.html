@@ -31,12 +31,13 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-04 (cycle 9 — best M2 score now <strong>448.81</strong>
-after a third-pass warm-start CEM lifted bare piecewise +2.2 pts
-above cycle 8; the diminishing-returns pattern is now visible across
-all three passes, suggesting the 16-d piecewise basin is finally
-near its asymptote). Read top-to-bottom; later milestones build on
-earlier ones.</p>
+updated 2026-05-04 (cycle 9 — best M2 score now <strong>456.64</strong>
+after a 4th warm-start CEM pass through the piecewise core, this time
+wrapped with 4 inert "EMA-inventory" dimensions for extra exploration
+noise; the inventory dimension itself is now confirmed dead by ablation
+in two independent formulations, but the wrapper-as-noise pattern
+keeps lifting the piecewise core). Read top-to-bottom; later milestones
+build on earlier ones.</p>
 
 <div class="summary">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
@@ -769,19 +770,77 @@ variant is one more cheap experiment on the inventory dimension before
 moving on.
 </div>
 
-<h3>Cycle 9 — EMA inventory as the last look at inventory awareness</h3>
-<div class="pending">
-The EMA-inventory experiment is queued and partially run. New policy
-<code>EMAInventoryPiecewiseStrategy</code> (20 params: 16 piecewise +
-4 EMA-inventory) lives at <code>arena_policies/ema_inventory_piecewise.py</code>
-with a 7-test parity suite at <code>tests/test_ema_inventory_piecewise.py</code>
-(all green). The CEM driver was started after the third-pass run
-finished; results land in
-<code>research/experiments/2026-05-04-cycle9-ema-inventory-piecewise/results/</code>.
-Cycle 10 will report the EMA outcome and decide whether the inventory
-dimension is genuinely dead (cycle 8 instantaneous Δ ≈ 0; cycle 9 EMA
-Δ pending).
+<h3>Cycle 9 — EMA inventory: ablation kills the headline (again), but the headline is +7.8</h3>
+
+<p><strong>Hypothesis going in.</strong> Cycle 8's instantaneous-
+inventory ablation showed the dimension contributes nothing
+(Δ = -0.17). The cycle-9 idea was: maybe ChallengeTape one-sided flow
+is too intermittent for instantaneous skew to do anything useful, but
+a slow EMA over reserve deviation would pick up sustained directional
+pressure. Prior: ~30% the EMA dimension adds ≥ +2 pts.</p>
+
+<p><strong>Result, in two parts.</strong></p>
+
+<p><em>Headline.</em> The new 20-param <code>EMAInventoryPiecewiseStrategy</code>
+(16 piecewise core + 4 EMA-inventory: decay, skew_to_bid, skew_to_ask,
+dead_zone), warm-started from the same cycle-8 ablation anchor and run
+through the same 12-gen / pop=24 / init_std=0.10 CEM recipe, scored
+<strong>val 457.62 / test 456.64</strong>. That's <strong>+10.03 pts
+on test vs. the cycle-8 ablation baseline</strong> and <strong>+7.83
+above the cycle-9 third-pass best</strong> on the same 256 held-out
+test seeds. Best M2 score so far. M2 gap: 540 - 456.64 = 83.36 pts.</p>
+
+<p><em>Ablation.</em> Zeroing the 4 EMA-inventory params on the cycle-9
+EMA best drops the test score from 456.64 to 456.62 — Δ = +0.024,
+within seed-set noise. Re-evaluating the same 16 piecewise dims under
+the bare <code>piecewise</code> family confirms parity:</p>
+
+<table>
+  <tr><th class="l">policy snapshot</th><th>test (256 seeds)</th><th>edge_advantage</th></tr>
+  <tr><td class="l">cycle-9 EMA-aware (20 dims, EMA tail learned)</td><td>456.640</td><td>+53.71</td></tr>
+  <tr><td class="l">cycle-9 EMA-aware with 4 inventory params zeroed</td><td>456.616</td><td>+53.71</td></tr>
+  <tr><td class="l">cycle-9 EMA core re-instantiated as bare piecewise (16 dims)</td><td>456.616</td><td>+53.71</td></tr>
+</table>
+
+<p>So the +10 pt lift is <strong>entirely</strong> in the 16 inherited
+piecewise dims. The 4 EMA-inventory params do nothing useful.</p>
+
+<div class="insight">
+<strong>What actually happened.</strong> CEM at 20 dims with 4 inert
+trailing parameters explored the piecewise core *more effectively*
+than CEM at 16 dims directly. Same anchor, same hyperparameters, same
+seed budget — only the wrapper around the policy changed. The cycle-9
+third-pass at 16 dims found val 450.05 / test 448.81; the cycle-9
+EMA-CEM at 20 dims found val 457.62 / test 456.64. Adding inert
+"exploration noise dims" appears to be a free win, at least on this
+basin. This generalises the cycle-7 observation that "adding inert
+dims doesn't slow CEM" to "adding inert dims actively *helps* CEM."
 </div>
+
+<div class="caveat">
+<strong>Inventory is genuinely dead.</strong> Two independent
+formulations — instantaneous (cycle 8) and EMA-smoothed (cycle 9) —
+both ablate to ≈ 0. ChallengeTape doesn't have the kind of sustained
+directional flow that inventory awareness exists to handle. Cycle 10
+should not try a third inventory variant. The cycle-9 result is best
+read as "another piecewise refinement, plus a methodological lesson
+about CEM."
+</div>
+
+<h3>Cycle 9 — updated cumulative M2 progression</h3>
+
+<table>
+  <tr><th class="l">pass</th><th class="l">family / wrapper</th><th>dims</th><th>val (best)</th><th>test (best)</th><th>Δ test vs prior</th><th>Δ test attrib. inventory</th></tr>
+  <tr><td class="l">start (c5)</td><td class="l">piecewise</td><td>16</td><td>—</td><td>~414</td><td>—</td><td>n/a</td></tr>
+  <tr><td class="l">pass 1 (c6)</td><td class="l">piecewise</td><td>16</td><td>433.6</td><td>432.75</td><td>+18.7</td><td>n/a</td></tr>
+  <tr><td class="l">pass 2 (c8)</td><td class="l">inv-aware piecewise</td><td>19</td><td>447.7</td><td>446.61</td><td>+13.9</td><td>−0.17</td></tr>
+  <tr><td class="l">pass 3 (c9 #1)</td><td class="l">piecewise</td><td>16</td><td>450.0</td><td>448.81</td><td>+2.2</td><td>n/a</td></tr>
+  <tr><td class="l">pass 4 (c9 #3)</td><td class="l">EMA-inv piecewise</td><td>20</td><td>457.6</td><td><strong>456.64</strong></td><td><strong>+7.8</strong></td><td>+0.02</td></tr>
+  <tr><td class="l">M2 target</td><td class="l">—</td><td>—</td><td>—</td><td>540.0</td><td>+126</td><td>—</td></tr>
+</table>
+
+<p>Cumulative lift from the cycle-5 starting line: <strong>+42.6 pts
+on test</strong>. Gap to target shrinks to <strong>83.4 pts</strong>.</p>
 
 <h3>Cycle 9 — what's blocked</h3>
 <div class="caveat">
@@ -795,20 +854,21 @@ still the right next thing for revival of gradient-based optimization.
 
 <h3>Cycle 10 plan</h3>
 <ol>
-  <li><strong>Land the EMA-inventory result</strong> from the
-  parallel-launched run; if Δ ≥ +2 on test, follow up with a richer
-  policy that actually uses inventory state; if Δ &lt; +1, declare
-  the inventory dimension dead in this challenge tape and stop trying
-  inventory-shaped features.</li>
-  <li><strong>Climb the policy-complexity curve.</strong> The plateau
-  signal from cycles 6-9 says we need more capacity. First step: a
-  ladder/piecewise policy with 4-6 quote levels per side instead of
-  the symmetric single-side fee; warm-start the rung anchored at the
-  cycle-9 best. Estimated ~1 hour of CEM.</li>
+  <li><strong>"Inert exploration noise" pass</strong>. Wrap cycle-9
+  best under a 24-dim policy by adding 4 inert dimensions that *do
+  not* enter the fee formula at all (e.g. extra normalised weights
+  that are normalised back out), warm-start CEM at the same recipe.
+  Tests the "wider wrapper accelerates CEM exploration" hypothesis
+  cleanly. ~30 min.</li>
+  <li><strong>Escalate policy capacity in earnest.</strong> Ladder /
+  MLP. Warm-start from the cycle-9 best as level-1 rung. ~1 hr.</li>
   <li><strong>Unblock smooth-vs-exact</strong> by either upgrading the
   sandbox image, building a smaller jax wheel, or routing the diff
   experiments through the host. Until that lands, gradient-based
   approaches are off the table.</li>
+  <li><strong>Defer indefinitely:</strong> any further inventory-shaped
+  variants (two ablations is enough); a 5th pass at bare 16-dim
+  piecewise (the wrapper trick is a strict superset).</li>
 </ol>
 
 <h2>M3 — Generalization study</h2>
