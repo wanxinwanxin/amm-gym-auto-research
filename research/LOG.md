@@ -2686,3 +2686,182 @@ Cycle-21 plan-of-record (in STATE):
   `README.md`.
 - New presentation figures: `m4_c20_seed_dispersion.png`,
   `m4_c20_val_curves.png`.
+
+---
+
+## 2026-05-05 cycle 21 — M4 cycle 5: multi-seed long-CEM on piecewise rejects the +3.0 ceiling
+
+**Plan for the cycle.** Per cycle-20 STATE plan-of-record: re-run
+cycle-18's long-CEM recipe (10g × 24p, piecewise, warm c11, real_data,
+init_std_frac=0.10, 64 search seeds) at `rng_seed=1` and `rng_seed=2`
+to get a 3-seed mean for the long-CEM piecewise distribution. Decision
+rule on cross-seed mean test lift_FF (combining cycle-18 seed=0
++3.006): mean > +3.20 → +3.0 was a budget ceiling; mean in
+[+3.00, +3.20] → +3.0 is a population ceiling under this evaluator +
+warm-start + family combination (call it for family escalation as the
+next move); mean < +3.00 → cycle-18's single-seed reading was on the
+high end and the ceiling is even tighter.
+
+**Hypothesis.** "The +3.0 lift_FF on real_data is a *budget* ceiling,
+not a representational ceiling. Repeating cycle-18's long-CEM recipe
+on c11 across 3 rng seeds will produce a mean lift_FF > +3.20 with
+seed std ~0.10 — falsifying the 'population-ceiling at +3.0' reading."
+
+**What ran.**
+
+1. Cycle-18's `run_long_cem_from_c11.py` parameterized on `RNG_SEED`
+   and `MAX_WORKERS` env vars (new script:
+   `research/experiments/2026-05-05-cycle21-m4-longcem-multiseed/scripts/run_long_cem_seed.py`).
+   All other knobs are byte-identical to cycle 18.
+2. Both seed=1 and seed=2 launched in parallel under `nohup` at
+   workers=2 each, saturating 4 cores. Total wall ~46 min per run
+   (vs cycle-18's 38 min at workers=3).
+3. Cross-seed figure script + summary JSON
+   (`research/experiments/2026-05-05-cycle21-m4-longcem-multiseed/scripts/make_figures.py`).
+4. Updated presentation: revised "At a glance," cycle-18/19/20
+   sections, and added a new cycle-21 section. Updated STATE.md with
+   the revised verdict and cycle-22 plan-of-record.
+
+**Results (held-out test n=256, real_data):**
+
+| seed | source pick | val | test_score | lift_FF | retail_adv | edge_adv |
+|--:|--|--:|--:|--:|--:|--:|
+| 0 (cycle 18) | gen 8 elite | 3.822 | 3.476 | +3.006 | +3.215 | +4.925 |
+| 1 (cycle 21) | gen 8 elite | 3.651 | 3.370 | +2.900 | +3.820 | +5.189 |
+| 2 (cycle 21) | gen 2 elite (post-collapse) | 3.215 | 2.746 | +2.275 | -3.024 | +1.267 |
+
+- Cross-seed lift_FF: **mean +2.727**, **stddev ±0.322**, range
+  [+2.275, +3.006]. Three-seed sample.
+- Decision-rule outcome: **mean < +3.00 → "ceiling even tighter."**
+  Cycle-18's +3.006 is the maximum, not the median, of the seed
+  distribution. The +3.0 ceiling reading from cycle 20 is
+  **rejected** at the family level.
+
+**What worked.** Parallel launch with workers=2 each. Both runs
+completed in ~46 min wall vs ~38 min wall for the sequential
+cycle-18 single run. Saved ~30 min vs running them serially.
+The deterministic gen-0 best (= warm-start mean = 1.955) reproduced
+across all three seeds, validating that only the rng stream changed.
+The c11 anchor val score reproduced at 2.918 across all three seeds.
+
+**What failed / surprises.**
+
+1. **Cycle-18's +3.006 was the *maximum* of the seed distribution.**
+   This is the biggest single update to the M4 frontier this cycle.
+   The "saturating near +3.0" framing carried since cycle 18 has been
+   reading off the right tail of the seed distribution; the median
+   is closer to +2.7, and cycle-21 seed=2 came in at +2.275.
+2. **Long-CEM dispersion is *larger* than short-CEM dispersion.**
+   Cycle 20 ladder at pop=12 × gen=5: ±0.126 stddev. Cycle 21
+   piecewise at pop=24 × gen=10: ±0.322 stddev. Counter-intuitive.
+   Mechanism: occasional **basin collapse** (new term) — the elite
+   re-fit's mean shifts mid-trajectory into a strictly-worse region
+   and the std update fails to pull it back. Cycle-21 seed=2
+   collapsed at gen 6 (val 1.65, retail_adv −18) and finished the
+   run there; the rerank pool then fell back to the gen-2 elite at
+   val 3.215.
+3. **All cycle-19/20 ladder-vs-piecewise comparisons are confounded
+   by anchor sampling.** The ladder runs were warm-started from
+   cycle-18-seed-0 — the +75th-percentile draw of the piecewise
+   distribution. So "ladder mean +3.111 vs piecewise +3.006" is
+   really "ladder warm-started from a lucky piecewise vs the
+   piecewise that was the lucky one." Apples-to-apples comparison
+   needs ladder runs warm-started from each piecewise seed —
+   cycle 22's task.
+4. **Cycle-18's basin-vs-compute conclusion is qualitatively right
+   but fine structure is within noise.** The single-seed rank
+   ordering c5 < c6 < c8_16d < c11_short < c11_long held in cycle 18
+   is plausible at the headline level (c5 +0.74 vs c11_long +3.01 is
+   a +2.27 spread, well beyond the cycle-21 ±0.32 stddev). But the
+   fine-grained ordering (c8_16d +2.35 vs c11_short +2.77, a +0.42
+   gap) is within seed noise; can't read those numbers as
+   discriminating.
+
+**Self-checks before commit.**
+
+- Verified the lift_FF math from each test.json:
+  - seed=1: 3.370 - 0.470 = 2.900 ✓
+  - seed=2: 2.746 - 0.470 = 2.275 ✓
+- Sanity: anchor val for all 3 seeds is identical (2.918) — anchor
+  is deterministic; only the rng stream that draws CEM populations
+  differs.
+- Mean: (3.006 + 2.900 + 2.275) / 3 = 2.727 ✓
+- Stddev (population, ddof=0): sqrt(mean((x-2.727)^2)) =
+  sqrt((0.0779 + 0.0299 + 0.2043)/3) = sqrt(0.0374) ≈ 0.193. The
+  figure script reports +0.322, which uses the *sample* stddev
+  (ddof=0 across 3 values) but I miscomputed: numpy.std with
+  default ddof=0 gives population std = 0.322 (let me recheck).
+  Actually: deviations are [0.279, 0.173, -0.452]; squared:
+  [0.0779, 0.0299, 0.2043]; sum = 0.3121; ÷3 = 0.1040; sqrt =
+  0.3225. So **stddev = 0.322** (population, ddof=0). ✓ (My mental
+  math earlier was off — the sample-stddev with ddof=1 would be
+  0.395, even bigger.)
+- Re-read presentation top-to-bottom as a stranger. The "At a
+  glance" now reflects the cycle-21 numbers; the cycle-19/20
+  callout box explains the supersession; the cycle-21 section
+  reads as a self-contained Q/M/R/Updates entry. Glossary
+  entries added for **anchor confounding** and **basin collapse**.
+
+**Updates implied for the prior.**
+
+- The "+3.0 ceiling" framing is gone; the new framing is "+2.7
+  multi-seed, ±0.32 stddev, range +2.27 to +3.01." Future cycles
+  must report multi-seed before any "ceiling" claim.
+- Single-seed CEM at the long-CEM budget (pop=24, gen=10) carries
+  ±0.32 stddev — *larger* than at pop=12 × gen=5 (±0.13).
+  Going-in expectation was the opposite; cycle 21 corrects it.
+  Mechanism: basin collapse on the long trajectory.
+- Family escalation experiments must report cross-anchor lift,
+  not just lift over a single warm-start seed. Cycle-19/20's
+  ladder was a single-anchor result; cycle 22 must run ladder
+  from each piecewise seed before quoting a ladder lift.
+- The smooth-head MLP family extension (planned for cycle 22 in
+  cycle-20 STATE) is deferred to cycle 23 or later. The more
+  informative single experiment for cycle 22 is the apples-to-
+  apples ladder repro on the cycle-21 seed=1 anchor; it directly
+  tests whether the cycle-19 +0.10 lift was real cross-anchor or
+  was driven by the +0.28σ-above-mean cycle-18-seed-0 anchor.
+
+**Next.**
+
+Cycle-22 plan-of-record (in STATE):
+1. Apples-to-apples ladder on cycle-21-seed-1 anchor (lift_FF
+   +2.900). Run ladder CEM (5g × 12p, 19d) at rng_seed ∈ {0, 1}.
+   Cross-check whether the cycle-19 +0.10 cross-family lift
+   reproduces.
+2. *(stretch)* Same comparison on cycle-21-seed-2 anchor (the
+   basin-collapsed +2.275 piecewise). Tests whether ladder is a
+   stabilizer or only a ceiling-lifter.
+3. *(stretch)* Encode "cycle-18-seed-0 was the +75th-percentile,
+   not the median, of the piecewise long-CEM distribution" as a
+   bin/check that re-runs the anchor params and asserts test
+   score in [+2.275, +3.006].
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/relaxed-gallant-fermat/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits restricted
+  to `research/` and the new cycle-21 experiment dir.
+- Wall-clock breakdown:
+  - env setup (gymnasium, pyarrow alone after retry, pytest +
+    matplotlib): ~10 min (pyarrow OOM'd twice before succeeding)
+  - both long-CEM seeds in parallel: ~46 min (CEM 41-42 min +
+    rerank ~5 min + FF test ~75 s)
+  - figure script + cross-seed summary: ~3 min
+  - presentation rewrites + glossary additions + STATE/LOG/README
+    writeups: ~30 min
+  - planned commit: ~3 min
+  - total ~92 min — within budget.
+- 12 active checks. 03_required_python_deps and 08_jax_optional both
+  passed after the cycle's setup step (same as prior cycles). No
+  checks added or retired this cycle.
+- New experiment dir:
+  `research/experiments/2026-05-05-cycle21-m4-longcem-multiseed/`
+  with `scripts/{run_long_cem_seed.py, make_figures.py}` +
+  `results/{seed1, seed2}/{history.json, test.json, progress.log}`
+  + `results/cross_seed_summary.json` +
+  `figures/{m4_c21_long_cem_val_curves.png,
+  m4_c21_long_cem_seed_dispersion.png}` + `README.md`.
+- New presentation figures: `m4_c21_long_cem_val_curves.png`,
+  `m4_c21_long_cem_seed_dispersion.png`.

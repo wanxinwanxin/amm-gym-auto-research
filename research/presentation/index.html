@@ -31,36 +31,44 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-05 (cycle 20). M2 deliverable (champion held since
+updated 2026-05-05 (cycle 21). M2 deliverable (champion held since
 cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
 <code>real_data</code> evaluator the same policy scores test =
 <strong>+2.57</strong> [CI +1.98, +3.16], a lift of
 <strong>+2.10</strong> over the FixedFee(0.003) baseline. Cycle 18
-established a piecewise-family <code>real_data</code> reading near
-test <strong>+3.48 / lift_FF +3.01</strong> via a long-budget CEM
-warm-started from c11 (single seed). Cycle 19 ran a single-seed
-4-bucket "ladder" family escalation and reported
-<strong>+3.72 / +3.25</strong>, a +0.25 incremental lift.
-<strong>Cycle 20</strong> ran the cycle-19 plan-of-record
-reproducibility check at <code>rng_seed</code> 1 and 2: the ladder's
-3-seed mean test <code>lift_FF</code> on real_data is
-<strong>+3.111 ± 0.126</strong> (range +3.006 to +3.251, with seed=2
-returning the warm-start unchanged). Cycle-19's +3.25 was a
-single-seed positive draw, not a reproducible family lift; the
-<strong>"+3.0 lift_FF ceiling" hypothesis is re-confirmed at
-multi-seed</strong> across both piecewise (cycle 18) and ladder
-(cycle 20) families. Going forward, any family/budget claim at this
-CEM budget needs ≥3 seeds before being entered as a headline.
-Read top-to-bottom; later milestones build on earlier ones.</p>
+established a piecewise-family <code>real_data</code> reading at test
+<strong>+3.48 / lift_FF +3.01</strong> via a long-budget CEM
+warm-started from c11 — but that was at a single rng_seed. Cycle 19
+ran a single-seed 4-bucket "ladder" family escalation and reported
+<strong>+3.72 / +3.25</strong>; cycle 20 reproduced the ladder at 3
+seeds and got mean <strong>+3.111 ± 0.126</strong>. <strong>Cycle 21</strong>
+re-ran cycle-18's long-CEM recipe across 3 rng_seeds — same family,
+same compute, just three seeds — to find out whether the +3.0
+piecewise ceiling itself was a budget or a population effect. Result:
+the 3-seed piecewise long-CEM mean is
+<strong>+2.727 ± 0.322 lift_FF</strong> (range +2.275 to +3.006).
+<strong>The "+3.0 lift_FF ceiling" hypothesis is now rejected:
+cycle-18's single-seed +3.006 was on the high end (the 75th
+percentile, not the median) of the seed distribution, not a tight
+population reading.</strong> Two further consequences fall out: (a)
+the seed dispersion at the long-CEM budget is much larger than at the
+short ladder budget (±0.32 vs ±0.13 lift_FF stddev) — the long
+trajectory occasionally collapses into a bad basin (seed=2 here); and
+(b) cycle-19/20 ladder comparisons used the lucky cycle-18-seed-0
+piecewise outcome as their anchor, so all ladder-vs-piecewise lift
+numbers in M4 are confounded by warm-start sampling — a fair
+apples-to-apples comparison requires re-running ladder warm-started
+from each of the cycle-21 piecewise seeds. Read top-to-bottom; later
+milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
   at cycle 13; M3 closed at cycle 16 with the per-bucket mechanism
-  (small-bucket routing collapse). M4 has had five cycles (16, 17,
-  18, 19, 20). Active milestone is <strong>M4 cycle 5</strong>
+  (small-bucket routing collapse). M4 has had six cycles (16, 17,
+  18, 19, 20, 21). Active milestone is <strong>M4 cycle 6</strong>
   (next).</li>
   <li><strong>Headline numbers (held-out test, n=256).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
@@ -68,29 +76,34 @@ Read top-to-bottom; later milestones build on earlier ones.</p>
     target 540). M3 (real_data, c11 anchor): same champion scores
     test <strong>+2.57</strong> [+1.98, +3.16], lift_FF
     <strong>+2.10</strong> over FixedFee(0.003) baseline 0.470.
-    <strong>M4 (real_data, current frontier)</strong>: across the
-    cycle-18/19/20 CEM budget, the multi-seed mean test
-    <code>lift_FF</code> sits in <strong>[+3.00, +3.11]</strong>
-    on both piecewise (cycle 18, single seed +3.006) and ladder-4-
-    bucket (cycle 20, 3 seeds, mean <strong>+3.111 ± 0.126</strong>,
-    range [+3.006, +3.251]). Cycle-19's +3.25 single-seed result is
-    the upper end of this distribution, not a reproducible new
-    headline. The single-seed cycle-19 ladder result remains the
-    nominal best (test <strong>+3.72, lift_FF +3.25</strong>), but
-    is reported here as a positive-tail draw, not a population
-    estimate.</li>
-  <li><strong>What cycle 20 changed.</strong> The cycle-19 plan-of-
-    record reproducibility check (re-run ladder CEM with
-    <code>rng_seed=1</code>, then <code>rng_seed=2</code>) returned
-    test <code>lift_FF</code> +3.076 and +3.006 respectively. With
-    n=3 seeds the ladder family adds <strong>+0.105 mean</strong>
-    over c11+CEM long — within ±0.13 seed stddev. Cycle-19's
-    "+0.245 incremental gain from family escalation" is overconfident
-    at n=1; the cycle-18 "saturating near +3.0" verdict is
-    re-confirmed multi-seed. Single-seed CEM at this budget is
-    high-variance enough that any future family-escalation claim
-    needs ≥3 seeds before being entered as a headline.</li>
-  <li><strong>What we've learned about M4 (basin dominates compute).</strong>
+    <strong>M4 (real_data, current frontier)</strong>: the
+    multi-seed mean test <code>lift_FF</code> at the long-CEM budget
+    (10g × 24p, piecewise, warm c11) is
+    <strong>+2.727 ± 0.322</strong> across 3 rng_seeds (cycle 21).
+    Ladder-4-bucket at the short-CEM budget warm-started from
+    cycle-18-seed-0 piecewise sits at <strong>+3.111 ± 0.126</strong>
+    (cycle 20). The single-seed cycle-19 ladder result remains the
+    nominal best (test <strong>+3.72, lift_FF +3.25</strong>) — now
+    reported as the upper-tail draw of a noisy distribution, not as
+    the population mean.</li>
+  <li><strong>What cycle 21 changed.</strong> Re-ran cycle-18's
+    long-CEM recipe (10g × 24p, piecewise, warm c11) with
+    <code>rng_seed</code> ∈ {1, 2} (cycle 18 already supplied seed=0).
+    Results: lift_FF <strong>+2.900</strong> (seed=1, val 3.651) and
+    <strong>+2.275</strong> (seed=2, val 3.215, gen-2 rerank pick
+    after the trajectory collapsed at gen 6 to retail_adv −18). The
+    3-seed mean is <strong>+2.727 ± 0.322</strong>. The "+3.0
+    population ceiling" hypothesis from cycle 20 is <em>rejected</em>:
+    the multi-seed mean is below +3.00 and the seed dispersion at
+    the long-CEM budget is 2.5× larger than at the short-CEM ladder
+    budget. Cycle-18's single-seed +3.006 was the maximum, not the
+    median, of the piecewise long-CEM seed distribution. All
+    cycle-19/20 ladder vs piecewise lift_FF numbers are confounded
+    because the ladder's anchor (c11+CEM long) was the lucky
+    cycle-18 seed; the apples-to-apples comparison is the
+    cycle-22 task.</li>
+  <li><strong>What we've learned about M4 (basin dominates compute,
+    but the dispersion is wider than cycle 18 thought).</strong>
     The cycle-18 prior sweep (5-gen × 12-pop CEM from each of
     {default, c5, c6, c8_16d, c11}, fixed compute) produces a near-
     monotone basin plot: anchor val score predicts ~80% of the
@@ -102,10 +115,16 @@ Read top-to-bottom; later milestones build on earlier ones.</p>
     Switching the warm-start from c5 to c11 at fixed cycle-17 compute
     buys +2.03 lift_FF; multiplying the CEM compute budget by 4
     (cycle-17 c11_short → cycle-18 c11_long) buys +0.23.
-    <strong>Basin dominates compute by ~10×.</strong> (Caveat: this
-    is single-seed across all anchors. With cycle-20's ±0.13 stddev,
-    individual-anchor numbers can move ±0.25 across rng_seeds; the
-    rank-ordering effect is still the dominant signal.)</li>
+    <strong>Basin dominates compute by ~10×.</strong> Caveat
+    (cycle-21 update): every number above is single-seed, and the
+    long-CEM budget's seed stddev is ±0.32 (cycle 21). Cycle-21's
+    seed=2 c11_long lifted only +2.275 — well below cycle-17's
+    c11_short +2.77 — so the rank-ordering of anchors observed in
+    cycle 18 is itself within seed noise. The basin-dominates-compute
+    qualitative finding (large effect: c5 +0.74 vs c11 anchors all
+    above +2) survives, but the fine-grained ordering between
+    similar-quality anchors does not; cycle-18 was not multi-seeded
+    and shouldn't be read as one.</li>
   <li><strong>What we've learned about retail (cycle-18 / -20 update).</strong>
     Cycle 18's longer CEM moved deeper into c11's retail-positive
     basin: small-bucket retail_adv <strong>+3.31</strong> [bootstrap
@@ -127,19 +146,24 @@ Read top-to-bottom; later milestones build on earlier ones.</p>
     ~13% of small-trade count, c11 ~57%. The router avoids c5 for
     <em>price</em> reasons, not fee reasons.</li>
   <li><strong>Open questions.</strong>
-    (1) Is the +3.0 lift_FF on real_data a <em>budget</em> ceiling
-    or a <em>population</em> ceiling? Cycle 21 plans a multi-seed
-    repeat of cycle-18's long-CEM recipe (10g × 24p) on c11+CEM
-    long itself with rng_seed ∈ {0, 1, 2} — same family, same
-    budget, just three seeds — to find out.
-    (2) Once the ceiling shape is pinned down, does a structurally
-    different family (smooth-head MLP, EMA-inv state) lift the
-    multi-seed mean above +3.20? This is now a multi-seed question
-    from the start.
-    (3) Why does seed=2 of the ladder CEM never beat the warm-start
-    on val? Is the population init_std too narrow on the inherited
-    dims, or is the search-seed batch sometimes mis-aligned with
-    the val distribution?</li>
+    (1) <em>(Cycle 21 answer.)</em> The +3.0 lift_FF was a single-seed
+    artefact, not a ceiling: 3-seed mean is +2.727 ± 0.322. The new
+    open question is whether even <em>+2.7 itself</em> is a budget
+    ceiling — does a 2× or 4× longer CEM (or wider population)
+    lift the multi-seed mean past +3.0?
+    (2) Are ladder-vs-piecewise lift numbers real? Cycle-19/20 used
+    cycle-18-seed-0 (now known to be the lucky draw) as the ladder
+    anchor. The fair comparison is to run ladder warm-started from
+    each cycle-21 piecewise seed and look at the cross-seed
+    family delta.
+    (3) Does a structurally different family (smooth-head MLP,
+    EMA-inv state) move the multi-seed mean past the piecewise
+    +2.7 ceiling? Multi-seed from the start.
+    (4) Why does long-CEM occasionally collapse — seed=2 here
+    bottomed out at gen 6 with retail_adv −18 and never recovered?
+    Is this an init_std-too-wide-late effect (the elite re-fit's
+    std grew when the elite-mean fell), or a basin-flip in
+    parameter space?</li>
 </ul>
 </div>
 
@@ -164,6 +188,7 @@ Read top-to-bottom; later milestones build on earlier ones.</p>
       <li><a href="#m4-c18">Cycle 18 (M4 cycle 2) — long-budget CEM + 5-anchor prior sweep; basin dominates compute by ~10×</a></li>
       <li><a href="#m4-c19">Cycle 19 (M4 cycle 3) — param-importance ablation + ladder-family escalation</a></li>
       <li><a href="#m4-c20">Cycle 20 (M4 cycle 4) — ladder-CEM seed reproducibility check (REPRO_FAIL)</a></li>
+      <li><a href="#m4-c21">Cycle 21 (M4 cycle 5) — multi-seed long-CEM on piecewise: the +3.0 ceiling was a single-seed artefact</a></li>
     </ul>
   </li>
 </ul>
@@ -345,9 +370,30 @@ scale with policy complexity?
   <li><strong>Seed dispersion (cycle 20).</strong> The standard
   deviation of a held-out test metric across rng_seeds when all
   other knobs are held fixed. For the ladder CEM at the cycle-20
-  budget, lift_FF stddev = ±0.126 across 3 seeds. Used in cycle 20
-  to argue that single-seed lift claims at this budget are
-  high-variance.</li>
+  budget (pop=12 × gen=5), lift_FF stddev = ±0.126 across 3 seeds.
+  Cycle 21 measures the same quantity at the long-CEM budget
+  (pop=24 × gen=10) and finds a much wider stddev of ±0.322
+  across 3 seeds — counter-intuitive (more compute usually narrows
+  variance) and traceable to occasional gen-6+ basin collapses.</li>
+  <li><strong>Anchor confounding (cycle 21).</strong> When a family-
+  escalation experiment is warm-started from a single-seed result of
+  the prior family, the lift attributed to the new family is
+  confounded with the rng_seed used to generate the anchor. The
+  cycle-19/20 ladder runs all warm-started from cycle-18-seed-0
+  (the +3.006 piecewise outcome); cycle 21 shows that piecewise's
+  multi-seed mean is +2.727, so the ladder's "anchor" is itself a
+  +0.28 above-mean draw. Apples-to-apples comparison: re-run the
+  new family warm-started from <em>each</em> anchor seed and
+  compare cross-seed means.</li>
+  <li><strong>Basin collapse (cycle 21).</strong> A failure mode of
+  CEM where, mid-trajectory, the elite re-fit's mean shifts into a
+  region of parameter space whose val and search scores are
+  strictly worse than the warm-start, and the std update fails to
+  pull it back. Cycle-21 seed=2 collapsed at gen 6 (retail_adv
+  -18, val 1.65) and stayed there through gen 9. Distinct from
+  ordinary noise in that the trajectory does not recover; the
+  rerank pool then has to fall back to an early-gen elite (here
+  gen 2 at val 3.215).</li>
 </ul>
 </div>
 
@@ -2412,18 +2458,24 @@ its anchor; the <code>tiny_trade_threshold</code> widened from
 0.00142 (init) to 0.00243, growing the tiny bucket's share of small
 trades.</p>
 <div class="callout" style="border-left:4px solid #b6841c; background:#fff8e6; padding:0.6em 1em; margin:1em 0; font-size:0.95em;">
-<strong>Superseded by cycle 20 (see below).</strong> The single-seed
-<code>+3.251 / +0.245</code> headline reported here did not survive the
-cycle-19 plan-of-record reproducibility check. With three rng_seeds
-(0, 1, 2) the ladder family's mean test <code>lift_FF</code> is
-<strong>+3.111 ± 0.126</strong>, range [+3.006, +3.251]. The
-single-seed +0.245 incremental gain over c11+CEM long collapses to
-<strong>+0.105 ± 0.13</strong> at n=3 — within seed noise. The
-"saturating near +3.0" verdict from cycle 18 is re-confirmed at
-multi-seed across both piecewise (cycle 18, 1 seed) and ladder
-(cycle 20, 3 seeds). The cycle-19 reading of the ablation as
-mechanistic ground for family escalation is not invalidated; the
-<em>magnitude</em> of the family payoff was overestimated at n=1.
+<strong>Superseded by cycle 20 + cycle 21 (see below).</strong> The
+single-seed <code>+3.251 / +0.245</code> headline reported here did
+not survive the cycle-19 plan-of-record reproducibility check. With
+three rng_seeds (0, 1, 2) the ladder family's mean test
+<code>lift_FF</code> is <strong>+3.111 ± 0.126</strong>, range
+[+3.006, +3.251]; the single-seed +0.245 incremental gain over the
+specific cycle-18-seed-0 piecewise anchor collapses to
+<strong>+0.105 ± 0.13</strong> at n=3. <strong>Cycle 21 then made
+the comparison even noisier:</strong> the piecewise long-CEM 3-seed
+mean is +2.727, well below the +3.006 anchor used by cycle-19/20's
+ladder. So "ladder beats piecewise by +0.10" (cycle-20 framing) and
+"ladder beats piecewise multi-seed mean by +0.38" (cycle-21
+re-framing) are both <em>biased estimators</em> of the true
+ladder-vs-piecewise effect, because the ladder anchor is not
+multi-seed. The cycle-19 reading of the ablation as mechanistic
+ground for family escalation is not invalidated; the
+<em>magnitude</em> of the family payoff is now triply uncertain
+(family seed × anchor seed × budget).
 </div>
 
 <p><strong>What it changed.</strong></p>
@@ -2566,12 +2618,17 @@ seed=0's −0.309), pulling lift_FF below the cycle-19 band.</p>
   <strong>+0.105 ± 0.13 mean</strong> at n=3 — a signal indistinguishable
   from zero at this budget.</li>
   <li><strong>The cycle-18 "saturating near +3.0" verdict is
-  re-confirmed at multi-seed.</strong> Across families (piecewise long-
-  CEM, ladder-4bucket) and across rng_seeds, the test <code>lift_FF</code>
-  on real_data sits in [+3.00, +3.11]. Whatever cycle-19's gen-4
-  candidate found, the population mean has not moved. Whether
-  this is a budget ceiling or a representational ceiling is now the
-  live M4 question.</li>
+  re-confirmed at the ladder family at this budget</strong> — across
+  3 ladder rng_seeds the test <code>lift_FF</code> sits in
+  [+3.006, +3.251], mean +3.111. <em>(Cycle-21 update: this verdict
+  also reads as multi-seed because cycle-20 seed=2's anchor pick
+  reproduces cycle-18-seed-0 exactly. So the cycle-20 conclusion
+  here is really "ladder warm-started from cycle-18-seed-0 sits
+  near +3.1 multi-seeded" — it does <strong>not</strong> generalise
+  to "the +3.0 mean is a multi-seed property of the underlying
+  piecewise family." Cycle 21 ran the piecewise-multi-seed test
+  and found mean +2.727, rejecting the +3.0 ceiling at the family
+  level.)</em></li>
   <li><strong>Single-seed CEM at this budget is high-variance.</strong>
   Pop=12 × gen=5 produces gen-4-best-on-val test scores with stddev
   ~0.13 across rng_seeds — comparable to the typical claimed effect
@@ -2591,13 +2648,164 @@ seed=0's −0.309), pulling lift_FF below the cycle-19 band.</p>
 <em>budget</em> or a <em>population</em> property. The natural test is
 to repeat cycle-18's long-CEM recipe (10g × 24p, piecewise, warm c11)
 across 3 rng_seeds — no family change, just three seeds — and see what
-the multi-seed mean <code>lift_FF</code> looks like. If &gt; +3.20, the
-+3.0 was a budget/anchor-search-noise ceiling and additional compute
-on the prior family is the answer; if it stays in [+3.00, +3.20], the
-+3.0 is a population ceiling and a structurally different family
-(smooth-head MLP, EMA-inv state) is the next move — but with ≥3 seeds
-from the start. Cycle 21 will run this multi-seed long-CEM
-reproducibility check.</p>
+the multi-seed mean <code>lift_FF</code> looks like.
+<strong>Cycle 21 ran this multi-seed long-CEM and found something
+neither branch of the cycle-20 decision rule predicted: the multi-seed
+mean is +2.727, below the +3.00 lower threshold. See the cycle-21
+section for the unwound consequences.</strong></p>
+</div>
+
+<div class="cycle">
+<h3 id="m4-c21">Cycle 21 (M4 cycle 5) — multi-seed long-CEM on piecewise: the +3.0 ceiling was a single-seed artefact</h3>
+
+<p><strong>Question.</strong> Cycle 18 ran a long-budget CEM
+(10 generations × 24 population, piecewise family, warm-started from
+the c11 anchor) at <code>rng_seed=0</code> and reported test
+<code>lift_FF +3.006</code> on real_data. Cycle 20's ladder
+reproducibility check left the M4 frontier at "the multi-seed mean
+sits in [+3.00, +3.11] across families." That was a <em>population
+ceiling</em> reading — but it conflated the <em>family</em>
+(piecewise vs ladder) with the <em>seed dispersion</em>, because the
+piecewise long-CEM number was still single-seed at that point.
+Cycle 21 closes that gap by running the cycle-18 recipe at two
+additional rng_seeds (1 and 2), so we have a clean 3-seed estimate
+of the piecewise long-CEM distribution at this budget. Decision rule:
+mean lift_FF &gt; +3.20 → +3.0 was a budget ceiling, mean in
+[+3.00, +3.20] → +3.0 is a population ceiling, mean &lt; +3.00 →
+cycle-18's reading was a high-end positive draw.</p>
+
+<p><strong>Method.</strong> Identical CEM mechanics to cycle 18:
+piecewise controller (16 params, normalized to a 19-d controller
+vector), warm-start at c11_d16_s2's best-by-val params with
+init_std_frac = 0.10, population 24, generations 10, elite_frac 0.20,
+search seeds range(0, 64), val seeds range(1000, 1128), test seeds
+range(2000, 2256), normalizer FixedFee(0.003), evaluator real_data.
+Two new runs at <code>rng_seed</code> ∈ {1, 2}; cycle 18 contributed
+seed=0. Both seed=1 and seed=2 launched in parallel under
+<code>nohup</code> with workers=2 each (so the 4-core sandbox stayed
+saturated without cross-process contention). The rerank pool keeps
+the c11 anchor + top 6 unique elites by search_score and picks
+best-by-val before testing on the held-out 256 seeds.</p>
+
+<figure>
+  <img src="m4_c21_long_cem_val_curves.png" alt="per-generation val curves for the 3 long-CEM piecewise rng_seeds">
+  <figcaption><strong>Figure cycle-21 / val.</strong> Per-generation
+    best-search val score for the three long-CEM rng_seeds. Seed 0
+    (cycle 18, blue) climbs steadily from anchor 2.918 to gen-8 peak
+    3.885 (the val of the cycle-18 reported elite). Seed 1 (cycle 21,
+    orange) follows a similar shape, plateauing at gen-8 val 3.651.
+    Seed 2 (cycle 21, green) tracks the others through gen 2
+    (val 3.215, the value the rerank ultimately picks) but collapses
+    at gen 6 (val 1.647, retail_adv −18) and never recovers. The
+    dashed black line is the c11 anchor's val (2.918) — the reference
+    that the rerank can always fall back to.</figcaption>
+</figure>
+
+<figure>
+  <img src="m4_c21_long_cem_seed_dispersion.png" alt="bar chart of test lift_FF across 3 long-CEM rng_seeds + 3 ladder rng_seeds">
+  <figcaption><strong>Figure cycle-21 / dispersion.</strong> Test
+    <code>lift_FF</code> for the three long-CEM piecewise rng_seeds
+    (blue/orange/green) and, for reference, the three cycle-20
+    ladder rng_seeds (grey, all warm-started from cycle-18-seed-0
+    piecewise). The piecewise long-CEM 3-seed mean is +2.727 (blue
+    dotted), well below the +3.00 lower decision threshold (green
+    dashed) and far below the +3.20 budget-ceiling threshold (red
+    dashed). The ladder mean +3.111 (grey dotted) sits above all
+    three piecewise points, but is computed from runs that share
+    cycle-18-seed-0 piecewise as their anchor — i.e. that compare
+    "ladder from a lucky seed" to "piecewise from any seed."</figcaption>
+</figure>
+
+<table>
+<thead>
+<tr>
+  <th class="l">rng_seed</th>
+  <th class="l">source pick</th>
+  <th>val score</th>
+  <th>test_score</th>
+  <th>lift_FF</th>
+  <th>retail_adv</th>
+  <th>edge_adv</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0 (cycle 18)</td><td class="l">gen 8 elite</td><td>+3.822</td><td>+3.476</td><td class="pos">+3.006</td><td>+3.215</td><td>+4.925</td></tr>
+<tr><td>1 (cycle 21)</td><td class="l">gen 8 elite</td><td>+3.651</td><td>+3.370</td><td>+2.900</td><td>+3.820</td><td>+5.189</td></tr>
+<tr><td>2 (cycle 21)</td><td class="l">gen 2 elite (post-collapse)</td><td>+3.215</td><td>+2.746</td><td class="neg">+2.275</td><td class="neg">−3.024</td><td>+1.267</td></tr>
+<tr><td colspan="2" class="l"><strong>mean ± stddev (n=3)</strong></td><td><strong>+3.563</strong></td><td><strong>+3.197</strong></td><td><strong>+2.727 ± 0.322</strong></td><td>+1.337 ± 3.16</td><td>+3.794 ± 1.83</td></tr>
+<tr><td colspan="2" class="l">c11 anchor (warm-start, deterministic)</td><td>+2.918</td><td>+2.57</td><td>+2.10</td><td>+1.07</td><td>—</td></tr>
+</tbody>
+</table>
+
+<p><strong>Verdict: the +3.0 ceiling is rejected.</strong>
+The 3-seed mean +2.727 is below the +3.00 lower threshold; cycle-18's
+single-seed +3.006 was the maximum (75th percentile-ish) of the seed
+distribution, not the median. The seed dispersion at this budget is
+±0.322 — about 2.5× the ±0.126 ladder dispersion measured in cycle 20
+at the shorter-budget pop=12 × gen=5 setup. That ratio is the
+opposite of the usual story (more compute = lower variance):
+under longer trajectories the optimization sometimes locks into bad
+basins. Seed=2 here is the existence proof — at gen 6 the elite mean
+shifted into a region with retail_adv −18 / edge_adv −6, and the
+gen-7-9 elites stayed there.</p>
+
+<p><strong>What it changed.</strong></p>
+<ol>
+  <li><strong>The "+3.0 lift_FF on real_data" headline that's been
+  carried since cycle 18 was a positive seed draw, not a population
+  reading.</strong> The right number for "the long-CEM piecewise
+  family on real_data, multi-seeded" is +2.73 ± 0.32 (n=3). All
+  prior cycle text that wrote "+3.0 ceiling" or "saturating near
+  +3.0" should be read as "the upper-tail seed approaches +3.0,
+  the median seed lands near +2.7."</li>
+  <li><strong>Seed dispersion at the long-CEM budget is much
+  larger than at the short-CEM budget.</strong> Cycle 20 (ladder at
+  pop=12 × gen=5): ±0.126 stddev. Cycle 21 (piecewise at pop=24 ×
+  gen=10): ±0.322 stddev. Counter-intuitive — running CEM longer
+  should average out noise — but explained by the new failure mode
+  of <em>basin collapse</em>: occasionally the long trajectory
+  re-fits the elite mean into a strictly-worse region and the run
+  finishes with a rerank pool dominated by early-gen elites. One
+  in three seeds (seed=2) here exhibited this.</li>
+  <li><strong>All cycle-19/20 ladder vs piecewise lift numbers are
+  confounded.</strong> The ladder runs in cycle 19/20 used
+  cycle-18-seed-0 (now known to be a +0.28σ above-average piecewise
+  draw) as their warm-start anchor. So "ladder mean +3.111 ladder
+  beats piecewise anchor +3.006 by +0.105" is one comparison;
+  "ladder warm-started from the lucky piecewise seed lifts +0.38
+  over piecewise's multi-seed mean +2.727" is another, larger,
+  comparison; "ladder warm-started from each of the three
+  cycle-21 piecewise seeds lifts X over piecewise's multi-seed mean
+  Y" is the comparison we actually want. Cycle 22 should run that
+  third comparison before any further family claims.</li>
+  <li><strong>The earlier basin-vs-compute conclusion (cycle 18) is
+  qualitatively right but quantitatively shaky.</strong> Cycle-18's
+  rank-ordering across {default, c5, c6, c8_16d, c11} was based on
+  single-seed runs at the pop=12 × gen=5 budget. With cycle-20's
+  short-budget stddev ±0.126, individual rank moves of ±0.25 are
+  within seed noise. The large headline (c5 +0.74 vs c11_long
+  +3.01, a +2.27 spread) is well beyond noise; the fine structure
+  between similar-quality anchors (e.g. c8_16d +2.35 vs c11_short
+  +2.77) is not.</li>
+</ol>
+
+<p><strong>What's the next question?</strong> Two competing
+follow-ups for cycle 22; both must be multi-seed:
+(a) <em>Apples-to-apples ladder vs piecewise.</em> Run the ladder
+family CEM warm-started from cycle-21 seed=1 and seed=2 long-CEM
+bests (so the family-vs-family comparison shares its anchor's seed
+distribution). Decide whether ladder's +0.10 over its specific
+anchor is a real cross-anchor effect.
+(b) <em>Pivot to a structurally different family.</em> Smooth-head
+MLP replacing the bucketed continuation/reversal terms, with ≥3
+seeds from the start. The +2.7 multi-seed ceiling motivates this
+test more than the +3.0 single-seed ceiling did, because we now
+know the population is meaningfully below +3.0. (b) is the more
+informative branch if the M4 hypothesis is "richer families lift
+the ceiling"; (a) is the more informative branch if the question
+is "did the cycle-19 ladder claim hold up out of single-seed
+distortion." Cycle 22 will pick the one that better fits its budget,
+and both will report ≥3 seeds.</p>
 </div>
 
 </body>

@@ -1,0 +1,44 @@
+[20:28:15] M4 cycle-21 c11 long-CEM | piecewise on real_data | rng_seed=1 pop=24 gen=10 elite_n=4 init_std_frac=0.1 workers=2
+[20:28:50]   c11 val (real_data, n=128): score=  2.918 adv= +3.053 retail_adv= +1.067 (34.7s)
+[20:33:10]   gen  0: best_search= 1.955 elite_mean= 1.184 median=-1.541 val= 2.918 adv=+3.053 retail_adv=+1.067 (225.3s + 34.7s)
+[20:37:20]   gen  1: best_search= 1.603 elite_mean= 1.066 median=-0.886 val= 2.489 adv=+2.131 retail_adv=+0.184 (215.2s + 34.6s)
+[20:41:32]   gen  2: best_search= 1.997 elite_mean= 1.915 median= 0.949 val= 2.885 adv=+4.650 retail_adv=+3.575 (217.5s + 34.6s)
+[20:45:45]   gen  3: best_search= 2.280 elite_mean= 2.141 median= 0.896 val= 3.193 adv=+4.686 retail_adv=+3.348 (217.9s + 34.9s)
+[20:49:58]   gen  4: best_search= 2.454 elite_mean= 2.399 median= 2.085 val= 3.310 adv=+5.221 retail_adv=+3.958 (218.5s + 35.3s)
+[20:54:13]   gen  5: best_search= 2.588 elite_mean= 2.518 median= 2.350 val= 3.475 adv=+5.343 retail_adv=+3.929 (219.5s + 35.5s)
+[20:58:28]   gen  6: best_search= 2.623 elite_mean= 2.567 median= 2.360 val= 3.557 adv=+4.995 retail_adv=+3.388 (219.1s + 35.8s)
+[21:02:43]   gen  7: best_search= 2.726 elite_mean= 2.685 median= 2.537 val= 3.605 adv=+5.324 retail_adv=+3.801 (219.0s + 36.2s)
+[21:06:59]   gen  8: best_search= 2.724 elite_mean= 2.704 median= 2.622 val= 3.651 adv=+5.405 retail_adv=+3.877 (219.7s + 36.1s)
+[21:11:13]   gen  9: best_search= 2.744 elite_mean= 2.725 median= 2.615 val= 3.619 adv=+5.249 retail_adv=+3.699 (218.9s + 34.9s)
+[21:11:13] CEM complete in 2543.4s (42.4 min)
+[21:17:35]   FixedFee test (real_data): 0.470 (68.4s)
+[21:17:35]   -> wrote /sessions/relaxed-gallant-fermat/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle21-m4-longcem-multiseed/results/seed1/test.json
+[21:17:35] {
+  "params": {
+    "base_fee": 0.0006208445535922105,
+    "base_spread": 0.003436627602351996,
+    "signal_decay": 0.7302888149404205,
+    "toxicity_decay": 0.6311676747057064,
+    "small_trade_threshold": 0.003407485039155859,
+    "large_trade_threshold": 0.011984514969267026,
+    "continuation_small": 6.11147060609066e-05,
+    "continuation_medium": 0.007922324781625346,
+    "continuation_large": 0.015605042844432974,
+    "reversal_small": 0.005839846883903697,
+    "reversal_medium": 0.024867266602991257,
+    "reversal_large": 0.07530855148753474,
+    "continuation_to_same_side": 0.20987707889979262,
+    "continuation_to_cross_side": 1.5904088789069952,
+    "toxicity_to_mid": 0.007631817874876309,
+    "toxicity_to_side": 0.06877448555402835
+  },
+  "val_score": 3.651251888756902,
+  "val_edge_advantage": 5.4050168813073975,
+  "val_retail_advantage": 3.8767271972381856,
+  "test_score": 3.3698507262730946,
+  "test_edge_advantage": 5.188936283512489,
+  "test_retail_advantage": 3.8204392732690735,
+  "test_n_seeds": 256,
+  "ff_test_score": 0.4703053718833298,
+  "lift_FF": 2.899545354389765
+}

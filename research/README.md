@@ -88,24 +88,29 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 18: M1 closed (cycle 5); **M2
-closed (cycle 13)** with deliverable test = **456.80** (piecewise
-warm-start CEM, cycle 11 d16_s2 cell, ~85% of way to 540 target).
-**M3 closed (cycle 16)** with the per-trade-size mechanism: c5↔c11
-retail-edge gap is ~95% small-bucket and the mechanism is a
-two-AMM router routing collapse (c5 captures only ~13% of small-trade
-count vs c11's ~57%). **M4 active (cycle 2 closed)**. The M4 headline
-result on real_data is now **+3.48 / lift_FF +3.01** from cycle 18's
-long-budget c11+CEM (10-gen × 24-pop CEM directly on real_data, 4×
-cycle-17 compute). Test retail_advantage **+3.21**, 4× cycle-17's
-+0.66 — the longer CEM moved DEEPER into c11's retail-positive basin.
-The cycle-18 5-anchor prior sweep at fixed cycle-17 compute produces
-a near-monotone basin plot: final lift_FF is default +1.05 / c5 +0.74
-/ c6 +1.89 / c8_16d +2.35 / c11_short +2.77 / c11_long +3.01.
-**Load-bearing finding: warm-start basin dominates compute by ~10×
-within the piecewise family on real_data — 4× more compute from c11
-buys +0.23 lift_FF, switching c5→c11 at fixed compute buys +2.03.**
-Cycle 19 plan: policy-family escalation (ladder bucketing or MLP
-head, warm-started from c11+CEM long), plus param-importance
-ablation. The cumulative narrative is in
-`research/presentation/index.html`.
+See `research/STATE.md`. As of cycle 21: M1 closed (cycle 5); **M2
+closed (cycle 13)** with deliverable challenge test = **456.80**
+(piecewise warm-start CEM, cycle-11 d16_s2 cell, ~85% of way to 540
+target). **M3 closed (cycle 16)** with the per-trade-size mechanism
+(c5↔c11 retail-edge gap is ~95% small-bucket; mechanism is a two-AMM
+router collapse — c5 captures only ~13% of small-trade count vs c11's
+~57%). **M4 active (cycle 5 closed)**.
+
+**M4 multi-seed update (cycle 21).** Cycle 18's headline of "+3.0
+lift_FF on real_data" was a single-seed positive draw. Cycle 21
+re-ran the same recipe (10g × 24p, piecewise, warm c11) at 3 rng
+seeds and the cross-seed mean is **lift_FF +2.727 ± 0.322** (range
++2.275 to +3.006). The +3.0 ceiling is rejected: cycle-18-seed-0
+sat at the 75th percentile, not the median, of the seed
+distribution. Long-CEM dispersion is *larger* (±0.32) than short-CEM
+ladder dispersion (±0.13, cycle 20) due to occasional **basin
+collapse** mid-trajectory (cycle-21 seed=2: gen-6 collapse with
+retail_adv −18). All cycle-19/20 ladder-vs-piecewise lifts are now
+known to be confounded by anchor sampling — the ladder's warm-start
+was the cycle-18-seed-0 lucky draw of piecewise, not the typical
+piecewise outcome. **Cycle-22 plan**: apples-to-apples ladder repro
+warm-started from cycle-21-seed-1 piecewise (lift_FF +2.900) at 2
+rng seeds, to test whether the cycle-19 ladder lift was real
+cross-anchor or driven by the lucky anchor.
+
+The cumulative narrative is in `research/presentation/index.html`.
