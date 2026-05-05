@@ -1,126 +1,107 @@
 # State — current cycle
 
-**Last updated**: 2026-05-05 (cycle 14 — closed)
+**Last updated**: 2026-05-05 (cycle 15 — closed)
 
 ## Active milestone
 
-**M3 — Generalization study.** M2 closed by cycle 13 with
-`cycle-11 d16_s2` (test=456.80) as the deliverable; cycle 14 ran the
-M3 cycle-1 dual-curve eval and produced the first OOD generalization
-plot.
+**M3 — Generalization study.** M2 closed by cycle 13 with `cycle-11
+d16_s2` (challenge test=456.80) as the deliverable. Cycle 14 produced
+the first M3 dual-curve plot on val seeds. Cycle 15 (this cycle)
+locked the M3 cycle-1 finding by adding a held-out test split,
+bootstrap CIs, a 9th anchor (c10B at rng_seed=1), and a retail/arb
+PnL decomposition that localizes the early-anchor failure mode.
 
-**Best M2 score (held): 456.80** (cycle-11 d16_s2; held-out 256
-seeds). M2 reopens only on a *recipe-shape* change (different
-init_std / pop / hybrid CEM→PPO / different normalizer venue).
+**Best M2 score (held; reproduced cycle 15): 456.80**
+[CI 448.0, 465.7] (cycle-11 d16_s2; held-out 256 seeds, challenge).
+**M3 OOD headline: real_data test = +2.574** [+1.98, +3.16] for the
+same anchor; lift over FixedFee(0.003) = **+2.10**.
 
-## Cycle-13 verdict (M2 closure)
+## Cycle-15 verdict (M3 cycle 2)
 
-Long-run warm-start CEM (gen=24) on the cycle-11 d16_s2 anchor:
-  - **test = 456.803, Δ vs champion = +0.000**
-  - Best-by-val came from **gen 0 (the anchor itself)** with val=458.539.
-  - The 23 subsequent gens evaluated 552 candidates and found *zero*
-    elites whose 128-seed val score beat the anchor.
-  - Per the pre-committed cycle-13 decision rule (test < 457 →
-    confirm + pivot), **recipe ceiling confirmed**, **M2 closed**.
-  - All three cycle-12 hypotheses now resolved: (a) capacity
-    falsified; (b) anchor-sub-optimal de facto falsified by 13 not
-    finding a better basin; (c) recipe-ceiling confirmed.
+1. **Early-anchor inversion is statistically significant on
+   test.** c5 real_test = -0.744 [-1.27, -0.23] (CI fully below
+   FixedFee at 0.470 [-0.08, 1.01]); c6 real_test = -0.933 [-1.47,
+   -0.40]. The cycle-14 val finding reproduces robustly on n=256
+   unseen seeds.
+2. **PnL decomposition localizes failure to retail.** Retail
+   edge_advantage swings -9.99 (c5) → +1.06 (c11) — an 11-unit
+   monotonic-ish trend. Arb loss_advantage stays in +1.7 to +3.7
+   across the whole trajectory and *slightly worsens* with
+   challenge optimization. Early M2 is breaking on retail-flow
+   pricing, not on arb.
+3. **c11 = c13 identity holds OOD on test.** real_test 2.574 =
+   2.574, lift 2.104 = 2.104. Third independent recipe-ceiling
+   identity check.
+4. **c10B (rng_seed=1) replicates the OOD plateau, lower.** real_test
+   +1.66 (lift +1.19) vs c10A/c11 ≈ +2.6 (lift +2.10). OOD plateau
+   spread across rng seeds ~0.9 lift points, comparable to the
+   in-distribution challenge spread.
 
-## Cycle-14 result (M3 cycle-1 dual-curve)
+## Active hypothesis going into cycle 16
 
-For each chronological M2 anchor (c5..c13), score on both `challenge`
-and `real_data` evaluators using the standard val seed split
-(1000..1127, n=128). Normalizer = FixedFee(0.003) in both modes.
+> **"The early-anchor harm is concentrated in *specific* trade-size
+> buckets / market regimes; if we can identify those, M4 has its
+> first concrete inductive-bias target."** Cycle 15's
+> retail-vs-arb decomposition tells us *which side* of the PnL is
+> broken (retail) but not *which sub-segment of retail*. A
+> trade-size decomposition (small/medium/large) and/or a
+> regime-conditional decomposition (high-vol vs low-vol regimes)
+> would tell us whether the early policy mis-prices a specific
+> tail of the distribution or is uniformly off across all retail.
+> Output of cycle 16 should be either a more granular PnL table
+> or a confirmed M4-launch experiment if cycle 16 reveals the
+> failure is uniform.
 
-| anchor | challenge_val | real_data_val | adv_real | lift_vs_FF_real |
-|--|--:|--:|--:|--:|
-| FixedFee(0.003) | 342.04 | 0.584 | 0.000 | (norm) |
-| c5 baseline   | 414.42 | -0.353 | -6.10 | **-0.94** |
-| c6 warmstart  | 433.57 | -0.614 | -5.89 | **-1.20** |
-| c8 inv-aware  | 447.66 | +0.044 | -3.90 | -0.54 |
-| c9 third-pass | 450.05 | +1.784 | +0.30 | +1.20 |
-| c9 EMA-inv    | 457.62 | +2.784 | +2.53 | +2.20 |
-| c10A noop     | 457.67 | +2.967 | +3.09 | +2.38 |
-| c11 d16_s2    | 458.54 | +2.918 | +3.05 | +2.33 |
-| c13 longrun   | 458.54 | +2.918 | +3.05 | +2.33 |
+## Cycle-16 plan-of-record
 
-The OOD trajectory partitions into three regimes:
-  1. **c5 → c6 (chal 414 → 434)**: real_data score *regresses*
-     **below** FixedFee. Early challenge optimization is
-     **net-harmful** OOD.
-  2. **c8 → c9-EMA (chal 448 → 458)**: real_data score climbs from
-     ~0 to +2.8 above FixedFee. **High-leverage segment** —
-     challenge optimization actually buys OOD value here.
-  3. **c9-EMA → c13 (chal 458 → 458)**: real_data score saturates
-     at +2.4 above FixedFee. **OOD ceiling reached at the same
-     compute as the in-distribution ceiling.**
+1. **Extend the dualcurve eval with per-trade-size decomposition.**
+   The simulator records `is_buy` and `amount_x`/`amount_y` per
+   trade; bucket retail trades by size (small/medium/large per the
+   piecewise thresholds at 0.003 and 0.01) and report retail-edge
+   per bucket for c5 vs c11. Requires a small evaluator wrapper or
+   a TradeInfo-level dump for each batch. ~30 min implement + ~30
+   min run.
+2. **Pre-launch M4 baseline.** Direct CEM optimization on
+   `evaluator_kind="real_data"` with the c5 piecewise default
+   anchor and a small budget (pop=12, gen=5) to (a) verify the
+   real_data evaluator is CEM-friendly (gradients/scores are not
+   too noisy), (b) get a baseline-budget OOD score for M4. ~30
+   min.
+3. **Retire `bin/checks/10_cycle12_alternatives.py`** if cycle 16
+   does not depend on cycle-12 conclusions remaining lit. Currently
+   load-bearing; do not retire yet.
 
-`c11 = c13` exactly on real_data too (2.918 = 2.918), confirming the
-recipe ceiling holds OOD.
+## M2 cumulative history (closed; reproduced for context)
 
-## Active hypothesis going into cycle 15
-
-> **"Challenge optimization is net-harmful OOD early and saturates
-> OOD before it saturates in-distribution."** Cycle 14's evidence is
-> suggestive but single-seed (n=128 val). Cycle 15 needs to (a)
-> replicate the early-anchor inversion on a 2nd anchor sequence, (b)
-> add a held-out test seed split so headline numbers aren't
-> point-estimates, (c) decompose the real_data score for the c5
-> baseline into retail vs arb PnL to *localize* what the early
-> optimization is breaking. If (a) and (b) hold the inversion is
-> locked in; (c) gives M4 the targeting information it needs.
-
-## Cycle-15 plan-of-record
-
-1. **Held-out test split for the dual-curve table.** Re-run
-   `eval_anchors_dualcurve.py` with seeds 2000..2255 (n=256) so
-   each anchor has both val and test points on both evaluators. ~10
-   min. Headline numbers in the presentation will then be test, not
-   val.
-2. **Replicate the early-anchor inversion** on cycle-11 grid
-   `d16_s0` and `d16_s1` anchor chains (different rng seeds, same
-   warm-start recipe). If the inversion shape replicates on both
-   independent chains the finding is locked in; if it doesn't, c5/c6
-   may be a one-chain fluke. ~15 min each = 30 min.
-3. **Decompose c5 baseline real_data PnL** into retail vs arb
-   components to localize the failure mode (toxic-flow miss-quote?
-   too-tight base spread? signal-decay mistuned?). Requires either a
-   small evaluator wrapper or a per-trade event log dump. ~20 min.
-4. **(Background)** retire `bin/checks/10_cycle12_alternatives.py`
-   if cycle 15 produces a more compact "warm-start cluster
-   dominates" assertion that subsumes it. (Don't retire yet — the
-   c10 finding is still load-bearing.)
-
-## Cumulative M2 history (closed; reproduced for context)
-
-| pass | family | dims | init | seed | test score | Δ vs c5 |
-|--|--|--|--|--|--|--|
-| start (c5) | piecewise | 16 | inh | — | 414.01 | (baseline) |
-| pass 1 (c6) | piecewise | 16 | warm | 0 | 432.75 | +18.7 |
-| pass 2 (c8) | inv-aware piecewise | 19 | warm | 0 | 446.61 | +32.6 |
-| pass 3 (c9 #1) | piecewise | 16 | warm | 0 | 448.81 | +34.8 |
-| pass 4 (c9 #3) | EMA-inv piecewise | 20 | warm | 0 | 456.64 | +42.6 |
-| pass 5 (c10 A) | piecewise + noop | 20 | warm | 0 | 456.74 | +42.7 |
-| pass 6 (c10 B) | piecewise | 16 | warm | 1 | 452.96 | +38.9 |
-| pass 7 (c11 d16_s2) | piecewise | 16 | warm | 2 | **456.80** | **+42.8** |
-| pass 8 (c11 d24_s0) | piecewise + noop×8 | 24 | warm | 0 | 455.66 | +41.6 |
-| pass 9 (c11 d24_s1) | piecewise + noop×8 | 24 | warm | 1 | 452.57 | +38.6 |
-| c12 stage 1 | latent_full | 18 | default | 0 | 388.57 | -25.4 |
-| c12 stage 2 | piecewise (fresh) | 16 | default+wide | 0 | 418.65 | +4.6 |
-| **c13 longrun** | **piecewise** | **16** | **warm** | **0** | **456.80** | **+42.8** |
+| pass | family | dims | init | seed | challenge test | real_data test (lift_FF) |
+|--|--|--|--|--|--:|--:|
+| start (c5) | piecewise | 16 | inh | — | 414.01 | -0.74 (-1.22) |
+| pass 1 (c6) | piecewise | 16 | warm | 0 | 432.75 | -0.93 (-1.40) |
+| pass 2 (c8) | inv-aware piecewise | 19 | warm | 0 | 446.44 | -0.28 (-0.75) |
+| pass 3 (c9 #1) | piecewise | 16 | warm | 0 | 448.81 | +1.40 (+0.93) |
+| pass 4 (c9 #3) | EMA-inv piecewise | 20 | warm | 0 | 456.64 | +2.36 (+1.89) |
+| pass 5 (c10 A) | piecewise + noop | 20 | warm | 0 | 456.74 | +2.55 (+2.08) |
+| pass 6 (c10 B) | piecewise | 16 | warm | 1 | 452.96 | +1.66 (+1.19) |
+| pass 7 (c11 d16_s2) | piecewise | 16 | warm | 2 | **456.80** | **+2.57 (+2.10)** |
+| pass 8 (c11 d24_s0) | piecewise + noop×8 | 24 | warm | 0 | 455.66 | (not in dualcurve) |
+| pass 9 (c11 d24_s1) | piecewise + noop×8 | 24 | warm | 1 | 452.57 | (not in dualcurve) |
+| c12 stage 1 | latent_full | 18 | default | 0 | 388.57 | (not OOD-evaluated) |
+| c12 stage 2 | piecewise (fresh) | 16 | default+wide | 0 | 418.65 | (not OOD-evaluated) |
+| c13 longrun | piecewise | 16 | warm | 0 | 456.80 | +2.57 (+2.10) — same as c11 |
 
 ## Blockers for user
 
-- **jax install OOMs on this sandbox.** Same as cycles 11-13 — 3.9 GB
-  RAM, no swap, `pip install jax[cpu]` dies with exit 143.
+- **jax install OOMs on this sandbox.** Same as cycles 11-14 — 3.9
+  GB RAM, no swap, `pip install jax[cpu]` dies with exit 143.
   Documented as the passing-when-failing check
-  `bin/checks/08_jax_optional.sh`.
+  `bin/checks/08_jax_optional.sh` (vendored wheels make it
+  importable on this fresh sandbox after the cycle's setup step).
 - **torch not installed on this sandbox** — `tests/test_training.py`
   collection fails with `ModuleNotFoundError: No module named 'torch'`.
   Passes through `--ignore`d list during `pytest -x -q`. Either
   install torch host-side or treat as an acknowledged-skipped suite.
-- Push topology (origin git@github.com…; sandbox can't resolve DNS)
-  means commits are pushed by host-side tooling, not in-sandbox.
+- **Push topology** (origin git@github.com…; sandbox can't resolve
+  DNS) means commits are pushed by host-side tooling, not in-sandbox.
   Cycle-1 `checks/04_no_outbound_dns.sh` already encodes this as a
   passing-when-failing predictor.
 
@@ -131,7 +112,8 @@ recipe ceiling holds OOD.
 - Use `python3` (system, 3.10.12); `.venv/bin/python` is broken on
   this Linux sandbox.
 - Project deps for fresh sandbox: `pip install --break-system-packages
-  --no-cache-dir numpy gymnasium pyarrow pytest matplotlib`.
+  --no-cache-dir gymnasium pyarrow pytest matplotlib`. (numpy is
+  preinstalled.) jax via `bin/setup_jax_from_vendored.sh`.
 - Cannot `unlink` files in the sandbox results dir; drivers should
   open log files in `"w"` mode to truncate instead of deleting.
 - CPU: 4 cores. CEM at pop=24 / dim=16-18 / 3 workers ≈ 125-130 s/gen.
@@ -139,19 +121,16 @@ recipe ceiling holds OOD.
 - **Long-script gotcha (cycle-13)**: when a long-running script chain
   has a CEM phase + a postprocessing phase, **always checkpoint the
   postprocessing pool to disk before scoring**, or split into two
-  scripts. Cycle-13 lost its rerank step at the cycle boundary even
-  though the CEM itself was checkpointed.
-- **`bin/checks/` policy**: `bash bin/run_checks.sh` first thing
-  every cycle. Cycle 14 added `11_cycle13_recipe_ceiling.py`. 11 active
-  checks; budget cap is ~12, so cycle 15 should retire one before
-  adding another. Carry-forward `08_jax_optional` and `04_no_outbound_dns`
-  are passing-when-failing predictors that document the sandbox
-  topology, not work-to-do — keep them.
+  scripts.
 - **Bash-tool polling subtlety**: `sleep N` with N > 600 is killed
   with exit 143; even N ≈ 540 sometimes returns 143. Pattern that
   works: launch via `nohup ... &` once, then poll `progress.log`
-  every 8-9 min.
+  every 8-9 min. Cycle 15 used this pattern for a 37-min eval.
+- **`bin/checks/` policy**: `bash bin/run_checks.sh` first thing
+  every cycle. Currently 11 active checks (no addition or retirement
+  cycle 15). Carry-forward `08_jax_optional` and `04_no_outbound_dns`
+  are passing-when-failing predictors documenting the sandbox
+  topology, not work-to-do — keep them.
 - **Inherited working-tree changes** (across `arena_eval/`,
   `arena_policies/`, `arena_search/`, `tests/`, etc.) untouched per
-  convention; cycle-14's only edits were under `research/` and
-  `bin/checks/11_cycle13_recipe_ceiling.py`.
+  convention; cycle-15's only edits were under `research/`.

@@ -1,0 +1,15 @@
+[08:09:23] baseline FixedFee on (val, test) × (challenge, real_data)…
+[08:09:51]   FF val  challenge | score=342.038 [333.482, 350.512] | n=128 | 28.4s
+[08:10:26]   FF val  real_data | score=  0.584 [ -0.314,   1.443] | n=128 | 35.1s
+[08:16:15]   FF test challenge | score=342.826 [336.683, 348.860] | n=256 | 349.0s
+[08:17:25]   FF test real_data | score=  0.470 [ -0.077,   1.012] | n=256 | 70.1s
+[08:20:23]   c5 baseline    (n=16) | chal_test=414.010 [405.90,421.95] | real_test=-0.744 [ -1.27, -0.23] adv=-6.299 retail=-9.994 arb=+3.695 lift_FF=-1.215 | 178.2s
+[08:23:24]   c6 warmstart   (n=16) | chal_test=432.748 [424.46,441.12] | real_test=-0.933 [ -1.47, -0.40] adv=-6.028 retail=-9.038 arb=+3.009 lift_FF=-1.403 | 180.8s
+[08:26:34]   c8 inv-aware   (n=19) | chal_test=446.441 [437.83,455.01] | real_test=-0.283 [ -0.85, +0.27] adv=-4.014 retail=-6.379 arb=+2.364 lift_FF=-0.754 | 190.0s
+[08:29:50]   c9 third-pass  (n=16) | chal_test=448.807 [439.94,457.36] | real_test= 1.397 [ +0.80, +1.97] adv=+0.015 retail=-1.874 arb=+1.889 lift_FF=+0.927 | 195.4s
+[08:33:10]   c9 EMA-inv     (n=20) | chal_test=456.640 [447.98,465.32] | real_test= 2.364 [ +1.78, +2.94] adv=+2.183 retail=+0.264 arb=+1.919 lift_FF=+1.893 | 199.8s
+[08:36:26]   c10A noop      (n=20) | chal_test=456.738 [448.31,465.46] | real_test= 2.554 [ +1.95, +3.13] adv=+2.755 retail=+0.907 arb=+1.848 lift_FF=+2.084 | 196.0s
+[08:39:44]   c10B s1 (NEW)  (n=16) | chal_test=452.961 [444.25,461.67] | real_test= 1.663 [ +1.09, +2.24] adv=+0.501 retail=-1.531 arb=+2.032 lift_FF=+1.193 | 198.3s
+[08:42:57]   c11 d16_s2     (n=16) | chal_test=456.803 [448.01,465.70] | real_test= 2.574 [ +1.98, +3.16] adv=+2.805 retail=+1.057 arb=+1.748 lift_FF=+2.104 | 193.4s
+[08:46:18]   c13 longrun    (n=16) | chal_test=456.803 [448.03,465.49] | real_test= 2.574 [ +1.98, +3.15] adv=+2.805 retail=+1.057 arb=+1.748 lift_FF=+2.104 | 200.8s
+[08:46:18] -> wrote /sessions/friendly-modest-mccarthy/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle15-m3-test-split-decomp/results/dualcurve_test.json (36.9 min)

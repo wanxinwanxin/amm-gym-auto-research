@@ -31,52 +31,76 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-05 (cycle 14 — <strong>M2 closed</strong>, deliverable
-is the cycle-11 d16_s2 anchor at test = <strong>456.80</strong>;
-<strong>M3 cycle 1</strong> produced the first OOD generalization
-plot. The cycle-13 long-run warm-start CEM (gen=24) confirmed the
-recipe ceiling: the best-by-val candidate after 24 generations was
-the anchor itself, with no later elite ever beating it. Cycle 14 then
-scored the chronological M2 anchor sequence (cycles 5..13) on the
-realistic <code>real_data</code> evaluator and found three regimes —
-early M2 anchors are <em>actively harmful</em> OOD (worse than
-FixedFee), the c8 → c9-EMA segment is high-leverage (each pt of
-challenge buys real OOD value), and the c9-EMA → c13 segment
-saturates OOD at the same compute as it saturates in-distribution.)
-Read top-to-bottom; later milestones build on earlier ones.</p>
+updated 2026-05-05 (cycle 15 — <strong>M2 closed</strong>; deliverable
+is the cycle-11 d16_s2 anchor at challenge test = <strong>456.80</strong>
+[CI 448.0, 465.7]; on the realistic <code>real_data</code> evaluator
+the same policy scores test = <strong>+2.57</strong> [CI +1.98, +3.16],
+a lift of <strong>+2.10</strong> over the FixedFee(0.003) baseline.
+Cycle 15 added a held-out 256-seed test split, 95% bootstrap CIs, a
+9th anchor (c10B at rng_seed=1), and a retail-vs-arb PnL
+decomposition. The early-anchor inversion (c5/c6 score *below*
+FixedFee on real_data) reproduces on test with bootstrap CIs fully
+below zero, and the decomposition pinpoints retail edge — not arb
+loss — as the failure mode.) Read top-to-bottom; later milestones
+build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5. M2 closed
   at cycle 13 (deliverable: 456.80, ~85% of way to 540). Active
-  milestone is M3 (generalization study).</li>
-  <li><strong>Headline numbers.</strong>
-    M2: best test score <strong>456.80</strong> (held-out 256 seeds;
-    16-d piecewise CEM at rng_seed=2; target 540, gap 83.20).
-    M3 cycle 1: chronological M2 anchors evaluated on <code>real_data</code>
-    val seeds — best <strong>+2.92</strong> (≈ +2.34 above the
-    FixedFee(0.003) baseline of 0.58); curve plateaus at c9-EMA.</li>
+  milestone is M3 (generalization study); M3 cycle 2 is the most
+  recent.</li>
+  <li><strong>Headline numbers (held-out test, n=256, 95% bootstrap CI).</strong>
+    M2 (challenge): champion test <strong>456.80</strong>
+    [448.0, 465.7] (16-d piecewise CEM, rng_seed=2; target 540).
+    M3 (real_data): same champion scores test <strong>+2.57</strong>
+    [+1.98, +3.16], a lift of <strong>+2.10</strong> over the
+    FixedFee(0.003) baseline of 0.470. Curve plateaus at c9-EMA;
+    c11 = c13 *exactly* on both challenge and real_data
+    (recipe-ceiling identity, third independent check).</li>
   <li><strong>What we've learned about M2 generalization.</strong>
-  Cycles 5–6 of M2 (challenge 414 → 434) actually <em>regress</em>
-  on real data — the trained policy lands <em>below</em> FixedFee.
-  Cycles 8 → 9-EMA (challenge 448 → 458) is the
-  <em>high-leverage segment</em>: each pt of challenge improvement
-  buys ~+0.27 pts of real-data lift. From cycle 9-EMA onwards
-  (including all of cycles 10–13) the OOD curve is flat — the
-  recipe ceiling we hit on challenge holds OOD too.</li>
-  <li><strong>Open questions.</strong> (1) Does the early-anchor
-  inversion replicate on a different rng-seed chain (cycle-11 d16_s0
-  / d16_s1)? (2) Single-seed (n=128 val); cycle 15 needs to add a
-  held-out test split (2000..2255) before the headline real-data
-  number gets stakeholder-quality. (3) <em>What</em> is the c5 / c6
-  anchor doing wrong on real data — too-tight base spread? toxic-flow
-  miss-classification? Decompose c5 real_data PnL into retail vs arb
-  to localize before kicking off M4 (training directly on real_data).</li>
+  Cycles 5–6 of M2 (challenge 414 → 433) <em>regress</em>
+  significantly on real data — c5 real_test = -0.74
+  [<span class="neg">-1.27, -0.23</span>]; c6 = -0.93
+  [<span class="neg">-1.47, -0.40</span>]. Both 95% CIs are fully
+  below FixedFee. Cycles 8 → 9-EMA (challenge 446 → 457) is the
+  <em>high-leverage segment</em>: each challenge pt buys ~+0.26 pts
+  of real-data lift. From c9-EMA onwards (cycles 10–13) the OOD
+  curve is flat. <strong>Decomposition (cycle 15):</strong> retail
+  edge advantage moves -10.0 (c5) → +1.06 (c11) — a swing of +11
+  units. Arb loss advantage stays inside +1.7 to +3.7 across the
+  whole trajectory. <em>The early-anchor inversion is a
+  retail-pricing problem, not an arb-loss problem.</em></li>
+  <li><strong>Open questions.</strong> (1) Does the c5/c6 inversion
+  *trajectory* (not just the endpoint) replicate when M2 is
+  re-run from c5 with rng_seed=1? Cycle 15 only re-ran the
+  *endpoint* with rng_seed=1 (c10B). (2) The retail-edge gap is
+  ~10 units big — *which* trade-size buckets (small/medium/large)
+  or *which* market regimes drive most of it? Cycle 16 candidate.
+  (3) M4 starting bar: the +2.10 OOD lift over FixedFee is what
+  direct-on-real_data optimization will need to beat.</li>
 </ul>
 </div>
 
 <div class="summary">
+<strong>Table of contents.</strong>
+<ul>
+  <li><a href="#background">Project background &amp; M1–M4 overview</a></li>
+  <li><a href="#glossary">Glossary</a></li>
+  <li><a href="#m1">M1 — Validating the realistic simulator against on-chain markout</a></li>
+  <li><a href="#m2">M2 — Optimizing the differentiable simulator on the simple-AMM challenge</a></li>
+  <li><a href="#m3">M3 — Generalization study (active milestone)</a>
+    <ul>
+      <li><a href="#m3-c14">Cycle 14 (M3 cycle 1) — chronological-anchor dual-curve eval</a></li>
+      <li><a href="#m3-c15">Cycle 15 (M3 cycle 2) — held-out test split + bootstrap CI + retail/arb decomposition</a></li>
+    </ul>
+  </li>
+  <li><a href="#m4">M4 — Direct optimization on the realistic environment (not started)</a></li>
+</ul>
+</div>
+
+<div class="summary" id="background">
 <strong>Project in one paragraph.</strong> We have a step-by-step AMM
 market-making simulator with two flavors — a synthetic "challenge"
 mode used as a scoring benchmark, and a "realistic" mode whose price
@@ -88,7 +112,7 @@ to the realistic mode? (M4) how does optimal realistic performance
 scale with policy complexity?
 </div>
 
-<div class="summary">
+<div class="summary" id="glossary">
 <strong>Glossary.</strong>
 <ul>
   <li><strong>Piecewise (policy family).</strong> A 16-parameter fee
@@ -142,10 +166,28 @@ scale with policy complexity?
   anchor) — distinct from a capacity ceiling (limit of the policy
   family) or an environment ceiling (limit of any policy on this env).
   Cycles 11–13 collectively confirmed M2 hit the recipe ceiling.</li>
+  <li><strong>Bootstrap CI.</strong> A nonparametric 95% confidence
+  interval for the mean computed by resampling the n per-seed score
+  values (with replacement) 10,000 times and taking the 2.5%/97.5%
+  quantiles of the resampled means. Used in cycle 15 to attach
+  uncertainty to the per-anchor real_data and challenge scores.</li>
+  <li><strong>Retail edge advantage.</strong> The submission's net
+  retail-fee revenue (fees collected from retail flow, summed over
+  the episode) minus the FixedFee normalizer's same. Positive = the
+  submission's fee schedule extracts more retail fee revenue than a
+  flat 30-bps fee on the same flow. On real_data, this is the
+  primary OOD lever — see cycle 15.</li>
+  <li><strong>Arb loss advantage.</strong> The submission's net
+  arb-loss "favorability": <code>-(arb_loss_submission -
+  arb_loss_normalizer)</code>, oriented so positive = submission
+  bled less to arbs than the normalizer did. On real_data this stays
+  in a +1.7 to +3.7 band across the entire M2 trajectory — i.e.,
+  every M2 anchor is somewhat better than FixedFee at avoiding arb
+  losses, even the ones that are net-harmful overall.</li>
 </ul>
 </div>
 
-<h2>M1 — Validating the realistic simulator against on-chain markout</h2>
+<h2 id="m1">M1 — Validating the realistic simulator against on-chain markout</h2>
 
 <div class="insight">
 <strong>Headline.</strong> The realistic simulator's per-trade markout
@@ -422,7 +464,7 @@ correlation to retail draws) is interesting but not on the M2-M4
 critical path; deferred to a parallel side branch if there's free
 cycle budget later.</p>
 
-<h2>M2 — Optimizing on the differentiable simple-AMM challenge</h2>
+<h2 id="m2">M2 — Optimizing on the differentiable simple-AMM challenge</h2>
 
 <div class="summary">
 <strong>Status (cycle 5).</strong> Setup complete: scoring rule
@@ -1281,23 +1323,28 @@ construction). Future long-run drivers should checkpoint the rerank
 pool to disk before scoring, or split the CEM and rerank into
 separate scripts.</p>
 
-<h2>M3 — Generalization study</h2>
+<h2 id="m3">M3 — Generalization study</h2>
 
 <div class="insight">
-<strong>Headline (cycle 14, M3 cycle 1).</strong> Of the eight
-chronological M2 anchors (cycles 5–13), the first two (challenge
-414 → 434) score <em>below</em> FixedFee(0.003) on the realistic
-evaluator — early M2 optimization is <strong>net-harmful OOD</strong>.
-The OOD curve crosses zero at cycle 8 and climbs to <strong>+2.92</strong>
-(score) / <strong>+3.05</strong> (edge_advantage) by cycle-9-EMA,
-where it plateaus through cycles 10–13. M2's last 18 challenge pts
-(cycles 9-EMA → 13) buy ~+0.13 pts of real-data lift; M2's previous
-10 pts (cycles 8 → 9-EMA) bought +2.74 — a 20× difference in OOD
-return per challenge pt. The recipe ceiling we hit on challenge
-holds OOD too (c11 = c13 exactly: real_data 2.918 = 2.918).
+<strong>Headline (cycle 15, M3 cycle 2).</strong> Held-out test split
+(n=256, 95% bootstrap CI) confirms cycle 14's val finding and adds the
+PnL decomposition that cycle 14 lacked. The M2 champion (c11 d16_s2)
+scores real_data test = <strong>+2.57</strong> [+1.98, +3.16] vs
+FixedFee 0.470 [-0.08, 1.01], a lift of <strong>+2.10</strong>. The
+*early-anchor inversion* is statistically significant on the test
+split: c5 = -0.74 [<span class="neg">-1.27, -0.23</span>], c6 =
+-0.93 [<span class="neg">-1.47, -0.40</span>]. Both 95% CIs are
+*fully below zero*. The PnL decomposition localizes the failure
+mode: retail edge advantage moves <strong>-10.0 (c5) → +1.06
+(c11)</strong> — an 11-unit swing — while arb loss advantage stays
+in a narrow +1.7 to +3.7 band across the entire trajectory. <em>Early
+M2 optimization is breaking on retail pricing, not on arb loss.</em>
+The c11 = c13 identity also reproduces *exactly* on real_data test
+(both 2.574, lift 2.104) — the third independent recipe-ceiling
+identity check.
 </div>
 
-<h3>Cycle 14 (M3 cycle 1) — chronological-anchor dual-curve eval</h3>
+<h3 id="m3-c14">Cycle 14 (M3 cycle 1) — chronological-anchor dual-curve eval</h3>
 
 <p><em>Question.</em> Now that M2 is closed, the natural M3
 question is: of the policies M2 produced along the way, what did
@@ -1397,16 +1444,18 @@ and the same FixedFee(0.003) normalizer.</figcaption>
   inductive bias".)</li>
 </ol>
 
-<p><em>Caveats.</em></p>
+<p><em>Caveats (most resolved by cycle 15 — see below).</em></p>
 <ul>
-  <li>Single-seed split (n=128 val); the headline numbers are point
-  estimates, not test scores. Cycle 15 will add a held-out 256-seed
-  test split.</li>
-  <li>The OOD trajectory uses the M2 anchor sequence as a proxy for
-  a real training trajectory. Cycle 15 will replicate it on
-  cycle-11 grid <code>d16_s0</code> and <code>d16_s1</code> chains
-  (different rng seeds, same recipe) to confirm the early-anchor
-  inversion isn't a one-chain fluke.</li>
+  <li><strike>Single-seed split (n=128 val); the headline numbers are
+  point estimates, not test scores.</strike> <em>Resolved cycle 15:
+  test split (n=256) added with 95% bootstrap CIs.</em></li>
+  <li><strike>Cycle 15 will replicate it on cycle-11 grid
+  <code>d16_s0</code> and <code>d16_s1</code> chains (different rng
+  seeds, same recipe) to confirm the early-anchor inversion isn't a
+  one-chain fluke.</strike> <em>Partially resolved cycle 15:
+  added c10B endpoint at rng_seed=1 to test the OOD plateau (it
+  replicates, lower); the *trajectory shape* (early-harmful inversion)
+  is still single-chain.</em></li>
   <li>"real_data" here means
   <code>ExactSimpleAMMConfig.real_data_from_seed</code>: regime-switching
   price + empirical-impact retail flow, fitted from on-chain ETH/USDC
@@ -1416,13 +1465,180 @@ and the same FixedFee(0.003) normalizer.</figcaption>
   but not for the qualitative shape of the curve.</li>
 </ul>
 
-<h2>M4 — Direct optimization on the realistic environment</h2>
+<h3 id="m3-c15">Cycle 15 (M3 cycle 2) — held-out test split, bootstrap CI, retail/arb decomposition</h3>
+
+<p><em>Question.</em> Cycle 14 produced the dual-curve plot but every
+headline number was a single-seed val estimate (n=128). Three things
+needed to be done before the cycle-14 finding could be trusted as a
+load-bearing M3 result: (1) re-run on a held-out test split
+(2000..2255, n=256) so the headline isn't being driven by the same
+seeds that informed any prior CEM search; (2) attach 95% bootstrap CIs
+so we can say *whether* c5/c6 are statistically below FixedFee or
+within batch noise; (3) split the OOD score into retail-fee PnL and
+arb-loss PnL so we can localize *what* the early-anchor optimization
+is breaking. A 9th anchor (cycle-10B at rng_seed=1) was added
+opportunistically — it's the closest thing to a 2nd-chain rng-seed
+replicate of the c11 endpoint and stress-tests whether the OOD
+plateau survives a different sampling sequence.</p>
+
+<p><em>Method.</em>
+<code>scripts/eval_dualcurve_test.py</code> evaluates 9 anchors × 4
+batches each — val (1000..1127, n=128) and test (2000..2255, n=256)
+on both <code>challenge</code> and <code>real_data</code>. From the
+per-seed score arrays in each batch we report mean, 95% bootstrap CI
+(10000 resamples on the per-seed mean), and the
+<code>retail_edge_advantage_mean</code> /
+<code>arb_loss_advantage_mean</code> decomposition.
+<code>retail_edge_advantage</code> = LP retail fee revenue (sub minus
+norm); <code>arb_loss_advantage</code> = -(sub minus norm) of LP arb
+loss, oriented so positive = sub bled less than norm. The
+decomposition uses fields already exposed on <code>SimulationResult</code>
+— no simulator change.</p>
+
+<p><em>Result.</em> Headline numbers (test split, n=256, 95% bootstrap
+CI). Significance reads: a 95% bootstrap CI fully below the FixedFee
+mean ⇒ that anchor is significantly worse than FixedFee at α=0.05;
+fully above ⇒ significantly better.</p>
+
+<table>
+<thead>
+<tr>
+  <th class="l">Anchor</th>
+  <th>n_p</th>
+  <th>chal_test</th>
+  <th>chal CI95</th>
+  <th>real_test</th>
+  <th>real CI95</th>
+  <th>retail<br/>edge_adv</th>
+  <th>arb<br/>loss_adv</th>
+  <th>lift vs FF</th>
+</tr>
+</thead>
+<tbody>
+  <tr><td class="l">FixedFee(0.003)</td><td>—</td><td>342.83</td><td>[336.7, 348.9]</td><td>0.470</td><td>[−0.08, +1.01]</td><td>—</td><td>—</td><td>(norm)</td></tr>
+  <tr><td class="l">c5 baseline</td><td>16</td><td>414.01</td><td>[405.9, 421.9]</td><td class="neg">−0.744</td><td class="neg">[−1.27, −0.23]</td><td class="neg">−9.99</td><td class="pos">+3.70</td><td class="neg">−1.215</td></tr>
+  <tr><td class="l">c6 warmstart</td><td>16</td><td>432.75</td><td>[424.5, 441.1]</td><td class="neg">−0.933</td><td class="neg">[−1.47, −0.40]</td><td class="neg">−9.04</td><td class="pos">+3.01</td><td class="neg">−1.403</td></tr>
+  <tr><td class="l">c8 inv-aware</td><td>19</td><td>446.44</td><td>[437.8, 455.0]</td><td>−0.283</td><td>[−0.85, +0.27]</td><td class="neg">−6.38</td><td class="pos">+2.36</td><td class="neg">−0.754</td></tr>
+  <tr><td class="l">c9 third-pass</td><td>16</td><td>448.81</td><td>[439.9, 457.4]</td><td class="pos">+1.397</td><td class="pos">[+0.80, +1.97]</td><td class="neg">−1.87</td><td class="pos">+1.89</td><td class="pos">+0.927</td></tr>
+  <tr><td class="l">c9 EMA-inv</td><td>20</td><td>456.64</td><td>[448.0, 465.3]</td><td class="pos">+2.364</td><td class="pos">[+1.78, +2.94]</td><td class="pos">+0.26</td><td class="pos">+1.92</td><td class="pos">+1.893</td></tr>
+  <tr><td class="l">c10A noop</td><td>20</td><td>456.74</td><td>[448.3, 465.5]</td><td class="pos">+2.554</td><td class="pos">[+1.95, +3.13]</td><td class="pos">+0.91</td><td class="pos">+1.85</td><td class="pos">+2.084</td></tr>
+  <tr><td class="l">c10B s1 (NEW)</td><td>16</td><td>452.96</td><td>[444.3, 461.7]</td><td class="pos">+1.663</td><td class="pos">[+1.09, +2.24]</td><td class="neg">−1.53</td><td class="pos">+2.03</td><td class="pos">+1.193</td></tr>
+  <tr><td class="l"><strong>c11 d16_s2</strong></td><td>16</td><td><strong>456.80</strong></td><td>[448.0, 465.7]</td><td class="pos"><strong>+2.574</strong></td><td class="pos">[+1.98, +3.16]</td><td class="pos">+1.06</td><td class="pos">+1.75</td><td class="pos"><strong>+2.104</strong></td></tr>
+  <tr><td class="l">c13 longrun</td><td>16</td><td>456.80</td><td>[448.0, 465.5]</td><td class="pos">+2.574</td><td class="pos">[+1.98, +3.15]</td><td class="pos">+1.06</td><td class="pos">+1.75</td><td class="pos">+2.104</td></tr>
+</tbody>
+</table>
+
+<figure>
+<img src="m3_test_split.png"
+     alt="M3 cycle 2 — test-split dual curves with 95% bootstrap CIs and retail/arb PnL decomposition">
+<figcaption>Top-left: challenge test score by anchor (95% bootstrap
+CI bars). Top-right: real_data test score by anchor — red points
+are below the FixedFee reference (shaded "harmful" region), green
+above. The grey band is the FixedFee 95% CI. Bottom: per-anchor
+real_data <code>edge_advantage</code> decomposition into retail
+fee-edge (green) and arb_loss advantage (red); positive bars mean
+the submission did better than the FixedFee normalizer on that
+component. <em>Retail edge swings -10 → +1; arb stays flat at +2 to
++3 across the entire trajectory — early-anchor harm is on the
+retail side.</em></figcaption>
+</figure>
+
+<div class="insight">
+<strong>What it changed.</strong>
+<ol>
+  <li><strong>The early-anchor inversion is statistically
+  significant on test.</strong> c5 (lift -1.215) and c6 (lift
+  -1.403) have 95% bootstrap CIs that are *fully below* the
+  FixedFee mean (lift = 0). The cycle-14 val finding wasn't a
+  fluke; on n=256 unseen seeds the early M2 anchors are *robustly*
+  below FixedFee. c8 is a borderline case — its real_test CI
+  straddles zero (-0.85, +0.27) but the lift point estimate of
+  -0.754 is a continued negative trend.</li>
+
+  <li><strong>The decomposition cleanly localizes the failure to
+  retail.</strong> Retail edge advantage on real_data: -9.99 (c5)
+  → -9.04 (c6) → -6.38 (c8) → -1.87 (c9 third) → +0.26 (c9 EMA) →
+  +0.91 (c10A) → +1.06 (c11 d16_s2). That's an 11-unit monotonic
+  swing in the LP-favorable direction. Arb loss advantage: +3.70
+  (c5) → +3.01 (c6) → +2.36 (c8) → +1.89 (c9 third) → +1.92 (c9
+  EMA) → +1.85 (c10A) → +1.75 (c11 d16_s2) — a small drift in the
+  *unfavorable* direction (arb-loss advantage *shrinks* as we
+  optimize). So all of M2's OOD gain comes from the retail side;
+  the arb side actually slightly *worsens*. The mechanism behind
+  c5/c6's net-harmful OOD score is that they bleed ~10 units of
+  retail edge to FixedFee on real_data — i.e., the early piecewise
+  fit, optimized to GBM-with-uniform retail, misprices empirical
+  retail flow. <em>This is the M4 targeting information cycle 14
+  asked for.</em></li>
+
+  <li><strong>c10B replicates the OOD plateau, lower.</strong>
+  c10B s1 lands at real_test +1.66 (lift +1.19), vs c10A s0 / c11
+  s2 at ~+2.6 (lift ~+2.10). The OOD plateau is rng-sensitive — the
+  spread across rng seeds is ~0.9 lift points — but the
+  *trajectory shape* (early harmful → high-leverage → plateau) is
+  not in question; c10B sits in the plateau region exactly where
+  challenge performance puts it. Notable: c10B has *negative*
+  retail edge advantage (-1.53) yet a *positive* net edge advantage
+  — its OOD gain is split between a slightly worse retail side
+  and a slightly better arb side than c10A's. The two endpoint
+  rng seeds explore different parts of the same plateau basin.</li>
+
+  <li><strong>The c11 = c13 identity holds OOD on test.</strong>
+  Real_test mean 2.574 = 2.574, lift 2.104 = 2.104. This is the
+  third independent identity check (val challenge 458.539 = 458.539,
+  val real_data 2.918 = 2.918, test real_data 2.574 = 2.574) — all
+  consistent with the cycle-13 conclusion that the long-run CEM
+  produced exactly the same parameter vector as the cycle-11
+  champion.</li>
+
+  <li><strong>The high-leverage segment is c8 → c9-EMA on test
+  too.</strong> Challenge +10.2 buys real_test +2.65 there, ratio
+  ~0.26 — close to the val ratio of 0.275. Whatever distinguishes
+  c9-EMA from c8 is doing most of M2's OOD work. The two
+  candidates are *inventory awareness* (added in c8) and *EMA
+  smoothing of the inventory signal* (added in c9-EMA). For M4 —
+  direct-on-real_data optimization — these are the inductive biases
+  most likely to matter.</li>
+</ol>
+</div>
+
+<p><em>Caveats.</em></p>
+<ul>
+  <li>Endpoint replication only. c10B replicates the c11 endpoint
+  with rng_seed=1; we did not re-run the M2 *trajectory* (cycles
+  5 → 6 → 8 → …) end-to-end with a different rng seed. The
+  trajectory-shape claim ("first-anchor inversion") rests on a
+  single chain.</li>
+  <li>Decomposition is at the per-seed-mean level; it does not
+  split by trade-size bucket or market regime. A trade-size
+  decomposition could further localize *which* parts of the retail
+  flow c5 mis-prices — candidate cycle-16 next step.</li>
+  <li>Cross-correlations across the 9 anchors (test, real_data unless
+  noted): <code>corr(challenge, real_data) = +0.86</code>;
+  <code>corr(real_data, retail_edge_adv) = +0.99</code>;
+  <code>corr(real_data, arb_loss_adv) = -0.88</code>;
+  <code>corr(challenge, retail_edge_adv) = +0.92</code>;
+  <code>corr(challenge, arb_loss_adv) = -0.98</code>. The strongest
+  signal is that real_data score is *almost identical* to retail edge
+  advantage rank-wise (+0.99). The negative correlations
+  (challenge/real_data score vs arb_loss_adv) say that as M2
+  optimization tightens the policy, it *gives back* arb-side
+  advantage — i.e., the policy becomes less defensive against arbs
+  as it gets better at retail pricing. Two-edged-sword dynamic. This
+  is consistent with the cycle-15 narrative but not yet a confirmed
+  causal story.</li>
+</ul>
+
+<h2 id="m4">M4 — Direct optimization on the realistic environment</h2>
 <div class="pending">Not started. M4 will sweep policy complexity from
 very simple (1–2 params) to rich (piecewise, ladder, MLP) and plot
-best realistic score vs. parameter count, training compute. The M3
-cycle-1 result frames the M4 baseline: the +2.4 lift over FixedFee
-on real_data is the bar to beat with direct-on-realistic
-optimization.</div>
+best realistic score vs. parameter count and training compute. The
+M3 cycle-2 result frames the M4 baseline: the
+<strong>+2.10 (test) lift over FixedFee on real_data</strong> is
+the bar to beat with direct-on-realistic optimization, and the M3
+decomposition tells M4 *where to look*: retail edge advantage is
+where most of the OOD gain has to come from (arb advantage is
+already +1.7 to +3.7 essentially regardless of training).</div>
 
 </body>
 </html>

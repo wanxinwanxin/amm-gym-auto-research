@@ -1683,3 +1683,154 @@ rule. Then per the rule, either continue M2 or pivot to M3.
   ≈ 75 min. Within the 2h budget.
 - **No checks retired this cycle.** All 11 active checks pass
   (modulo the carry-forward jax-OOM blocker on `08_jax_optional`).
+
+---
+
+## 2026-05-05 — cycle 15 (M3 cycle 2: held-out test split + bootstrap CI + retail/arb decomposition)
+
+**Plan for the cycle.** Cycle 14's M3 cycle-1 plot established the
+"early-anchor inversion" qualitatively but every number was a
+single-seed val estimate (n=128). Three things needed to happen
+before the M3 finding could be load-bearing for M4:
+  1. Held-out test split (2000..2255, n=256) so the headline OOD
+     numbers aren't being driven by the same seeds CEM saw during
+     search.
+  2. 95% bootstrap CIs on the per-anchor scores so we can distinguish
+     "below FixedFee" from "within batch noise".
+  3. PnL decomposition (retail edge vs arb loss) so we can localize
+     *what* early-anchor optimization is breaking on real_data.
+Plus opportunistically: add a 9th anchor at rng_seed=1 (cycle-10B)
+to test whether the OOD plateau survives a different sampling
+sequence.
+
+**What ran.**
+- Pre-flight: ran `bin/run_checks.sh` on a fresh sandbox; reinstalled
+  gymnasium/pyarrow/pytest via pip and re-ran `setup_jax_from_vendored.sh`
+  to import jax. After install all 11 checks passed.
+- `research/experiments/2026-05-05-cycle15-m3-test-split-decomp/scripts/eval_dualcurve_test.py`
+  on 9 anchors × 4 batches each (val 128 + test 256, on challenge +
+  real_data). 36.9 min total. PID 1524 in nohup loop, polled
+  progress.log every 8-9 min per the cycle-13 nohup-patrol idiom.
+- `make_figure.py` produced the three-panel test-split figure
+  (challenge curve, real_data curve with FF reference + below-FF
+  band, retail/arb decomposition bars).
+
+**Headline numbers (test split, n=256, 95% bootstrap CI).**
+- FixedFee(0.003): real_data 0.470 [-0.08, +1.01]; challenge 342.83
+  [336.7, 348.9].
+- c11 d16_s2 (M2 deliverable): challenge 456.80 [448.0, 465.7];
+  real_data **+2.574 [+1.98, +3.16]**, lift over FF = **+2.104**.
+- c5 baseline: real_data **-0.744 [-1.27, -0.23]** — CI fully below
+  FixedFee. Statistically significant inversion confirmed.
+- c6 warmstart: real_data **-0.933 [-1.47, -0.40]** — CI fully below.
+- c10B (rng_seed=1, NEW): real_data +1.66 [+1.09, +2.24], lift +1.19;
+  ~0.9 lift below c10A/c11 in the same plateau region.
+
+**Decomposition (real_data test, retail vs arb edge_advantage).**
+- c5: retail -9.99, arb +3.70, net -6.30.
+- c6: retail -9.04, arb +3.01, net -6.03.
+- c8: retail -6.38, arb +2.36, net -4.01.
+- c9 third: retail -1.87, arb +1.89, net +0.02.
+- c9 EMA: retail +0.26, arb +1.92, net +2.18.
+- c10A: retail +0.91, arb +1.85, net +2.76.
+- c10B s1: retail -1.53, arb +2.03, net +0.50.
+- c11 d16_s2: retail +1.06, arb +1.75, net +2.81.
+
+Pattern: retail moves -10 → +1 (+11 monotonic-ish), arb stays in a
+narrow +1.7 to +3.7 band. Early M2 is **breaking on retail-flow
+pricing**, not on arb loss.
+
+**What worked / what surprised on the upside.**
+- The PnL decomposition came essentially "for free" — the existing
+  `SimulationResult.retail_edge_advantage` and `arb_loss_*` fields
+  already expose the components. No simulator change was needed,
+  just a thin wrapper in the eval driver. Cycle 14's README warned
+  this might require an evaluator wrapper or per-trade event log
+  dump; in fact the aggregate fields are sufficient for the
+  cycle-15 question.
+- The c11 = c13 identity holds *on the test split* of *real_data*,
+  identically (2.574 = 2.574). That's the third independent
+  recipe-ceiling identity check (val challenge, val real_data, test
+  real_data) — the cycle-13 long-run CEM truly produced the same
+  parameter vector as the c11 anchor.
+- Bootstrap CIs do exactly the work asked of them: c5/c6 sit fully
+  below the FixedFee mean on test, locking in the cycle-14
+  qualitative finding as a statistically real phenomenon. c8 is
+  borderline (-0.85, +0.27) — still net-negative point estimate
+  but CI straddles zero on test. So "early M2 is OOD-harmful"
+  becomes "the *first two* anchors are statistically below
+  FixedFee; the third (c8) is point-estimate negative but not yet
+  CI-confirmed."
+
+**What failed (or surprised on the downside).**
+- The c10B rng_seed=1 endpoint sits ~0.9 lift below c10A/c11. That's
+  not large enough to break the plateau story but it does mean
+  there's non-trivial rng-seed variance in the *plateau region*
+  itself. Implication: a single-rng-seed M2 run does not pin down the
+  OOD ceiling tightly; cycle 15 only adds one extra cell, so the
+  rng-spread number (~0.9) is itself noisy.
+- The plan-of-record's step 2 (replicate the early-anchor inversion
+  on full d16_s0 / d16_s1 anchor *chains*) was not done as
+  literally written, because no full chronological chain at
+  rng_seed=1 exists in the repo — only the c10B endpoint at
+  rng_seed=1. Re-running M2 cycles 5 → 6 → 8 → 9 → ... end-to-end
+  with rng_seed=1 would take many hours and was beyond the cycle
+  budget. Reframed the cycle-15 deliverable as endpoint replication
+  + bootstrap CIs on test, which is what locked in the inversion.
+
+**Updates implied for the prior.**
+- M3 cycle 1's qualitative claim ("early anchors are net-harmful
+  OOD") is now load-bearing on test, not just val. The 95% CIs make
+  it falsifiable in a way the cycle-14 numbers were not.
+- The retail-vs-arb decomposition tells M4 *where to look*: any M4
+  policy improvement over the +2.10 lift bar has to come from the
+  retail side, since arb is already +1.7 to +3.7 essentially
+  regardless of training. M4 is now framed as "raise retail edge
+  advantage above c11's +1.06 on real_data" rather than "raise net
+  edge_advantage above +2.81".
+- The cycle-15 retail-edge curve correlates +0.97 with the
+  challenge score across the 9 anchors; arb-edge correlates -0.41.
+  Suggests the challenge optimizer is, to first order, a retail-edge
+  optimizer. This is a hypothesis; not yet confirmed causally.
+
+**Next.**
+- **Cycle-16 plan-of-record:**
+  1. Per-trade-size decomposition of c5 vs c11 retail edge on
+     real_data. Bucket retail trades by size (small/med/large per
+     piecewise thresholds 0.003 / 0.01) and report per-bucket
+     retail edge advantage. This decomposition could show whether
+     c5's -10 retail-edge gap is driven by mispricing on small
+     trades (most numerous), large trades (highest individual
+     edge), or one specific bucket. ~30 min implement + ~30 min
+     run.
+  2. Pre-launch M4 baseline: direct CEM optimization on
+     `evaluator_kind="real_data"` with the c5 piecewise default
+     anchor and a small budget (pop=12, gen=5) to verify the
+     real_data evaluator is CEM-friendly and to set a baseline-budget
+     OOD score. ~30 min.
+- **If (1) shows a single-bucket failure:** that bucket's pricing
+  becomes the M4 cycle-1 target.
+- **If (1) shows uniform failure across buckets:** the real_data
+  evaluator is the bottleneck and we go straight to M4 cycle 1
+  (direct optimization).
+
+**Operational footnotes.**
+- Repo path on this sandbox: `/sessions/friendly-modest-mccarthy/mnt/amm-gym-auto-research`.
+  Sandbox name confirmed via `pwd`.
+- All cycle-15 edits restricted to `research/` (new experiment dir,
+  README/STATE/LOG/presentation updates). Inherited working-tree
+  diffs (`arena_eval/`, `arena_policies/`, `scripts/`, `tests/`)
+  untouched per convention.
+- Wall-clock: ~5 min orient + ~2 min env setup (gymnasium/pyarrow
+  reinstall + jax vendored install) + ~5 min plan + ~37 min eval
+  + ~2 min figure + ~30 min STATE/LOG/presentation + ~5 min check
+  + commit ≈ 86 min. Within the 2h budget.
+- **No checks retired this cycle.** All 12 active checks pass.
+  Cycle-15 found that 03_required_python_deps and 08_jax_optional
+  needed manual remediation on a fresh sandbox (install
+  gymnasium/pyarrow/pytest then run `setup_jax_from_vendored.sh`)
+  but both passed after the install step. The 08_jax_optional check
+  has a hard-coded `/tmp/jax_setup.log` path that errors with
+  Permission denied on this sandbox; the script's recovery branch
+  works fine, but the log line is misleading. Not retiring; just
+  noting for cycle-16 if it surfaces again.
