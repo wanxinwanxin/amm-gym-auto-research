@@ -68,6 +68,16 @@ RUNS = [
         ROOT
         / "research/experiments/2026-05-06-cycle25-m4-cross-anchor-stabilizer/results/cycle18_seed0_seed0/test.json",
     ),
+    (
+        "cycle26 c18-s0 seed=1",
+        ROOT
+        / "research/experiments/2026-05-06-cycle26-m4-c18s0-multiseed/results/cycle18_seed0_seed1/test.json",
+    ),
+    (
+        "cycle26 c18-s0 seed=2",
+        ROOT
+        / "research/experiments/2026-05-06-cycle26-m4-c18s0-multiseed/results/cycle18_seed0_seed2/test.json",
+    ),
 ]
 
 

@@ -1,0 +1,26 @@
+[06:05:30] M4 cycle-26 ladder LONG-CEM | anchor=cycle18_seed0 rng_seed=2 | dim=19 pop=24 gen=10 elite_n=4 workers=2
+[06:05:30]   anchor lift_FF nominal: +3.006
+[06:06:06]   anchor_ladder val (real_data, n=128): score= +3.885 adv= +5.257 retail_adv= +3.268 (36.2s)
+[06:10:06]   gen 0: best= +2.901 elite_mean= +1.812 all_mean= -3.253 (239.8s)
+[06:14:10]   gen 1: best= +2.399 elite_mean= +1.887 all_mean= -1.863 (243.5s)
+[06:17:54]   gen 2: best= +3.063 elite_mean= +2.945 all_mean= +0.910 (224.0s)
+[06:21:36]   gen 3: best= +3.172 elite_mean= +3.128 all_mean= +2.734 (222.1s)
+[06:25:19]   gen 4: best= +3.275 elite_mean= +3.176 all_mean= +3.029 (223.0s)
+[06:29:02]   gen 5: best= +3.308 elite_mean= +3.252 all_mean= +3.144 (223.0s)
+[06:32:45]   gen 6: best= +3.336 elite_mean= +3.302 all_mean= +3.239 (222.9s)
+[06:36:27]   gen 7: best= +3.335 elite_mean= +3.326 all_mean= +3.266 (222.7s)
+[06:40:10]   gen 8: best= +3.343 elite_mean= +3.338 all_mean= +3.312 (223.1s)
+[06:43:53]   gen 9: best= +3.352 elite_mean= +3.351 all_mean= +3.334 (222.2s)
+[06:43:53]   CEM done in 2266.3s
+[06:43:53]   rerank pool: 7 candidates
+[06:44:28]     rerank 0 (    anchor): val= +3.885 adv= +5.257 retail_adv= +3.268 (35.5s)
+[06:45:04]     rerank 1 (      gen9): val= +4.031 adv= +5.034 retail_adv= +2.386 (35.4s)
+[06:45:39]     rerank 2 (      gen9): val= +4.033 adv= +5.018 retail_adv= +2.348 (35.4s)
+[06:46:15]     rerank 3 (      gen9): val= +4.055 adv= +5.155 retail_adv= +2.572 (35.5s)
+[06:46:50]     rerank 4 (      gen9): val= +4.036 adv= +5.044 retail_adv= +2.402 (35.5s)
+[06:47:25]     rerank 5 (      gen8): val= +4.014 adv= +4.921 retail_adv= +2.201 (35.4s)
+[06:48:01]     rerank 6 (      gen8): val= +4.041 adv= +5.139 retail_adv= +2.532 (35.5s)
+[06:50:22]   TEST best (n=256): score= +3.777 adv= +5.137 retail_adv= +2.866
+[06:50:22]   FF test score:  +0.470
+[06:50:22]   lift_FF (test): +3.307
+[06:50:22] wrote /sessions/gracious-charming-ritchie/mnt/amm-gym-auto-research/research/experiments/2026-05-06-cycle26-m4-c18s0-multiseed/results/cycle18_seed0_seed2/test.json

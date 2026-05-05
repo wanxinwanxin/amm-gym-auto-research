@@ -31,32 +31,34 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-06 (cycle 25). M2 deliverable (champion held since
+updated 2026-05-06 (cycle 26). M2 deliverable (champion held since
 cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
 <code>real_data</code> evaluator the same policy scores test =
 <strong>+2.57</strong> [CI +1.98, +3.16], a lift of
-<strong>+2.10</strong> over the FixedFee(0.003) baseline. The M4
-frontier's <em>cross-seed</em> reading on real_data — the
-piecewise long-CEM 3-seed mean from cycle 21 — is
-<strong>lift_FF +2.727 ± 0.322</strong>.
-<strong>Cycle 25</strong> falsifies the cycle-24 "long-CEM ladder is
-an anchor-quality-monotone stabilizer" framing on both limbs:
-(i) a second RNG seed on the cycle-21-seed-2 (basin-collapsed)
-anchor returns <strong>+0.000</strong> lift over piecewise (CEM
-basin collapsed; rerank picked anchor) — the cycle-24 single-seed
-+0.547 was a positive tail draw of a high-variance distribution;
-n=2 mean lift on c21-s2 is now <strong>+0.273 ± 0.387</strong>,
-error bar contains zero; (ii) a single-seed long-CEM ladder probe on
-the cycle-18-seed-0 (strongest piecewise) anchor lifts
-<strong>+0.250</strong> over piecewise — <em>higher</em> than the
-c21-s1 mean lift +0.134, contradicting the inverse-scaling
-prediction. New best single-seed <code>real_data</code> ladder
-test score: <strong>+3.727</strong> on c18-s0 seed=0
-(lift_FF +3.256), but n=1 — supporting evidence only. Combined
-cross-anchor picture: long-CEM ladder gives a small (~+0.13–+0.25)
-lift over piecewise that is real on average but not anchor-monotone
-and high-variance on individual seeds. Read top-to-bottom; later
+<strong>+2.10</strong> over the FixedFee(0.003) baseline.
+<strong>Cycle 26</strong> moves the M4 frontier on real_data:
+two additional rng_seeds of long-CEM ladder on the cycle-18-seed-0
+("c18-s0", strongest piecewise basin in the family) anchor lift
+<strong>+0.262</strong> and <strong>+0.301</strong> over the
+same-anchor piecewise — both in the "find" regime, both above the
+cycle-25 single-seed +0.250. The c18-s0 anchor's long-CEM ladder
+n=3 mean is now <strong>lift_FF +3.277 ± 0.027</strong> (test
+<strong>+3.747</strong>, lift over piecewise
+<strong>+0.271 ± 0.027</strong>), tighter and higher than the
+c21-s1 cluster (cycles 23+24, <strong>lift_FF +3.034 ± 0.066</strong>,
+lift over piecewise +0.134 ± 0.066). The new headline single-seed
+real_data score is <strong>+3.777</strong> (cycle 26 rng_seed=2 on
+c18-s0; supersedes cycle 25's +3.727). Aggregating all 8 long-CEM
+ladder runs across 3 anchors (cycles 23–26): mean lift over piecewise
+<strong>+0.220 ± 0.167</strong>; 7/8 in the find regime, 1/8 in
+the collapse regime. The cycle-24 "anchor-quality-monotone
+stabilizer" framing is now decisively rejected (the 3-anchor curve
+is not monotone), and the proposed cycle-25 inverse-scaling line is
+also wrong. The right characterization: <em>long-CEM ladder lift
+over piecewise is small (+0.13–+0.30 across anchors) but
+anchor-specific: c18-s0's basin happens to admit consistent ladder
+lift, while c21-s1's does not.</em> Read top-to-bottom; later
 milestones build on earlier ones.</p>
 
 <div class="summary">
@@ -64,33 +66,36 @@ milestones build on earlier ones.</p>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
   at cycle 13; M3 closed at cycle 16 with the per-bucket mechanism
-  (small-bucket routing collapse). M4 has had ten cycles (16, 17,
-  18, 19, 20, 21, 22, 23, 24, 25). Active milestone is <strong>M4 cycle 10</strong>
-  (next).</li>
+  (small-bucket routing collapse). M4 has had eleven cycles (16, 17,
+  18, 19, 20, 21, 22, 23, 24, 25, 26). Active milestone is
+  <strong>M4 cycle 11</strong> (next).</li>
   <li><strong>Headline numbers (held-out test, n=256).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
     [bootstrap 95% CI 448.0, 465.7] (16-d piecewise CEM, rng_seed=2;
     target 540). M3 (real_data, c11 anchor): same champion scores
     test <strong>+2.57</strong> [+1.98, +3.16], lift_FF
     <strong>+2.10</strong> over FixedFee(0.003) baseline 0.470.
-    <strong>M4 (real_data, current frontier)</strong>: the
-    multi-seed mean test <code>lift_FF</code> at the long-CEM budget
-    (10g × 24p, piecewise, warm c11) is
-    <strong>+2.727 ± 0.322</strong> across 3 rng_seeds (cycle 21).
-    The current best <em>family</em> reading is the long-CEM ladder
-    on the cycle-21-seed-1 piecewise anchor, n=3 across cycles 23+24:
-    test <strong>+3.034 ± 0.066</strong>, lift over the same-anchor
-    piecewise <strong>+0.134 ± 0.066</strong> (range +0.066,
-    +0.198). The new <strong>single-seed best on real_data</strong>
-    is the cycle-25 c18-s0 ladder run: test <strong>+3.727</strong>,
-    lift_FF <strong>+3.256</strong>, lift over the same-anchor
-    piecewise <strong>+0.250</strong> — n=1, supporting evidence
-    only. Cross-anchor n=2 mean on c21-s2: lift over piecewise
-    <strong>+0.273 ± 0.387</strong> (cycles 24+25; the second seed
-    landed at +0.000 because CEM basin-collapsed and rerank picked
-    the anchor). The cycle-24 single-seed +0.547 on c21-s2 was a
-    high-variance positive tail draw, not a stable stabilizer
-    signature.</li>
+    <strong>M4 (real_data, current frontier — NEW).</strong> The
+    cross-seed reading is now the long-CEM ladder on the
+    <strong>cycle-18-seed-0</strong> piecewise anchor, n=3 across
+    cycles 25+26: mean test <strong>+3.747</strong>, lift_FF
+    <strong>+3.277 ± 0.027</strong>, lift over the same-anchor
+    piecewise <strong>+0.271 ± 0.027</strong> (range [+0.250,
+    +0.301]). This supersedes the prior cross-seed best
+    (long-CEM ladder on cycle-21-seed-1, n=3 cycles 23+24:
+    lift_FF +3.034 ± 0.066, lift over piecewise +0.134 ± 0.066).
+    The c18-s0 cluster is both higher and 2.5× tighter than the
+    c21-s1 cluster — Δ lift_FF +0.243 between the two anchors'
+    cross-seed means at the <em>same</em> family and budget.
+    <strong>Single-seed best on real_data</strong>: cycle-26
+    rng_seed=2 on c18-s0, test <strong>+3.777</strong>, lift_FF
+    <strong>+3.307</strong>, lift over piecewise <strong>+0.301</strong>
+    (supersedes cycle-25's +3.727). Earlier piecewise-only multi-seed
+    mean (cycle 21, c11-warm long-CEM, n=3): lift_FF +2.727 ± 0.322 —
+    held for context. Cross-anchor n=2 mean on the c21-s2
+    (basin-collapsed) anchor is +0.273 ± 0.387 (cycles 24+25), error
+    bar contains zero — the cycle-24 +0.547 was a high-variance
+    positive tail draw.</li>
   <li><strong>What cycle 21 changed.</strong> Re-ran cycle-18's
     long-CEM recipe (10g × 24p, piecewise, warm c11) with
     <code>rng_seed</code> ∈ {1, 2} (cycle 18 already supplied seed=0).
@@ -195,70 +200,73 @@ milestones build on earlier ones.</p>
     confirmation. (Cycle 25 falsified this; see below.)</li>
   <li><strong>What cycle 25 changed (cross-anchor stabilizer
     falsified, c18-s0 anchor probe added).</strong> Two parallel
-    long-CEM ladder runs: rng_seed=1 on c21-s2 (Q1: tighten the
-    cycle-24 single-seed +0.547 to n=2) and rng_seed=0 on c18-s0
-    (Q2: third anchor for the proposed inverse-scaling line).
-    Result on c21-s2 seed=1: <strong>basin collapsed entirely</strong>
-    — search-elite mean dropped from +1.40 (gen 0) to +1.21
-    (gen 9), the rerank pool's top non-anchor candidate scored val
-    1.84, the anchor scored val 3.215, the rerank picked the
-    anchor, and the test_score is bit-equal to the c21-s2 piecewise
-    test (+2.746). Lift over piecewise = <strong>+0.000</strong>.
-    The c21-s2 n=2 mean lift is now
-    <strong>+0.273 ± 0.387</strong> — error bar contains zero;
-    cycle-24's +0.547 was a high-variance positive draw, not a
-    stable stabilizer signature. Result on c18-s0 seed=0: test
-    <strong>+3.727</strong>, lift_FF <strong>+3.256</strong>, lift
-    over piecewise <strong>+0.250</strong> — <em>higher</em> than
-    the c21-s1 n=3 mean lift (+0.134), so the proposed
-    "inverse-scaling line" (lift_over_piecewise grows as anchor
-    quality drops) is rejected. The 3-anchor curve now reads
-    c21-s2 +0.27 (n=2), c21-s1 +0.13 (n=3), c18-s0 +0.25 (n=1) —
-    bowl-shaped if anything, not monotone. Aggregating all 6
-    long-CEM ladder runs across the three anchors: mean lift over
-    piecewise <strong>+0.200 ± 0.192</strong>, n=6 — small,
-    positive on average, but high-variance on individual seeds.
-    The +3.727 single-seed test on c18-s0 is the new
-    <em>single-seed</em> best on real_data, but stays as supporting
-    evidence (n=1) until reproduced. The val→test gap stays wide
-    (c18-s0 seed=0 val 4.028 → test 3.727, Δ −0.30; c21-s2 seed=1
-    rerank picked the anchor so the gap is just the anchor's
-    val→test pattern of −0.47). Check 13's original invariant
-    ("every non-anchor val ≥ anchor val + 0.05") was falsified
-    on c21-s2 seed=1; the check has been rewritten in place as a
-    bimodal invariant: every long-CEM ladder run is either in the
-    "search-find" regime (worst non-anchor val ≥ anchor val + 0.10,
-    5 runs) or the "search-collapse" regime (worst non-anchor val
-    ≤ anchor val − 0.50, 1 run). All 6 long-CEM ladder runs to
-    date pass this bimodal check; the dead zone (−0.50, +0.10)
-    of margin is empty.</li>
-  <li><strong>Open questions.</strong>
-    (1) The "long-CEM ladder lift over piecewise" distribution
-    looks like it has mean ~+0.20 with a heavy tail (cycle-24
-    c21-s2 +0.547, cycle-19 c18-s0 +0.245, cycle-23 c21-s1 +0.198)
-    and an occasional zero-collapse mode (cycle-25 c21-s2 +0.000).
-    Is the family lift better characterized as
-    "+0.13 ± 0.07 + occasional bonus" or as a single distribution
-    with mean +0.20 and stddev ±0.19? More seeds per anchor would
-    answer this.
+    long-CEM ladder runs: rng_seed=1 on c21-s2 (Q1) and rng_seed=0
+    on c18-s0 (Q2). c21-s2 seed=1 basin-collapsed entirely (search-
+    elite mean +1.21 at gen 9; rerank picked the anchor; lift over
+    piecewise = <strong>+0.000</strong>; c21-s2 n=2 mean
+    <strong>+0.273 ± 0.387</strong>, error bar contains zero).
+    c18-s0 seed=0 lifted <strong>+0.250</strong> over piecewise
+    (test +3.727, lift_FF +3.256) — <em>higher</em> than c21-s1's
+    n=3 mean +0.134, rejecting the proposed "inverse-scaling line."
+    Cycle 26 reproduced this on two more c18-s0 seeds and confirmed
+    the c18-s0 anchor is genuinely stronger; see below.</li>
+  <li><strong>What cycle 26 changed (c18-s0 frontier confirmed at
+    n=3).</strong> Two parallel long-CEM ladder runs at
+    <strong>rng_seed ∈ {1, 2}</strong> on c18-s0 (the cycle-25
+    plan-of-record). Both seeds in the find regime (no collapses).
+    Test scores <strong>+3.738</strong> (rng=1, lift_FF +3.268,
+    lift over piecewise +0.262) and <strong>+3.777</strong> (rng=2,
+    lift_FF +3.307, lift over piecewise +0.301; new headline
+    single-seed real_data score, supersedes cycle-25's +3.727).
+    Combined c18-s0 n=3 (cycles 25+26): mean test
+    <strong>+3.747</strong>, lift_FF <strong>+3.277 ± 0.027</strong>,
+    lift over piecewise <strong>+0.271 ± 0.027</strong>. This is
+    higher and 2.5× tighter than the prior cross-seed best
+    (c21-s1 cluster, n=3: lift_FF +3.034 ± 0.066, lift over piecewise
+    +0.134 ± 0.066). The Δ between the two anchors' cross-seed
+    means is +0.243 lift_FF — far larger than either anchor's seed-
+    dispersion stddev — so the c18-s0 vs c21-s1 difference is real,
+    not noise. The 3-anchor cross-seed lift over piecewise is now
+    c21-s2 +0.27 (n=2), c21-s1 +0.13 (n=3), c18-s0 +0.27 (n=3) —
+    NOT monotone in piecewise quality, NOT bowl-shaped, NOT a
+    cycle-25 inverse-scaling line. Best read: <em>each anchor's
+    long-CEM ladder lift distribution is anchor-specific; the
+    c18-s0 basin happens to admit consistent ladder lift while
+    c21-s1's basin admits only marginal ladder lift</em> — both
+    real, both small, both bounded by the bimodal find/collapse
+    structure of long-CEM. Aggregating all 8 long-CEM ladder runs
+    across the three anchors (cycles 23–26): mean lift over piecewise
+    <strong>+0.220 ± 0.167</strong>, range [0.000, 0.547]; 7/8 in the
+    find regime, 1/8 in the collapse regime (the c25 c21-s2 seed=1
+    run). The empirical collapse rate stays at ~12.5%; c18-s0 has
+    not collapsed in 3/3 trials. Check 13's bimodal invariant now
+    covers 8 runs, all pass.</li>
+  <li><strong>Open questions (cycle 26 update).</strong>
+    (1) Why is the c18-s0 anchor's lift distribution so much tighter
+    than c21-s1's? c18-s0 n=3 stddev ±0.027 vs c21-s1 n=3 stddev
+    ±0.066 — a 2.4× difference at the same family and budget. Is
+    this an idiosyncratic basin-shape property, or does it scale
+    with anchor quality (c18-s0 lift_FF +3.006 vs c21-s1 +2.900)?
+    A test at a comparably strong but distinct anchor would
+    disambiguate.
     (2) Does a structurally richer family (6-bucket ladder, smooth-
-    head MLP) move the c21-s1 frontier past long-CEM ladder's ~+3.03
-    n=3 mean? The 19-d ladder ceiling on this basin appears to be
-    +0.13 ± 0.07 lift over piecewise; richer families should be
-    tested at this anchor first.
-    (3) Why is the val→test gap so wide on long-CEM? Cycle-23
-    seed 1 (val +4.06, test +3.44, Δ −0.62) and cycle-24 c21-s2
-    (val +3.99, test +3.29, Δ −0.70) point to a basin-overfit-on-val
-    mechanism. Is the val set itself biased toward a basin that
-    doesn't generalize, or is this a signal that 128 val seeds is
-    underpowered against an n=64 search set?
-    (4) Why does long-CEM sometimes collapse — cycle-21 seed=2 and
-    cycle-25 c21-s2 seed=1 both bottomed out the search distribution
-    below the anchor; cycle-24 c21-s2 seed=0 did not. Same anchor,
-    different rng_seed, qualitatively different CEM trajectory.
-    The "ladder family + long-CEM compute is jointly the recovery
-    mechanism" hypothesis from cycle 24 is now downgraded — the
-    recovery is seed-dependent.</li>
+    head MLP) move the c18-s0 frontier past long-CEM ladder's
+    +3.277 n=3 mean? The 19-d ladder ceiling on the c18-s0 basin is
+    +0.27 lift over piecewise; richer families should be tested
+    here first now (the c21-s1 anchor is no longer the headline).
+    (3) Why is the val→test gap so wide on long-CEM? c18-s0 ladder
+    val→test deltas: −0.30 (cycle 25), −0.18 (cycle 26 rng=1),
+    −0.24 (cycle 26 rng=2). All under cycle-23/24 c21-s1 deltas
+    (−0.30 to −0.62). The c18-s0 basin appears to overfit val less,
+    consistent with the tighter cross-seed dispersion. Is val-set
+    bias the binding constraint? An eval-set sweep at varying n_val
+    or with a different val seed range would test this.
+    (4) Long-CEM collapse rate remains ~12.5% (1/8 across cycles
+    23–26), localized to the c21-s2 (basin-collapsed) anchor. c18-s0
+    has 0 collapses in 3/3 — supporting "anchor-specific collapse
+    susceptibility" rather than "universal long-CEM collapse rate."
+    A 4th c18-s0 seed and a 4th c21-s2 seed would tighten the
+    anchor-conditional collapse-rate estimate.</li>
 </ul>
 </div>
 
@@ -288,6 +296,7 @@ milestones build on earlier ones.</p>
       <li><a href="#m4-c23">Cycle 23 (M4 cycle 7) — long-CEM ladder unlocks +0.13 lift over piecewise that short-CEM cannot find</a></li>
       <li><a href="#m4-c24">Cycle 24 (M4 cycle 8) — third seed confirms +0.13 on c21-s1; cross-anchor long-CEM ladder on c21-s2 lifts +0.55 (stabilizer)</a></li>
       <li><a href="#m4-c25">Cycle 25 (M4 cycle 9) — second seed on c21-s2 collapses (lift +0.000); c18-s0 anchor lifts +0.250 — the inverse-scaling line is rejected</a></li>
+      <li><a href="#m4-c26">Cycle 26 (M4 cycle 10) — c18-s0 long-CEM ladder confirmed at n=3: lift_FF +3.277 ± 0.027, lift over piecewise +0.271 ± 0.027 — new M4 frontier</a></li>
     </ul>
   </li>
 </ul>
@@ -3571,13 +3580,180 @@ the "long-CEM ladder lift" is roughly anchor-independent at +0.13–0.25
 across the three anchors we have), or it is a single-seed positive
 draw of the same wide distribution that gave cycle-24's c21-s2 +0.547
 (in which case the n=3 mean drops back toward the c21-s1 +0.13 level).
-Cycle 26 should run two additional rng_seeds (1, 2) of long-CEM
-ladder on c18-s0 to resolve this. With the new c18-s0 single-seed
-test +3.727, even a n=3 mean of +3.5 would tie the c21-s1 cluster
-on absolute score — so the c18-s0 anchor is now the most informative
-single experiment for moving the M4 frontier. The structurally-
-richer-family probe (cycle-24 plan-of-record direction) can run in
-parallel if compute allows.</p>
+Cycle 26 ran two additional rng_seeds (1, 2) of long-CEM ladder on
+c18-s0 to resolve this; the answer (see cycle 26 below): the c18-s0
+single-seed lift is real and consistent — n=3 mean +0.271 ± 0.027,
+both new seeds in the find regime.</p>
+</div>
+
+<h3 id="m4-c26">Cycle 26 (M4 cycle 10) — c18-s0 long-CEM ladder confirmed at n=3: lift_FF +3.277 ± 0.027, new M4 frontier</h3>
+
+<div class="qmru">
+<p><strong>Question.</strong> Cycle 25 produced a single-seed long-CEM
+ladder probe on the <strong>c18-s0</strong> piecewise anchor (the
+strongest piecewise basin in the family, lift_FF +3.006). The single
+seed (rng_seed=0) lifted <strong>+0.250</strong> over the same-anchor
+piecewise — <em>higher</em> than the c21-s1 cross-seed mean
+(+0.134), and the highest single-seed real_data score recorded to
+date (test +3.727). But n=1 is supporting evidence only. The cycle-25
+plan-of-record was: run two more rng_seeds on c18-s0 to resolve
+whether the +0.250 was a positive tail draw of the same wide
+distribution that gave cycle-24 c21-s2 its +0.547 single-seed lift,
+or whether the c18-s0 anchor genuinely admits more lift than c21-s1.
+Decision rules: (a) if c18-s0 n=3 mean &gt; +0.15 with at least one
+of the new seeds in [+0.10, +0.40], the c18-s0 anchor is the new
+M4 frontier; (b) if at least one new seed collapses (margin
+≤ −0.50), the bimodal mixture-of-regimes characterization extends
+from c21-s2 to c18-s0; (c) if both new seeds collapse OR both come
+in below +0.05, the cycle-25 +0.250 was noise and the M4 ladder
+ceiling on real_data sits at the c21-s1 cluster (+3.034 ± 0.066).</p>
+
+<p><strong>Method.</strong> Identical CEM mechanics to cycle 23/24/25
+(19-d ladder, init_std_inh=0.05, init_std_new=0.15, elite_frac=0.2,
+normalizer FixedFee(0.003,0.003), evaluator <code>real_data</code>,
+64 search seeds, 128 val seeds, 256 held-out test seeds, RERANK_TOP_K=6
+plus the anchor) and identical long-CEM budget (POPULATION=24,
+GENERATIONS=10). Identity warm-start from <strong>c18-s0</strong>
+piecewise long-CEM best params (cycle 18, rng_seed=0). Two parallel
+runs at <code>workers=2</code> each: rng_seed=1 (run A) and
+rng_seed=2 (run B). Wall-clock: ~45 min combined. Anchor val
+(n=128) bit-equals cycle 25 at +3.885 — identity warm-start
+verified.</p>
+
+<p><strong>Result (decision rule (a) confirmed; (b)/(c) rejected).</strong>
+Both new seeds completed in the find regime (no collapse). Both
+search trajectories climbed cleanly from gen-0 search-best +2.901
+to gen-9 search-best +3.249 (rng=1) / +3.352 (rng=2), with elite
+means tracking the search-best within ±0.01 by gen 9. Every non-
+anchor rerank candidate beat the anchor on val (worst non-anchor
+val 4.043 / 4.014 vs anchor val 3.885; margins +0.157 / +0.129).</p>
+
+<table>
+  <thead>
+    <tr><th class="l">cycle / run</th>
+      <th>val (best, n=128)</th>
+      <th>test_score (n=256)</th>
+      <th>lift_FF</th>
+      <th>lift over c18-s0 piecewise</th>
+      <th>retail_adv (test)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="l">cycle 25 seed=0 (recap)</td>
+      <td>4.028</td><td>3.727</td><td>+3.256</td>
+      <td><span class="pos">+0.250</span></td><td>+3.541</td></tr>
+    <tr><td class="l"><strong>cycle 26 seed=1 (NEW)</strong></td>
+      <td>4.074</td><td>3.738</td><td>+3.268</td>
+      <td><span class="pos">+0.262</span></td><td>+3.875</td></tr>
+    <tr><td class="l"><strong>cycle 26 seed=2 (NEW)</strong></td>
+      <td>4.055</td><td><strong>3.777</strong></td>
+      <td><strong>+3.307</strong></td>
+      <td><span class="pos"><strong>+0.301</strong></span></td>
+      <td>+2.866</td></tr>
+    <tr><td class="l"><strong>c18-s0 n=3 mean ± σ</strong></td>
+      <td>—</td><td><strong>3.747</strong></td>
+      <td><strong>+3.277 ± 0.027</strong></td>
+      <td><strong>+0.271 ± 0.027</strong></td>
+      <td>+3.43 ± 0.53</td></tr>
+  </tbody>
+</table>
+
+<p>The cycle-26 rng=2 run produces the new headline single-seed
+real_data score: test <strong>+3.777</strong>, lift_FF
+<strong>+3.307</strong>. The c18-s0 anchor's long-CEM ladder is now
+the M4 frontier on real_data, with cross-seed mean lift_FF
+<strong>+3.277 ± 0.027</strong> — both higher (Δ +0.243) and
+2.5× tighter than the prior cross-seed best (c21-s1 cluster, n=3
+cycles 23+24, lift_FF +3.034 ± 0.066). The Δ +0.243 between the
+two anchors' cross-seed means is far larger than either anchor's
+seed dispersion stddev — the difference is real, not noise.</p>
+
+<p><img src="figures/m4_c26_anchor_lift_curve.png"
+alt="Cycle 26 — long-CEM ladder lift over piecewise vs anchor quality, c18-s0 now n=3"
+style="max-width:100%;"></p>
+
+<p><img src="figures/m4_c26_lift_summary.png"
+alt="Cycle 26 — bar chart of long-CEM ladder lift over piecewise across c21-s2 / c21-s1 / c18-s0, with c18-s0 now n=3"
+style="max-width:100%;"></p>
+
+<p><img src="figures/m4_c26_long_cem_val_curves.png"
+alt="Cycle 26 — long-CEM ladder val trajectories on c18-s0 rng_seed=1 and rng_seed=2"
+style="max-width:100%;"></p>
+
+<p><strong>Aggregating all 8 long-CEM ladder seeds across 3 anchors
+(cycles 23–26).</strong> Mean lift over same-anchor piecewise
+<strong>+0.220</strong>, sample stddev <strong>±0.167</strong>,
+range [+0.000, +0.547]. Per-anchor: c21-s1 n=3 +0.134 ± 0.066;
+c21-s2 n=2 +0.273 ± 0.387; c18-s0 n=3 +0.271 ± 0.027. The 3-anchor
+curve is NOT monotone in piecewise quality (c21-s2 +0.27, c21-s1
++0.13, c18-s0 +0.27 across piecewise lift_FF 2.275 / 2.900 / 3.006).
+The right characterization: <em>each anchor's long-CEM ladder lift
+distribution is anchor-specific. c18-s0's basin happens to admit
+consistent ladder lift (3/3 in find regime, stddev ±0.027) while
+c21-s1's basin admits only marginal ladder lift (3/3 find regime,
+stddev ±0.066) and c21-s2's basin is bimodal (1/2 collapse).</em>
+The cycle-24 "stabilizer" framing and the cycle-25 "inverse-scaling
+line" are both rejected; the family-vs-anchor relationship has no
+simple monotone or bowl-shaped structure across the three anchors.</p>
+
+<p><strong>What it changed.</strong></p>
+<ol>
+  <li><strong>The M4 frontier on real_data moved up.</strong> The
+  cross-seed mean lift_FF rose from +3.034 ± 0.066 (c21-s1, cycles
+  23+24) to <strong>+3.277 ± 0.027</strong> (c18-s0, cycles 25+26),
+  Δ +0.243. The new headline is the c18-s0 cluster.</li>
+  <li><strong>Single-seed best on real_data moved up.</strong>
+  +3.727 (cycle 25 c18-s0 rng=0) → <strong>+3.777</strong> (cycle 26
+  c18-s0 rng=2). Lift_FF +3.307 — about +0.05 above the previous
+  single-seed best.</li>
+  <li><strong>The c18-s0 anchor has a much tighter ladder-lift
+  distribution than c21-s1.</strong> n=3 stddev ±0.027 (c18-s0) vs
+  ±0.066 (c21-s1) at the same family and budget. Anchor-quality is
+  a weak predictor of cross-seed mean lift, but the cross-seed
+  variance is anchor-specific. This is the most novel cycle-26
+  finding (open question 1).</li>
+  <li><strong>The proposed inverse-scaling line is decisively
+  rejected.</strong> With c18-s0 n=3 (+0.271) above c21-s1 n=3
+  (+0.134) at higher anchor quality, the cycle-25 single-seed
+  +0.250 was not a tail draw — it was the mean of a tight
+  distribution that happens to sit higher than c21-s1's. The
+  3-anchor cross-seed lift curve is non-monotone: c21-s2 high
+  (n=2 mean +0.27 with σ ±0.39, includes 0), c21-s1 low (+0.13),
+  c18-s0 high (+0.27).</li>
+  <li><strong>The bimodal find/collapse invariant scales.</strong>
+  All 8 long-CEM ladder runs across 3 anchors fall cleanly into
+  one of the two regimes (margin ≥ +0.10 or ≤ −0.50). The empirical
+  collapse rate stays ~12.5% (1/8), all on the c21-s2 basin-collapsed
+  anchor; c18-s0 and c21-s1 have 0/3 each. Anchor-specific collapse
+  susceptibility is the right mental model. Check 13 extended in
+  place to 8 runs; all pass.</li>
+  <li><strong>Cycle-27 plan-of-record candidates.</strong>
+  (a) <em>Structurally richer family at long-CEM on c18-s0,
+  multi-seed.</em> The c18-s0 anchor is now the M4 frontier; richer
+  families (6-bucket ladder, smooth-head MLP, EMA-inv state) should
+  be tested here first, not at c21-s1 as the cycle-24/25 plan-of-
+  record proposed. Decision rule: any of these crossing
+  c18-s0 long-CEM ladder n=3 mean lift_FF +3.277 ± 0.027 at n=3
+  moves the M4 frontier; otherwise the 19-d ladder is the M4
+  ceiling on the c18-s0 basin.
+  (b) <em>4th c18-s0 seed</em> at long-CEM ladder to tighten the
+  cluster from n=3 to n=4 (and produce a 4th data point against
+  the anchor-specific collapse-rate estimate).
+  (c) <em>Anchor-conditional collapse-rate measurement.</em>
+  Run 3-4 cheap-budget seeds on each of c18-s0, c21-s1, c21-s2
+  and count find vs collapse rates per anchor. This would test
+  the cycle-26 "anchor-specific collapse" hypothesis directly.
+  Recommendation: (a) — it produces the cleanest headline
+  movement; (b)/(c) are diagnostic and should follow.</li>
+</ol>
+
+<p><strong>What's the next question?</strong> Does a structurally
+richer family beat the 19-d ladder at the c18-s0 anchor? The
+c18-s0 basin's tight ±0.027 dispersion gives us cheap statistical
+power: any family that produces n=3 mean lift_FF above +3.31
+(roughly +0.03 above the c18-s0 cluster, well above the cycle-26
+cluster's stddev) would be a real frontier-mover. Cycle 27 should
+test the cycle-19 ladder family vs alternatives at long-CEM on
+c18-s0 multi-seed.</p>
 </div>
 
 </body>

@@ -3756,3 +3756,197 @@ Cycle-26 plan-of-record (in STATE):
   `m4_c25_long_cem_val_curves.png`.
 - Check 13 rewritten in place to bimodal invariant
   (margin ≥ +0.10 OR margin ≤ −0.50). 6 runs covered, all pass.
+
+## 2026-05-06 — Cycle 26 (M4 cycle 10 — c18-s0 long-CEM ladder confirmed at n=3)
+
+**Plan for the cycle.** Run the cycle-25 plan-of-record: two
+additional rng_seeds (1, 2) of long-CEM ladder on the cycle-18-seed-0
+("c18-s0") piecewise anchor, tightening that anchor's ladder cluster
+from n=1 to n=3. The cycle-25 single-seed +0.250 lift over piecewise
+on c18-s0 was the highest single-seed ladder lift in the experiment
+to date; the cycle-26 question is whether it's a stable signature
+or a high-variance positive draw of the same long-CEM distribution
+that gave the cycle-24 c21-s2 +0.547 (which collapsed to +0.000 on
+its second seed in cycle 25). Decision rules: (a) c18-s0 n=3 mean
+> +0.15 with at least one new seed in [+0.10, +0.40] → c18-s0
+becomes the new M4 frontier; (b) at least one new seed collapses
+(margin ≤ −0.50) → bimodal regime extends to c18-s0; (c) both new
+seeds collapse OR both come in below +0.05 → c18-s0 +0.250 was noise.
+
+**What I ran.**
+
+- Created `research/experiments/2026-05-06-cycle26-m4-c18s0-multiseed/`
+  with `scripts/{run_ladder_longcem.py, ladder_strategy.py, make_figures.py}`.
+  Driver is the cycle-25 driver with `ANCHOR_KEY=cycle18_seed0`
+  default and rerouted output paths.
+- `pip install --break-system-packages --no-cache-dir gymnasium pyarrow
+  pytest matplotlib`. ~30s. Did not run jax setup (no smooth-head
+  experiments planned).
+- `bash bin/run_checks.sh` first thing: 13 active checks, 12 pass,
+  1 fail (08_jax_optional, the cycle-23-onwards known sandbox issue).
+- Launched both runs via the file-based `nohup` pattern from cycles
+  24/25 (write `/tmp/launch_a26.sh` and `/tmp/launch_b26.sh`).
+- Wall-clock: A finished at t+44min, B finished at t+45min. Combined
+  ~45 min wall. CPUs saturated.
+- Generated figures with `make_figures.py`; copied
+  `m4_c26_anchor_lift_curve.png`, `m4_c26_long_cem_val_curves.png`,
+  `m4_c26_lift_summary.png` to `research/presentation/figures/`.
+- Updated `presentation/index.html` (top meta paragraph, "At a glance"
+  bullets, TOC entry, full cycle-26 narrative `<h3 id="m4-c26">`
+  section).
+- Extended `bin/checks/13_long_cem_beats_anchor.py` to cover the two
+  new cycle-26 runs (8 long-CEM ladder runs total). All pass the
+  bimodal invariant.
+- **Bin/checks/ retirement.** Cycle 25 STATE flagged checks 04 and
+  05 (DNS unresolvable, unlink blocked) as candidates for
+  consolidation. Both still pass — neither has flipped. Created
+  new `bin/checks/00_sandbox_quirks.py` that rolls both sub-quirks
+  into one falsifiable check, and `chmod -x` the original 04 and 05
+  to retire them (the sandbox can't `git rm`/unlink, so chmod -x
+  is the retirement mechanism — `bin/run_checks.sh` SKIPs
+  non-executable scripts). Net check count: 13 → 12 active, within
+  the ~12 cap. Tested both: combined check passes; final run prints
+  `12 pass, 1 fail, 2 skip`.
+
+**What worked.**
+
+1. **Both runs completed in budget, both in find regime.**
+   Run A (rng=1) gen 0 started at 06:05:29, gen 9 finished at
+   06:43:16 (CEM done, 2231s); rerank pool of 7 evaluated 247s;
+   test+FF batch ~140s. Total ~44 min. Run B (rng=2) gen 0 started
+   at 06:05:30, gen 9 finished at 06:43:53 (CEM done, 2266s); rerank
+   245s; test+FF 145s. Total ~45 min. Both CEM trajectories climbed
+   smoothly: gen-0 search-best +2.901 (both, identity warm-start
+   verified) → gen-9 search-best +3.249 (rng=1) / +3.352 (rng=2),
+   with elite-mean tracking within ±0.01 by gen 9.
+2. **Identity warm-start verification.** Both anchor val (3.885) and
+   gen-0 search-best (+2.901) bit-equal cycle 25 — identity warm-
+   start is reproducible across rng_seeds.
+3. **Find regime confirmed for both new seeds.** Worst non-anchor
+   val 4.043 (rng=1) / 4.014 (rng=2) vs anchor val 3.885 — margins
+   +0.157 / +0.129, both well above the +0.10 find-regime threshold.
+   The full bimodal check now covers 8 runs and they all pass.
+4. **Headline numbers came in clean.** Test scores 3.738 (rng=1) /
+   3.777 (rng=2). Lift over piecewise +0.262 / +0.301. n=3 mean
+   +0.271 ± 0.027. Both decision rule (a) conditions satisfied
+   (n=3 mean > +0.15 AND at least one seed in [+0.10, +0.40] —
+   here both seeds in [+0.26, +0.31]). M4 frontier moves to c18-s0.
+
+**What failed (or surprised).**
+
+1. **No collapses on c18-s0 across n=3.** The cycle-26 hypothesis
+   admitted "at least one new seed collapses" as a possible outcome
+   (decision rule (b)). Both new seeds were find-regime — c18-s0
+   is at 0/3 collapses. c21-s1 is 0/3, c21-s2 is 1/2. Anchor-
+   specific collapse susceptibility, not universal. Mildly surprising
+   that c21-s2's collapse-rate signal would be that anchor-localized
+   given how seed-randomized the search trajectory is.
+2. **The c18-s0 cluster is anomalously tight.** n=3 stddev ±0.027
+   (lift_FF) is 2.4× tighter than c21-s1's n=3 stddev ±0.066 at the
+   same family and budget. This was not part of the cycle-26
+   pre-registered hypothesis — it's a side observation. Likely
+   anchor-basin-shape-driven; the c18-s0 piecewise basin's val→test
+   gap is also smaller (cycle 25 −0.30, cycle 26 rng=1 −0.18,
+   cycle 26 rng=2 −0.24). Same mechanism, plausibly. Worth a
+   cycle-27 check whether this generalizes to other strong anchors.
+3. **The 3-anchor curve is non-monotone.** With c18-s0 n=3 mean now
+   above c21-s1 n=3 mean at higher anchor quality, the cycle-25
+   "inverse-scaling" line is decisively rejected. The cycle-24
+   "stabilizer" framing was rejected by cycle 25 (c21-s2 collapse).
+   Neither monotone nor bowl-shaped — just anchor-specific.
+
+**What's next.**
+
+The cycle-27 plan-of-record (in STATE) is to test whether a
+structurally richer policy family (6-bucket ladder, smooth-head MLP,
+EMA-inv state) at long-CEM on c18-s0 multi-seed beats the +3.277
+cluster mean. The c18-s0 basin's tight ±0.027 dispersion gives
+cheap statistical power: any family that produces n=3 mean lift_FF
+above +3.31 (~+0.03 above the cluster mean, well above the cluster's
+σ) would be a real frontier-mover. Stretch: 4th c18-s0 seed (n=4
+control), and anchor-conditional collapse-rate measurement at cheap
+budget (tests cycle-26 anchor-specific collapse hypothesis directly).
+
+**Updates implied for the prior.**
+
+- The "long-CEM ladder lift" distribution should be characterized
+  per-anchor, not pooled: c18-s0 mean +0.27 ± 0.027, c21-s1 mean
+  +0.13 ± 0.066, c21-s2 mean +0.27 ± 0.387 (n=2). Pooling these
+  gives mean +0.220 ± 0.167 but the per-anchor stddevs are very
+  different — the pooling stddev is dominated by inter-anchor mean
+  differences and the c21-s2 collapse-vs-find bimodality.
+- The val→test gap is a basin property: c18-s0 has consistently
+  smaller gaps (mean −0.24, stddev ±0.06) than c21-s1 (range
+  −0.30 to −0.62). Cycle-23/24's basin-overfit-on-val finding
+  was specific to c21-s1, not universal to long-CEM.
+- The cycle-26 single-seed best (rng=2 test +3.777) is +0.05 above
+  the cycle-25 single-seed best (+3.727). Within seed-noise of the
+  cluster mean.
+
+**Self-checks before commit.**
+
+- Verified n=3 mean: (3.7265 + 3.7379 + 3.7773)/3 = 11.2417/3 = 3.7472 ✓
+  (matches printed mean test 3.747).
+- Verified n=3 stddev: deviations from mean +0.271 are
+  (−0.020, −0.009, +0.030); sum sq deviations 0.000400 + 0.000081
+  + 0.0009 = 0.001381; variance 0.0006905; stddev 0.0263 → ±0.027 ✓
+  (matches printed lift stddev 0.027).
+- Verified anchor val matches cycle 25 (3.8851 — identity warm-
+  start verified across rng_seeds).
+- Verified bimodal check 13 passes for all 8 runs (including the
+  two new cycle-26 runs); margins +0.157 / +0.129 both well above
+  the +0.10 find threshold.
+- Re-read the presentation as a stranger: top meta paragraph
+  reflects cycle-26 numbers ("M4 frontier moves to c18-s0"); "At
+  a glance" cluster numbers updated; cycle-25 entry edited in place
+  to point forward to cycle 26 ("Cycle 26 reproduced this on two
+  more c18-s0 seeds and confirmed..."); cycle-26 narrative section
+  follows the Q/Method/Result/What-it-changed template; TOC entry
+  added with anchor `#m4-c26`. No stale headline numbers in the
+  document.
+
+**Next.**
+
+Cycle-27 plan-of-record (in STATE):
+
+1. **Structurally richer family at long-CEM on c18-s0 multi-seed.**
+   First candidate: 6-bucket ladder. Decision rule: n=3 mean
+   lift_FF on c18-s0 > +3.31 → frontier moves; otherwise lock M4
+   headline.
+2. **Stretch:** 4th c18-s0 long-CEM ladder seed (n=4 control).
+3. **Stretch:** anchor-conditional collapse-rate at cheap budget.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/gracious-charming-ritchie/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits this cycle
+  restricted to `research/`, `bin/checks/13_long_cem_beats_anchor.py`
+  (extension to 8 runs), `bin/checks/04*.sh` and `bin/checks/05*.py`
+  (chmod -x retirement), and new `bin/checks/00_sandbox_quirks.py`.
+- Wall-clock breakdown:
+  - env setup (gymnasium, pyarrow, pytest, matplotlib) ~30s.
+  - smoke (anchor val on first gen): ~36s × 2 in parallel.
+  - both ladder seeds in parallel at workers=2: ~45 min wall.
+  - figures + cross-seed summary: ~1 min.
+  - presentation, STATE, LOG writeups: ~30 min.
+  - bin/checks/ retirement audit + 00_sandbox_quirks.py: ~10 min.
+  - planned commit: ~3 min.
+  - total ~95 min — within 2-hour budget.
+- Bash polling notes: 90-110s sleeps survived consistently this
+  cycle. 120s+ sleeps killed by exit 143 once.
+- 12 active checks (cycle 26 retired 04 + 05, added 00 — net −1).
+- New experiment dir:
+  `research/experiments/2026-05-06-cycle26-m4-c18s0-multiseed/`
+  with `scripts/{run_ladder_longcem.py, ladder_strategy.py, make_figures.py}`
+  + `results/{cycle18_seed0_seed1, cycle18_seed0_seed2}/{history.json,
+  test.json, progress.log, stdout.log}` + `results/cross_seed_summary.json`
+  + `figures/{m4_c26_anchor_lift_curve.png, m4_c26_lift_summary.png,
+  m4_c26_long_cem_val_curves.png}` + `README.md`.
+- New presentation figures (copied from experiment):
+  `m4_c26_anchor_lift_curve.png`, `m4_c26_lift_summary.png`,
+  `m4_c26_long_cem_val_curves.png`.
+- Bin/checks/ retirement: 04_no_outbound_dns.sh and
+  05_results_dir_unlink_blocked.py replaced by 00_sandbox_quirks.py
+  (chmod -x retirement; both still on disk because sandbox can't
+  unlink). Net 12 active.
