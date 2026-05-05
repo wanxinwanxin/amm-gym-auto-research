@@ -1,0 +1,45 @@
+[16:05:54] M4 cycle-3 param-importance ablation | piecewise on real_data | val n=128 | workers=3
+[16:05:54]   total candidates: 18
+[16:06:30]   [1/18] c11_anchor_baseline                        score= +2.918 adv= +3.053 retail_adv= +1.067 (36.5s)
+[16:06:30]   [2/18] ablate_base_fee                            score= +1.940 adv= +0.252 retail_adv= -2.208 (36.5s)
+[16:06:30]   [3/18] c11_long_baseline                          score= +3.885 adv= +5.257 retail_adv= +3.268 (36.6s)
+[16:07:07]   [4/18] ablate_base_spread                         score= +3.914 adv= +5.813 retail_adv= +4.002 (73.0s)
+[16:07:07]   [5/18] ablate_signal_decay                        score= +3.882 adv= +5.245 retail_adv= +3.254 (73.0s)
+[16:07:07]   [6/18] ablate_toxicity_decay                      score= +3.953 adv= +5.738 retail_adv= +3.886 (73.1s)
+[16:07:43]   [7/18] ablate_small_trade_threshold               score= +3.905 adv= +5.333 retail_adv= +3.373 (109.7s)
+[16:07:43]   [8/18] ablate_continuation_small                  score= +3.838 adv= +5.803 retail_adv= +4.029 (109.8s)
+[16:07:43]   [9/18] ablate_large_trade_threshold               score= +3.752 adv= +5.221 retail_adv= +3.461 (109.8s)
+[16:08:20]   [10/18] ablate_reversal_small                      score= +3.130 adv= +3.264 retail_adv= +1.078 (146.3s)
+[16:08:20]   [11/18] ablate_continuation_medium                 score= +3.884 adv= +5.262 retail_adv= +3.279 (146.4s)
+[16:08:20]   [12/18] ablate_continuation_large                  score= +3.876 adv= +5.187 retail_adv= +3.142 (146.5s)
+[16:08:57]   [13/18] ablate_reversal_medium                     score= +3.894 adv= +5.261 retail_adv= +3.259 (183.0s)
+[16:08:57]   [14/18] ablate_reversal_large                      score= +3.863 adv= +5.232 retail_adv= +3.263 (183.1s)
+[16:08:57]   [15/18] ablate_continuation_to_same_side           score= +3.571 adv= +5.594 retail_adv= +4.382 (183.3s)
+[16:09:33]   [16/18] ablate_continuation_to_cross_side          score= +3.585 adv= +3.660 retail_adv= +0.675 (219.4s)
+[16:09:33]   [17/18] ablate_toxicity_to_mid                     score= +3.863 adv= +5.189 retail_adv= +3.190 (219.7s)
+[16:09:34]   [18/18] ablate_toxicity_to_side                    score= +3.909 adv= +5.378 retail_adv= +3.426 (220.0s)
+[16:09:34]   total elapsed: 220.0s
+[16:09:34] 
+[16:09:34] Ranked param importance (largest score drop = most load-bearing):
+[16:09:34]   rank  param                            score   Δscore   Δretail    Δedge
+[16:09:34]   1     base_fee                         1.940   +1.946    +5.477   +5.005
+[16:09:34]   2     reversal_small                   3.130   +0.755    +2.190   +1.993
+[16:09:34]   3     continuation_to_same_side        3.571   +0.314    -1.114   -0.337
+[16:09:34]   4     continuation_to_cross_side       3.585   +0.301    +2.593   +1.597
+[16:09:34]   5     large_trade_threshold            3.752   +0.133    -0.193   +0.036
+[16:09:34]   6     continuation_small               3.838   +0.048    -0.761   -0.545
+[16:09:34]   7     reversal_large                   3.863   +0.022    +0.005   +0.025
+[16:09:34]   8     toxicity_to_mid                  3.863   +0.022    +0.078   +0.069
+[16:09:34]   9     continuation_large               3.876   +0.009    +0.127   +0.070
+[16:09:34]   10    signal_decay                     3.882   +0.004    +0.014   +0.012
+[16:09:34]   11    continuation_medium              3.884   +0.001    -0.011   -0.004
+[16:09:34]   12    reversal_medium                  3.894   -0.008    +0.010   -0.004
+[16:09:34]   13    small_trade_threshold            3.905   -0.020    -0.105   -0.076
+[16:09:34]   14    toxicity_to_side                 3.909   -0.024    -0.157   -0.121
+[16:09:34]   15    base_spread                      3.914   -0.029    -0.734   -0.556
+[16:09:34]   16    toxicity_decay                   3.953   -0.068    -0.618   -0.480
+[16:09:34] 
+[16:09:34] baseline score:  +3.885 retail_adv= +3.268 edge_adv= +5.257
+[16:09:34] anchor   score:  +2.918 retail_adv= +1.067 edge_adv= +3.053
+[16:09:34]   → full c11_long → c11 reset gives Δscore=+0.967 (should equal sum of all 16 ablations only if effects are independent — they're not)
+[16:09:34] wrote /sessions/cool-focused-noether/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle19-m4-ablation-and-ladder/results/ablation/results.json

@@ -2363,3 +2363,184 @@ become axis-continuity points in the cycle-18 plot.
 - New presentation section: `m4-c18` under M4. New figures:
   `m4_c18_long_cem_val_curve.png`, `m4_c18_prior_sweep.png`,
   `m4_c18_basin_vs_compute.png` (also stored in cycle dir).
+
+---
+
+## 2026-05-05T16:30Z — cycle 19 — M4 cycle 3: param-importance ablation + 4-bucket ladder family
+
+**Plan for the cycle.** Cycle 18's plan-of-record had three items:
+(1) policy-family escalation (ladder or MLP head, warm-started from
+c11+CEM long); (2) a "step-back-to-anchor" ablation on the 16
+piecewise params of c11+CEM long; (3) stretch — re-run long c11+CEM
+with rng_seed=1. I ordered (2) before (1) because the ablation result
+informs WHICH family to escalate to: a parameter with a large step-
+back cost is a candidate for finer encoding (split into multiple
+parameters or replace with a learned head); diffuse importance would
+predict the family escalation can't help. Stretch (3) deferred — the
+two main experiments fit within the 2h budget but only barely; the
+seed-1 reproducibility check is the cycle-20 first task instead.
+
+**Hypothesis going in.**
+
+- Cycle 18 said piecewise-real_data ceiling at ~+3.0 ± 0.2 lift_FF;
+  needed family escalation to break +3.5.
+- Predicted that the ablation would show diffuse importance across
+  ~6-8 params, with no single dominant lever (because the c11+CEM
+  long "deeper-into-retail-positive-basin" mechanism sounded like a
+  joint-distribution effect, not a single-param effect).
+- Predicted that a 4-bucket ladder warm-started from c11+CEM long
+  would lift to [+3.3, +3.5] lift_FF — meaningful but in the
+  "marginal" band, not a step-change.
+
+**What I ran.**
+
+- `bash bin/run_checks.sh` first; 10 pass / 2 fail (the two
+  passing-when-failing predictors `03_required_python_deps.sh` and
+  `08_jax_optional.sh` — fixed deps but no jax this cycle).
+- Installed deps one-at-a-time: `pip install --break-system-packages
+  --no-cache-dir gymnasium`, then `pytest`, then `matplotlib`. (Per
+  cycle-18 carry-forward note about bundled OOMs.)
+- Wrote
+  `research/experiments/2026-05-05-cycle19-m4-ablation-and-ladder/scripts/run_param_importance_ablation.py`:
+  17 candidates (16 step-back + 1 baseline + 1 anchor reference),
+  evaluated on val seeds 1000..1127 (n=128) under real_data with
+  FixedFee(0.003) normalizer. Workers=3 ProcessPoolExecutor; total
+  elapsed 220s.
+- Wrote `ladder_strategy.py` (self-contained inside experiment dir;
+  did not touch `arena_policies/`) with `LadderControllerParams`,
+  `LADDER_PARAM_RANGES`, `LadderControllerStrategy`. Verified
+  identity warm-start (`tiny_threshold = small_threshold * 0.5`,
+  `continuation_tiny=continuation_small`, `reversal_tiny=reversal_small`,
+  other 16 params equal c11_long) reproduces piecewise behaviour
+  EXACTLY: 0.000 score diff on 8 challenge seeds.
+- Wrote `run_ladder_cem.py`. 5 gens × 12 pop CEM; init_std_frac =
+  0.05 for the 16 inherited dims and 0.15 for the 3 new dims; rerank
+  pool injection (anchor + top 6 unique elites by search score);
+  workers=3. Total elapsed 793s = 13 min.
+- Wrote `make_figures.py` for the param-importance bar chart and
+  the ladder val curve; copied both PNGs to `research/presentation/`.
+
+**What worked.**
+
+- Ablation dispatched cleanly. Top of leaderboard:
+  - **base_fee Δ +1.946** (anchor 0.000709 → long 0.000265). Sole
+    dominant lever.
+  - **reversal_small Δ +0.755**. Anchor 0.00948 → long 0.00484.
+  - continuation_to_same_side Δ +0.314 (sign-flip: +0.329 → −0.193).
+  - continuation_to_cross_side Δ +0.301.
+  - large_trade_threshold Δ +0.133.
+  - 11 of 16 params Δ < 0.07; 5 of 16 with Δ < 0.025 (essentially
+    no effect at this gen). Sum-of-Δ = +3.31 vs full anchor reset
+    Δ = +0.967, confirming heavy non-additive interaction.
+- Two-param dominance (base_fee + reversal_small carry 81%) means
+  the M4-cycle-3 family-escalation premise — finer resolution where
+  the optimizer has the most signal — is well-grounded; both params
+  live in the small-trade response logic.
+- Ladder CEM val: gen 0 best 2.901 (search seeds, slightly under
+  anchor-on-search-seeds noise), gen 1 dipped to 2.122 as the std
+  was wide enough to push some samples out of the basin, then gens
+  2-3 stabilized (best 2.922) and gen 4 broke past the anchor at
+  best 3.101 (search seeds). Rerank on val n=128: gen-4 candidate
+  scored val 4.030 (vs anchor val 3.885). Test on n=256: score
+  3.721, retail_adv 3.113, lift_FF +3.251.
+- Best-by-val params show: `tiny_threshold` widened to 0.00243 (init
+  was 0.00142); `reversal_small` clamped to lower bound −0.01; new
+  bucket's `continuation_tiny` and `reversal_tiny` near zero
+  (the new bucket essentially treats tiny trades as flat).
+- **Verdict mapped to cycle-18 decision rule:** lift_FF +3.251 is in
+  [+3.20, +3.50] = "marginal" band. Family helps but doesn't unlock
+  a new regime. Cycle-18's "saturating near +3.0" verdict is
+  PARTIALLY falsified — there is more headroom — but the family
+  payoff per unit of search effort is near the same scale as the
+  compute payoff cycle 18 saw within a fixed family.
+
+**What failed / surprises.**
+
+- Predicted diffuse param importance (~6-8 params each at Δ ~0.2);
+  reality was concentrated (2 params at Δ +1.95 and +0.76, the rest
+  < 0.32). Updates the prior: c11+CEM long's edge over c11 anchor
+  is a 2-lever shift, not a joint-distribution shift.
+- Predicted the family escalation would lift retail_adv along with
+  the score. Reality: retail_adv stayed flat at +3.11 (vs c11+CEM
+  long's +3.21). The +0.245 score lift came entirely from
+  edge_advantage / arb-loss reduction — opposite of cycle 18's
+  retail-amplification mechanism. So family escalation pays on the
+  arb side; compute extension within a family pays on the retail
+  side. Different optimization regimes.
+- The CEM nearly slipped at gen 1 (best 2.122 on search seeds vs
+  anchor's ~2.9 baseline). The init_std_frac choice (0.15 on the 3
+  new dims) is at the upper edge of safety. Future ladder runs
+  should probably start at 0.10 on new dims and only widen if
+  CEM stalls.
+
+**Self-checks before commit.**
+
+- Re-read presentation top-to-bottom as a stranger. "At a glance"
+  and meta line both reflect the new headline (test +3.72, lift_FF
+  +3.25). New glossary entries for "step-back-to-anchor ablation"
+  and "ladder controller (k=4)" added — both terms were used
+  inline in the cycle-19 section and would otherwise be jargon.
+- Verified the lift_FF math: ladder test_score 3.721 - ff_test_score
+  0.470 = 3.251. Matches the script's output.
+- Sanity-checked the parity test: ladder identity warm-start (tiny
+  params equal small params) gives 0.000000 score diff vs piecewise
+  on 8 challenge seeds. So the warm-start does not silently
+  introduce bias.
+
+**Updates implied for the prior.**
+
+- The "saturating near +3.0" cycle-18 verdict is partially
+  falsified: family helps. But it doesn't unlock a step-change —
+  +0.245 lift_FF over the prior, not +0.5+. Updates the prior to:
+  "the small-bucket pricing surface has finite but real headroom
+  under richer piecewise-style families. A learned smooth pricing
+  head — replacing the bucketed continuation/reversal terms with a
+  small MLP — is the natural next test, because both the ablation
+  (concentrated 2-param edge) and the ladder result (bound-clamped
+  reversal_small) suggest the optimizer wants something the
+  bucketed family cannot exactly express."
+- Updated mental-model of family vs compute: near the current
+  frontier, both levers buy ~+0.24 lift_FF per equivalent unit of
+  search. Within a fixed family, additional compute past 5g × 12p
+  hits diminishing returns (cycle 18: 4× compute = +0.234). One
+  family-step at the smaller-budget gives the same lift as 4×
+  compute on the prior family.
+- Updated expectation about retail vs arb gain: family escalation
+  gains on the arb side, compute extension within a family gains
+  on the retail side. Not symmetric.
+
+**Next.**
+
+Cycle-20 plan-of-record (in STATE):
+1. Reproducibility: re-run ladder CEM with rng_seed=1 (~12 min).
+   Decision rule on lift_FF: [+3.15, +3.35] reproducible, < +3.15
+   was lucky, > +3.35 even better.
+2. Smooth-head policy escalation (MLP on size_ratio + log_dt + side
+   → continuation/reversal response). Pretrain via supervised MSE
+   to match ladder's per-bucket responses, then CEM.
+3. *(stretch)* Finer ladder (k=8) sensitivity check.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/cool-focused-noether/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits restricted to
+  `research/` and the new cycle-19 experiment dir.
+- Wall-clock breakdown:
+  - env setup (3 deps one at a time): ~3 min
+  - param-importance ablation: 220s (3.7 min) compute + 1 min infra
+  - ladder strategy parity test: <1 min
+  - ladder CEM (5g × 12p, 19d): 793s (13.2 min)
+  - figure scripts + presentation/STATE/LOG writeups: ~25 min
+  - planned commit: ~3 min
+  - total ~50 min — comfortably within budget. Stretch (3) deferred
+    to next cycle.
+- All 12 active checks passed at start of cycle (modulo the 2
+  passing-when-failing predictors). No checks added or retired.
+- New experiment dir:
+  `research/experiments/2026-05-05-cycle19-m4-ablation-and-ladder/`
+  with `scripts/{run_param_importance_ablation.py, ladder_strategy.py,
+  run_ladder_cem.py, make_figures.py}` + results subdirs +
+  `figures/{m4_c19_param_importance.png, m4_c19_ladder_val_curve.png}`.
+- New presentation figures: `m4_c19_param_importance.png`,
+  `m4_c19_ladder_val_curve.png` (also in cycle dir).

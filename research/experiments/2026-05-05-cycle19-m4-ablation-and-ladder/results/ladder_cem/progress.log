@@ -1,0 +1,20 @@
+[16:10:31] M4 cycle-3 ladder-family CEM | dim=19 | pop=12 gen=5 elite_n=2 init_std_inh=0.05 init_std_new=0.15 workers=3
+[16:11:05]   anchor_ladder val (real_data, n=128): score= +3.885 adv= +5.257 retail_adv= +3.268 (34.6s)
+[16:12:27]   gen 0: best= +2.901 elite_mean= +1.702 all_mean= -3.302 (81.9s)
+[16:13:39]   gen 1: best= +2.122 elite_mean= +1.261 all_mean= -0.375 (71.4s)
+[16:14:52]   gen 2: best= +2.922 elite_mean= +2.441 all_mean= -0.422 (73.7s)
+[16:16:06]   gen 3: best= +2.922 elite_mean= +2.901 all_mean= +2.437 (73.2s)
+[16:17:19]   gen 4: best= +3.101 elite_mean= +3.054 all_mean= +2.946 (73.4s)
+[16:17:19]   CEM done in 373.6s
+[16:17:19]   rerank pool: 7 candidates (anchor + top 6 unique elites)
+[16:17:54]     rerank 0 (    anchor): val= +3.885 adv= +5.257 retail_adv= +3.268 (34.8s)
+[16:18:29]     rerank 1 (      gen4): val= +4.030 adv= +5.330 retail_adv= +3.055 (34.9s)
+[16:19:04]     rerank 2 (      gen4): val= +3.981 adv= +5.126 retail_adv= +2.875 (34.9s)
+[16:19:39]     rerank 3 (      gen3): val= +3.927 adv= +4.722 retail_adv= +2.304 (35.0s)
+[16:20:14]     rerank 4 (      gen2): val= +3.868 adv= +5.055 retail_adv= +2.899 (34.8s)
+[16:20:48]     rerank 5 (      gen3): val= +3.811 adv= +5.274 retail_adv= +3.229 (34.6s)
+[16:21:23]     rerank 6 (      gen1): val= +3.021 adv= +5.632 retail_adv= +4.379 (34.6s)
+[16:23:42]   TEST best (n=256): score= +3.721 adv= +5.163 retail_adv= +3.113
+[16:23:42]   FF test score:  +0.470
+[16:23:42]   lift_FF (test): +3.251
+[16:23:42] wrote /sessions/cool-focused-noether/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle19-m4-ablation-and-ladder/results/ladder_cem/test.json

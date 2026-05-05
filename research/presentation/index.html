@@ -31,43 +31,45 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-05 (cycle 18). M2 deliverable (champion held since
+updated 2026-05-05 (cycle 19). M2 deliverable (champion held since
 cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
 <code>real_data</code> evaluator the same policy scores test =
 <strong>+2.57</strong> [CI +1.98, +3.16], a lift of
 <strong>+2.10</strong> over the FixedFee(0.003) baseline. Cycle 18
-ran a long-budget CEM (10-gen × 24-pop, 4× cycle-17 compute) warm-
-started from c11 plus a 5-anchor prior sweep on real_data. The long
-run lifted the headline to test <strong>+3.48 / lift_FF +3.01</strong>,
-saturating near +3.0; retail_advantage on test went from cycle-17's
-+0.66 to <strong>+3.21</strong> as the optimizer moved deeper into
-c11's retail-positive basin rather than away from it. The prior sweep
-across {default, c5, c6, c8_16d, c11} produces a near-monotone basin
-plot — same compute, same family, anchor val score predicts ~80% of
-the variance in final lift_FF. <strong>Basin dominates compute by
-roughly an order of magnitude</strong>: 4× compute from c11 buys
-+0.23 lift_FF; switching from c5 to c11 anchor at fixed compute buys
-+2.27. Read top-to-bottom; later milestones build on earlier ones.</p>
+established the piecewise-family <code>real_data</code> ceiling near
+test <strong>+3.48 / lift_FF +3.01</strong> via a long-budget CEM
+warm-started from c11. <strong>Cycle 19</strong> attacked the next
+question — is the ceiling representational or compute-limited? — with
+two experiments: (a) a 16-param "step-back-to-anchor" importance
+ablation on c11+CEM long (load is concentrated in <em>base_fee</em>,
+Δ&nbsp;val −1.946, and <em>reversal_small</em>, Δ&nbsp;val −0.755);
+(b) a policy-family escalation to a 4-bucket "ladder" controller
+(splits the small-trade bucket in two; 19 dims total) warm-started
+from c11+CEM long. The ladder lifts the headline to test
+<strong>+3.72 / lift_FF +3.25</strong>, a +0.25 incremental gain in
+the [+3.20, +3.50] "marginal" band of the cycle-18 decision rule —
+the family is part of the answer but not a step-change.
+Read top-to-bottom; later milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
   at cycle 13; M3 closed at cycle 16 with the per-bucket mechanism
-  (small-bucket routing collapse). M4 has had three cycles (16, 17, 18).
-  Active milestone is now <strong>M4 cycle 3</strong>.</li>
+  (small-bucket routing collapse). M4 has had four cycles (16, 17,
+  18, 19). Active milestone is <strong>M4 cycle 4</strong> (next).</li>
   <li><strong>Headline numbers (held-out test, n=256).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
     [bootstrap 95% CI 448.0, 465.7] (16-d piecewise CEM, rng_seed=2;
     target 540). M3 (real_data, c11 anchor): same champion scores
     test <strong>+2.57</strong> [+1.98, +3.16], lift_FF
     <strong>+2.10</strong> over FixedFee(0.003) baseline 0.470.
-    <strong>M4 (real_data, current best)</strong>: c11 + long-budget
-    CEM test <strong>+3.48, lift_FF +3.01</strong> (cycle-18, 10-gen
-    × 24-pop CEM directly on real_data warm-started from c11). Test
-    retail_advantage <strong>+3.21</strong>, more than 4× the
-    cycle-17 short run's +0.66.</li>
+    <strong>M4 (real_data, current best)</strong>: ladder-4-bucket
+    family warm-started from c11+CEM long, test <strong>+3.72, lift_FF
+    +3.25</strong> (cycle 19, 5-gen × 12-pop CEM, 19 dims). Test
+    retail_advantage <strong>+3.11</strong>, essentially flat vs the
+    +3.21 c11+CEM long achieved — score gain is on the arb side.</li>
   <li><strong>What we've learned about M4 (basin dominates compute).</strong>
     The cycle-18 prior sweep (5-gen × 12-pop CEM from each of
     {default, c5, c6, c8_16d, c11}, fixed compute) produces a near-
@@ -99,16 +101,31 @@ roughly an order of magnitude</strong>: 4× compute from c11 buys
     within batch noise. Mechanism: routing collapse — c5 receives
     ~13% of small-trade count, c11 ~57%. The router avoids c5 for
     <em>price</em> reasons, not fee reasons.</li>
+  <li><strong>What cycle 19 added (param-importance + ladder).</strong>
+    The step-back-to-anchor ablation on c11+CEM long localizes the
+    gain over the c11 anchor to two parameters carrying ~80% of the
+    individual importance: <em>base_fee</em> (Δ val −1.946 when reset)
+    and <em>reversal_small</em> (Δ val −0.755). The remaining 14
+    parameters each contribute Δ &lt; 0.32. The ladder-4-bucket family
+    (splits "small" into "tiny" + "small"; 19 dims total) warm-started
+    from c11+CEM long lifts test from +3.48 to <strong>+3.72</strong>
+    (lift_FF +3.01 → +3.25) in 5 gens × 12 pop. The CEM pushed
+    <em>reversal_small</em> to its lower bound (−0.01) — consistent
+    with the ablation finding that reversal_small is load-bearing and
+    the optimizer wants to turn the small-bucket reversal-defense term
+    into a small-bucket reversal <em>incentive</em> when given the
+    extra resolution.</li>
   <li><strong>Open questions.</strong>
-    (1) Is the piecewise-family ceiling at ~+3.0 ± 0.2 lift_FF, or
-    does another order of magnitude of compute push past +3.5?
-    Cycle-18 val gen-by-gen is concave but still rising at gen 8 —
-    diminishing returns are clear, but the curve hasn't fully flat-
-    lined. (2) Does a richer family (ladder, MLP head) warm-started
-    from c11+CEM long unlock another regime, or is small-bucket
-    pricing already saturated? (3) Which 16 piecewise params moved
-    most from c11 anchor to long-CEM best-by-val, and what does that
-    say about which structural feature carries the gain?</li>
+    (1) Does relaxing the reversal_small lower bound (or a wider
+    init_std on the new dims) buy further lift, or is +3.25 the
+    ladder ceiling? (2) Does a finer ladder (k=5, k=8) or a fundamentally
+    different state representation (EMA-inv, MLP head over the same
+    inputs) unlock the +0.5 step-change cycle 18 conjectured, or
+    is +3.5 lift_FF the structural ceiling for piecewise-style families?
+    (3) Cycle-19 ladder retail_adv is essentially flat at +3.11
+    (vs c11+CEM long +3.21) — does the family escalation help in
+    arb-side regions only, or does a wider rerank pool (more compute)
+    recover the retail edge?</li>
 </ul>
 </div>
 
@@ -131,6 +148,7 @@ roughly an order of magnitude</strong>: 4× compute from c11 buys
       <li><a href="#m4-c16">Cycle 16 (M4 cycle 0) — pre-launch baseline: direct CEM from c5</a></li>
       <li><a href="#m4-c17">Cycle 17 (M4 cycle 1) — mirror experiment: direct CEM from c11; basin matters more than the optimizer</a></li>
       <li><a href="#m4-c18">Cycle 18 (M4 cycle 2) — long-budget CEM + 5-anchor prior sweep; basin dominates compute by ~10×</a></li>
+      <li><a href="#m4-c19">Cycle 19 (M4 cycle 3) — param-importance ablation + ladder-family escalation</a></li>
     </ul>
   </li>
 </ul>
@@ -273,6 +291,28 @@ scale with policy complexity?
   This guarantees best-by-val cannot regress past the anchor when
   CEM gen-by-gen val noise (~0.1–0.4 score units on n=128) could
   otherwise let an unlucky candidate win.</li>
+  <li><strong>Step-back-to-anchor ablation (cycle 19).</strong> A
+  param-importance technique: starting from a tuned policy P (here,
+  c11+CEM long), reset one parameter at a time back to the anchor
+  value (c11 unaltered), holding the other 15 at their tuned values,
+  and measure the val-score drop. The drop quantifies how much that
+  single parameter's tuned value contributes to P's edge over the
+  anchor — though the drops do <em>not</em> sum to the full
+  anchor-vs-tuned gap because parameters interact non-additively
+  (the c11+CEM long → c11 anchor full reset costs +0.967 val score,
+  but the 16 individual ablations sum to +3.31).</li>
+  <li><strong>Ladder controller (k=4).</strong> A policy family
+  introduced in cycle 19 that extends the 3-bucket piecewise
+  controller by splitting "small" into "tiny" + "small" — gives the
+  optimizer one extra threshold and one extra (continuation, reversal)
+  pair, taking the dim count from 16 to 19. The motivation is that
+  cycle-18 retail decomposition localized 100% of the retail-edge gain
+  to the small bucket, so finer resolution within "small" plausibly
+  carries marginal payoff. With <code>tiny_threshold = small_threshold
+  × 0.5</code> and the new bucket's params copied from
+  <code>(continuation_small, reversal_small)</code>, the ladder
+  reproduces piecewise behaviour exactly at gen 0 (verified 0.000
+  diff on 8 challenge seeds).</li>
 </ul>
 </div>
 
@@ -2188,6 +2228,200 @@ A third candidate — retail-aware auxiliary loss to pull the c5
 basin toward c11 — is now lower-priority because the prior sweep
 shows the c5 basin is fundamentally far from c11; a small auxiliary
 loss is unlikely to bridge a 4-anchor-val-unit gap.</p>
+
+<h3 id="m4-c19">Cycle 19 (M4 cycle 3) — param-importance ablation + ladder-family escalation</h3>
+
+<p><strong>Question.</strong> Cycle 18 left the M4 trajectory at the
+edge of a saturation argument: the long-budget c11+CEM run reached
+test +3.476 (lift_FF +3.006), the val curve was concave but still
+slowly rising at gen 8, and the cycle-18 prior sweep made the case
+that within a piecewise family the basin (warm-start) dominates compute
+by ~10×. Cycle 19 attacks two questions in sequence:</p>
+<ol>
+  <li><strong>What did the c11+CEM long run actually <em>change</em>?</strong>
+  Of the 16 piecewise parameters, which ones moved most from the c11
+  anchor to the long-CEM best-by-val, and how much of the +0.97 score
+  gap (anchor val 2.918 → long val 3.885) does each parameter explain?</li>
+  <li><strong>Is the +3.0 ceiling representational or compute-limited?</strong>
+  If a richer family — for which we picked the smallest meaningful
+  extension of piecewise, a 4-bucket "ladder" (cycle-18 retail decomp
+  said 100% of the retail-edge action is in the small bucket, so
+  splitting that bucket is the most-targeted family extension we have)
+  — warm-started from c11+CEM long lifts test lift_FF clearly past +3.5,
+  the family was the bottleneck. If it lifts only marginally or not at
+  all, the small-bucket pricing surface is saturated under any
+  piecewise-style representation.</li>
+</ol>
+<p>Why this order? The ablation result tells the family-escalation
+where to add capacity: a parameter with a large "step-back" cost is a
+candidate for finer encoding (split into multiple parameters or replace
+with a learned head); diffuse importance across all 16 dims would
+predict the family escalation can't help.</p>
+
+<p><strong>Method (ablation).</strong> For each of the 16 piecewise
+params, build a candidate vector that is the c11+CEM long best-by-val
+in 15 dims and the c11 anchor value in dim <em>i</em>. Evaluate on
+val seeds 1000..1127 (n=128) under the <code>real_data</code> evaluator
+with FixedFee(0.003) normalizer. Sort by val-score drop relative to
+the c11+CEM long baseline. Two reference points: the c11+CEM long
+baseline itself (val 3.885) and the full c11 anchor (val 2.918) — the
+"floor" the cumulative effect of all 16 ablations should approach but
+generally won't reach because parameters interact non-additively.</p>
+
+<p><strong>Method (ladder CEM).</strong> Define a 4-bucket ladder
+controller (see Glossary) that splits the small bucket into
+<em>tiny</em> + <em>small</em>, adding three parameters
+(<code>tiny_trade_threshold</code>, <code>continuation_tiny</code>,
+<code>reversal_tiny</code>) for a 19-d total. Identity warm-start:
+<code>tiny_threshold = c11_long.small_threshold × 0.5</code>;
+<code>continuation_tiny = c11_long.continuation_small</code>;
+<code>reversal_tiny = c11_long.reversal_small</code>; the other 16
+params equal c11_long. This warm-start reproduces c11_long's behaviour
+exactly at gen 0 (parity verified against PiecewiseControllerStrategy:
+0.000 score diff on 8 challenge seeds). Run 5g × 12p CEM with
+<code>init_std_frac = 0.05</code> for the 16 inherited dims and
+<code>0.15</code> for the 3 new dims, mirroring cycle-17 search seeds /
+val seeds / test seeds and the rerank-pool-injection pattern.</p>
+
+<p><strong>Result (ablation).</strong></p>
+
+<figure>
+  <img src="m4_c19_param_importance.png" alt="param-importance ablation bar chart on c11+CEM long">
+  <figcaption>Per-parameter val-score drop when reset to the c11
+  anchor, with the other 15 parameters held at the c11+CEM long best-by-
+  val. The c11+CEM long baseline val score is 3.885; the full anchor
+  val is 2.918 (green dotted line, Δ +0.967). Two parameters dominate:
+  <em>base_fee</em> (Δ +1.946, alone larger than the full anchor reset
+  Δ — because resetting it in isolation lands in a region where the
+  other 15 long-tuned params are not co-adapted) and
+  <em>reversal_small</em> (Δ +0.755). The next two are
+  <em>continuation_to_same_side</em> and <em>continuation_to_cross_side</em>
+  (Δ +0.314 and +0.301). Eleven of 16 parameters carry Δ &lt; 0.13;
+  five carry Δ &lt; 0.025 (i.e., they barely moved meaningfully or
+  CEM was insensitive to them at this gen).</figcaption>
+</figure>
+
+<table>
+<thead>
+<tr>
+  <th class="l">rank</th>
+  <th class="l">parameter</th>
+  <th>Δ score</th>
+  <th>Δ retail_adv</th>
+  <th>Δ edge_adv</th>
+  <th>anchor → long</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>1</td><td class="l"><strong>base_fee</strong></td><td class="pos">+1.946</td><td class="pos">+5.477</td><td class="pos">+5.005</td><td>0.000709 → 0.000265</td></tr>
+<tr><td>2</td><td class="l"><strong>reversal_small</strong></td><td class="pos">+0.755</td><td class="pos">+2.190</td><td class="pos">+1.993</td><td>0.00948 → 0.00484</td></tr>
+<tr><td>3</td><td class="l">continuation_to_same_side</td><td class="pos">+0.314</td><td class="neg">−1.114</td><td>−0.337</td><td>+0.329 → −0.193</td></tr>
+<tr><td>4</td><td class="l">continuation_to_cross_side</td><td class="pos">+0.301</td><td class="pos">+2.593</td><td class="pos">+1.597</td><td>+1.577 → +0.927</td></tr>
+<tr><td>5</td><td class="l">large_trade_threshold</td><td>+0.133</td><td>−0.193</td><td>+0.036</td><td>0.01080 → 0.00887</td></tr>
+<tr><td>6</td><td class="l">continuation_small</td><td>+0.048</td><td>−0.761</td><td>−0.545</td><td>−1.2e-5 → +8.3e-5</td></tr>
+<tr><td colspan="6" class="l"><em>11 more rows, all |Δ score| &lt; 0.07</em> (signal_decay, toxicity_decay, base_spread, toxicity_to_mid, toxicity_to_side, continuation_medium/large, reversal_medium/large, small_trade_threshold)</td></tr>
+</tbody>
+</table>
+
+<p>Two readings of this. (a) The optimizer's edge over the c11 anchor is
+<em>concentrated</em>: just <code>base_fee</code> and
+<code>reversal_small</code> account for 81% of the sum-of-Δ-score
+across all 16 parameters. (b) The drops do not sum cleanly to the full
+anchor-reset (+0.967 score) — they sum to +3.31 — because the
+parameters interact: reducing <code>base_fee</code> alone, while the
+other 15 stay long-tuned, lands in a region the c11 anchor never
+explored, with much larger price-improvement bandwidth than the anchor
+can profitably use, hence the apparent +1.94 importance. The
+sub-additivity is intrinsic to the score landscape, not a bug.</p>
+
+<p><strong>Result (ladder CEM).</strong></p>
+
+<figure>
+  <img src="m4_c19_ladder_val_curve.png" alt="cycle-19 ladder CEM val curve, gen-by-gen">
+  <figcaption>Ladder-4-bucket CEM val trajectory (search-seed n=64 best,
+  elite-mean of top 2, all-pop mean of 12) with the c11+CEM long
+  extended-to-19d anchor val (n=128) marked. Gen 0 best is below the
+  anchor val because it's evaluated on the search-seed split, not the
+  val split; by gen 4 the elite mean (orange) reaches the anchor's val
+  level. The rerank pass on val (n=128) picks a gen-4 candidate at val
+  3.885 + 0.145 = <strong>4.030</strong>; held-out test (n=256) is
+  <strong>3.721</strong> with FF baseline 0.470, giving lift_FF
+  <strong>+3.251</strong>.</figcaption>
+</figure>
+
+<table>
+<thead>
+<tr>
+  <th class="l">policy</th>
+  <th>val score (n=128)</th>
+  <th>test score (n=256)</th>
+  <th>test lift_FF</th>
+  <th>test retail_adv</th>
+</tr>
+</thead>
+<tbody>
+<tr><td class="l">c11 anchor (cycle 11)</td><td>+2.918</td><td>+2.57</td><td>+2.10</td><td>+1.07</td></tr>
+<tr><td class="l">c11 + CEM long (cycle 18)</td><td>+3.885</td><td>+3.476</td><td>+3.006</td><td>+3.215</td></tr>
+<tr><td class="l"><strong>ladder (cycle 19)</strong></td><td class="pos"><strong>+4.030</strong></td><td class="pos"><strong>+3.721</strong></td><td class="pos"><strong>+3.251</strong></td><td>+3.113</td></tr>
+</tbody>
+</table>
+
+<p>Ladder vs piecewise c11+CEM long: <strong>+0.245 lift_FF</strong>,
+<strong>+0.245 test score</strong>, retail_adv <em>−0.10</em>
+(essentially flat). This sits in the [+3.20, +3.50] "marginal" band of
+the cycle-18 decision rule — not the &gt; +3.50 "structural" band —
+so a 4-bucket ladder genuinely helps but does not lift the picture
+into a new regime. The ladder's best-by-val pushed the new
+<code>reversal_small</code> all the way to the lower bound (−0.01)
+while the inherited <code>reversal_small</code> for the rebroken bucket
+stayed close to its anchor; the <code>tiny_trade_threshold</code>
+widened from 0.00142 (init) to 0.00243, growing the tiny bucket's
+share of small trades.</p>
+
+<p><strong>What it changed.</strong></p>
+<ol>
+  <li><strong>The cycle-18 "saturating near +3.0" verdict is partially
+  falsified — there is more headroom.</strong> A 4-bucket ladder at
+  the cycle-17 short-budget compute (5g × 12p) lifts the headline by
+  +0.245 lift_FF — close to what the cycle-18 long-budget CEM (10g ×
+  24p, 4× compute) bought over cycle-17's short c11+CEM run (+0.234).
+  Family escalation at 1× compute is comparable in payoff to a 4×
+  compute extension within the prior family near the current frontier;
+  expressiveness and compute are roughly co-equal levers here, not the
+  ~10:1 compute-dominated ratio cycle 18 reported within a fixed
+  family.</li>
+  <li><strong>The 16-param ablation reframes the family-escalation
+  choice for future cycles.</strong> If two parameters carry 81% of
+  the importance, the natural escalations are: (a) finer encoding of
+  the size axis around base_fee's effective regime — done partially
+  by the ladder; (b) replacing <em>reversal_small</em> with a
+  continuous/learned function of size_ratio; (c) treating
+  <em>base_fee</em> as a learned function of inventory or volatility
+  rather than a constant. The ladder's gain came mostly from (a)
+  plus a bound-pinning of the new bucket's reversal term.</li>
+  <li><strong>Retail-edge does not move with the family escalation —
+  the gain is on the arb side.</strong> Test retail_adv: c11+CEM
+  long +3.215 → ladder +3.113. The +0.245 score lift comes from
+  edge_advantage / arb_loss reduction, not from extracting more
+  retail surplus. This is the opposite of cycle 18, where the
+  long-budget CEM moved deeper into the retail-positive basin. The
+  family extension's payoff structure is qualitatively different
+  from the compute extension's.</li>
+</ol>
+
+<p>What's the next question? Three candidates for M4 cycle 4: (a) a
+finer ladder (k=5 or k=8) with re-tuned init_std on the new dims
+— direct test of whether the +0.245 lift_FF was a representational
+edge or a CEM-noise pickup; (b) replace the bucketed continuation /
+reversal terms with a learned smooth function (e.g. a 2-layer MLP head
+on size_ratio with bounded outputs) — the most ambitious capacity
+extension consistent with the ablation's "concentrate capacity in
+the small-trade response" guidance; (c) re-run the cycle-19 ladder
+with rng_seed=1 to confirm the +3.25 lift_FF is reproducible across
+CEM stochasticity, not a single-seed pickup of a lucky elite. Cycle
+20 will pick (c) first as a cheap reproducibility check, then (a)
+or (b) depending on whether the seed-1 result lands above or below
+the seed-0 lift_FF.</p>
 </div>
 
 </body>
