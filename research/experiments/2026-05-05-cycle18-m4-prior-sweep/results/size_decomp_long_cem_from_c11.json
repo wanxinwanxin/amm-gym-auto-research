@@ -1,0 +1,59 @@
+{
+  "label": "long_cem_from_c11",
+  "n_seeds": 128,
+  "per_bucket": {
+    "small": {
+      "retail_edge_advantage_mean": 3.307870933578883,
+      "retail_edge_advantage_ci95": [
+        3.1487500213170523,
+        3.450569520422258
+      ],
+      "edge_sub_mean": 6.768489401153795,
+      "edge_norm_mean": 3.4606184675749123,
+      "count_sub_mean": 2341.78125,
+      "count_norm_mean": 1145.703125
+    },
+    "medium": {
+      "retail_edge_advantage_mean": -0.04058255568497646,
+      "retail_edge_advantage_ci95": [
+        -0.13396453350810245,
+        0.043465455907539405
+      ],
+      "edge_sub_mean": 2.546022190541703,
+      "edge_norm_mean": 2.58660474622668,
+      "count_sub_mean": 3.9296875,
+      "count_norm_mean": 3.921875
+    },
+    "large": {
+      "retail_edge_advantage_mean": 0.0009549390833218929,
+      "retail_edge_advantage_ci95": [
+        -0.07974305393896575,
+        0.08078362748533653
+      ],
+      "edge_sub_mean": 1.806658522273719,
+      "edge_norm_mean": 1.8057035831903971,
+      "count_sub_mean": 0.7890625,
+      "count_norm_mean": 0.78125
+    }
+  },
+  "overall_retail_edge_advantage": 3.268243316977229,
+  "anchor_params": {
+    "base_fee": 0.0002651625453621829,
+    "base_spread": 0.004070554016340082,
+    "signal_decay": 0.7627950328668307,
+    "toxicity_decay": 0.7516377170207057,
+    "small_trade_threshold": 0.002848486560218609,
+    "large_trade_threshold": 0.008866574986467687,
+    "continuation_small": 8.283451496244375e-05,
+    "continuation_medium": 0.006929076834258454,
+    "continuation_large": 0.017986720175801947,
+    "reversal_small": 0.004837147255038543,
+    "reversal_medium": 0.012729063516975241,
+    "reversal_large": 0.07976951856036607,
+    "continuation_to_same_side": -0.19329440684669405,
+    "continuation_to_cross_side": 0.9267032329066462,
+    "toxicity_to_mid": 0.011186051913361214,
+    "toxicity_to_side": 0.07886754688062839
+  },
+  "elapsed_s": 36.95179581642151
+}

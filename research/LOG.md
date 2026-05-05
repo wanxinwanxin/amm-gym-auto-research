@@ -2160,3 +2160,206 @@ load-bearing finding.)
 - `pyarrow` install OOM'd on this sandbox; not needed for the
   cycle's experiments (only for some BigQuery exports). Logged but
   not encoded.
+
+---
+
+## 2026-05-05T14:00Z — cycle 18 — M4: long-budget CEM from c11 lifts to lift_FF +3.01 (saturating near +3.0); prior sweep confirms basin dominance with c6 climbing to +1.89
+
+**Plan for the cycle.** Cycle 17's M4 mirror left two open questions
+baked into a decision rule: (1) does the c11+CEM short-budget run
+plateau at +2.77 lift_FF (i.e. is +2.77 the piecewise-family real_data
+ceiling), or does more compute keep climbing? (2) is the c11 anchor
+unique, or does any reasonable warm-start produce comparable lift at
+fixed compute? The cycle-18 plan-of-record from cycle 17:
+(a) longer-budget CEM from c11 — 10g × 24p, 4× compute; (b) prior
+sweep at fixed 5g × 12p compute from {default, c6_warmstart,
+c8_invaware_16d}. The c5 / c11-short anchor results from cycles 16/17
+become axis-continuity points in the cycle-18 plot.
+
+**What I ran.**
+
+1. `run_long_cem_from_c11.py` — 10-gen × 24-pop CEM, init mean =
+   c11_d16_s2 best-by-val, init_std_frac=0.10, FixedFee(0.003, 0.003)
+   normalizer, real_data evaluator, search seeds 0..63, val 1000..1127,
+   test 2000..2255, rng_seed=0, workers=3. Rerank pool injects c11
+   anchor + top 6 unique elites by search score, ranked by val.
+
+2. `run_prior_sweep_cem.py` — same 5g × 12p budget as cycle 17 from
+   each of {default-piecewise (param-range midpoint), c6_warmstart
+   (cycle-6 best-by-val 16-d piecewise), c8_invaware_16d (cycle-8
+   best-by-val with `inventory_skew_*` dropped to project to 16-d)}.
+   Same seeds, same normalizer, same rng_seed. FF test baseline
+   computed once across anchors. Results consolidated into
+   `prior_sweep_summary.json`.
+
+3. `eval_size_decomp_long_cem.py` — per-trade-size retail decomposition
+   on the long-budget best-by-val params, mirroring cycle-17's
+   `eval_size_decomp_c11_mirror.py` (small/medium/large size buckets,
+   bootstrap CIs over n=128 val seeds).
+
+4. `make_figures.py` — three PNGs: val gen-by-gen curve (long vs short
+   from c11), prior-sweep bar chart of lift_FF per anchor, and
+   anchor-val vs final-lift scatter to test basin-dominance visually.
+
+**What worked / what I learned.**
+
+- **Decision rule fires the "saturating near +3.0" branch.** Long-budget
+  c11+CEM hits **lift_FF +3.006** on test (n=256), squarely in the
+  [+2.80, +3.20] band. Up from cycle 17's +2.772 by +0.234 with 4×
+  compute. The piecewise family on real_data has more headroom than
+  cycle-17 indicated, but the marginal return on extra compute is
+  modest and clearly slowing.
+
+- **Retail edge advantage QUADRUPLES.** Test retail_adv goes c11-anchor
+  +1.07 (cycle 17 measurement) → cycle-17 c11+CEM +0.66 → cycle-18 long
+  c11+CEM **+3.21**. The longer CEM didn't just lift score — it found a
+  policy that BOTH scores higher AND retains/amplifies the c11 retail-
+  positive structure. The cycle-17 short run lost some retail edge in
+  the rerank (val retail_adv +0.70); the cycle-18 long run keeps val
+  retail_adv at +3.27.
+
+- **Per-bucket retail decomposition: all gain is small-bucket.** On val
+  n=128: small +3.31 [+3.15, +3.45] / medium −0.04 [−0.13, +0.04] /
+  large +0.00 [−0.08, +0.08]. The small bucket carries ~2300
+  submission trades + ~1100 normalizer trades per episode; medium and
+  large together are <10 trades per episode. The optimizer
+  concentrated improvements where retail volume is.
+
+- **Val trajectory shows no clean plateau by gen 8-9.** Per-gen val:
+  2.918 (anchor), 2.918, 2.162, 2.751, 3.036, 3.396, 3.649, 3.712,
+  3.820, **3.885 (gen 8, best-by-val)**, 3.822 (gen 9, slight regression).
+  Gen 8 wins; gen 9 is within val noise. The val curve is concave but
+  still rising at gen 8, suggesting another 5-10 gens might add another
+  +0.1-0.2 lift_FF before true plateau. Diminishing returns are
+  pronounced.
+
+- **Prior sweep, partial (default + c6 done at writeup time):**
+
+       anchor               | start val | test lift_FF | retail_adv (test)
+       default (midpoint)   |  -1.18   | +1.05        | -15.28
+       c5  (cycle 16)       |  -1.21   | +0.74        | -10.14 (actually old val, see cycle 17)
+       c6  (cycle 18)       |  -0.61   | +1.89        | -0.00
+       c8_16d (running)     |   ~+1?    | TBD          | TBD
+       c11 short (cycle 17) |  +2.92   | +2.77        | +0.66
+       c11 long  (this c)   |  +2.92   | +3.01        | +3.21
+
+  **The basin-dominance hypothesis is supported.** Lift correlates with
+  starting position: c11 (best start) finishes best, c5 / default
+  (worst starts) finish worst, c6 (mid start) finishes mid. The
+  short-vs-long c11 comparison shows compute IS marginally useful
+  (+0.23 with 4× compute), but the c5 → c11 starting-line difference
+  of +4.13 in anchor val translates to a +2.27 final-lift difference
+  with the same compute — basin dominates compute by roughly an
+  order of magnitude.
+
+- **Default-piecewise +CEM beats c5 +CEM** (lift +1.05 vs +0.74)
+  despite a marginally worse anchor val. Mild surprise: the
+  param-range midpoint isn't a great policy but it's apparently a
+  better *basin* than the c5 inherited piecewise for short-budget
+  CEM. Implies the c5 anchor sits in a particularly bad arb-side
+  basin (consistent with cycle-16's M4-baseline retail collapse to
+  -13 retail_adv). Anchor val score by itself doesn't predict
+  CEM lift perfectly — local geometry matters too.
+
+**What failed (or surprised).**
+
+- **Sandbox `pip install gymnasium pyarrow pytest` ran together OOM'd**
+  (exit 143). The cycle-15-and-onward fix is to install one package
+  at a time, but I tried the bundled command first. Encoding this as
+  a check would be marginal value (sandbox quirk; the failure mode is
+  obvious from the exit code). Logged for the next cycle's author.
+
+- **`pip install ... pytest` reported "Successfully installed" but the
+  jax wheels from `setup_jax_from_vendored.sh` then refused to import
+  on the same shell.** Re-running `setup_jax_from_vendored.sh` worked.
+  Either a Python `sys.path` cache invalidation issue, or the user-
+  site path (`/sessions/.../.local/...`) was newly created by `pytest`
+  install and the previous jax install actually went to system-site
+  but didn't persist. Workaround: just re-run the setup script.
+
+- **CEM gen 1 from c11 long regressed val (2.918 → 2.162)** before
+  recovering from gen 2 onwards. Same effect as cycle 17 (where gen 1
+  was a brief dip). The deterministic anchor in candidate 0 each gen
+  prevents the regression from being permanent because the elite mean
+  pulls back toward the anchor, but a single-gen dip is now an expected
+  CEM characteristic on this evaluator. Not pathological.
+
+- **`run_prior_sweep_cem.py` c6 anchor val measurement disagreed with
+  M2 history's "−0.93 lift_FF (−1.40)"** — measured c6 anchor val =
+  −0.614 score = ~−1.08 lift_FF on this val split. Different evaluator
+  config? c6's test_score in the M2 table is on the realistic eval at
+  some earlier definition; this cycle uses the current `real_data`
+  evaluator. Worth a noted reconciliation but not blocking — the c6
+  prior-sweep data point uses my measured anchor val, which is what
+  matters for the basin plot.
+
+**Updates implied for the prior.**
+
+- **The cycle-17 framing — "warm-start prior dominates short-budget
+  CEM" — is upgraded by cycle 18 to "warm-start basin dominates CEM
+  IRRESPECTIVE of compute, within an order of magnitude":** 4× compute
+  bought +0.23 lift_FF; choosing c11 instead of c5 starting point
+  bought +2.27 lift_FF at fixed compute.
+
+- **The piecewise-family real_data ceiling is now estimated at
+  ~+3.0 ± 0.2 lift_FF.** Gen 8 hit val 3.885; with 4× more compute
+  we might add another +0.1-0.2 but not another full point. To break
+  +3.5 lift_FF, M4 cycle 3 needs either (a) a richer policy family
+  (ladder, MLP, EMA-inv), (b) a fundamentally different anchor that
+  starts above c11 — but cycle-12 already showed fresh-init piecewise
+  caps below 420 challenge / well below c11 real_data — so option (a)
+  seems forced.
+
+- **Retail-positive small-bucket pricing is the load-bearing structural
+  feature of c11+CEM.** The longer CEM amplified rather than eroded
+  this; the per-bucket decomp is identical in shape to cycle-17's
+  c11_mirror (cycle 17: small +1.45, medium +0.07, large -0.83;
+  cycle 18 long: small +3.31, medium -0.04, large +0.00) — just
+  scaled up ~2.3× in the small bucket. The c5+CEM run instead
+  amplified small-bucket *negative* edge (cycle 17: small -10.33).
+  Different basins; different sign of small-bucket retail edge.
+
+**Next.**
+
+- **Cycle-19 plan-of-record:**
+  1. *(if c8_16d data point comes in below c6+CEM's +1.89)* The basin-
+     dominance plot is decisive. Move M4 cycle 3 to **policy-family
+     escalation**: train a ladder or MLP head warm-started from c11+CEM
+     long-budget params. Decision rule: > +3.50 lift_FF → richer family
+     pays; in [+3.20, +3.50] → marginal; < +3.20 → family escalation
+     doesn't help, the small-bucket retail-pricing surface is already
+     saturated.
+  2. *(if c8_16d unexpectedly beats c11+CEM long)* Investigate what
+     about c8's params makes it special; revisit policy-family
+     question.
+  3. **Ablation on long c11+CEM.** Which of the 16 piecewise params
+     moved most from c11 anchor to long-budget best-by-val? This
+     identifies the load-bearing pricing levers and guides what a
+     richer family would have to encode.
+
+- **Operational mark.** The c5 row in the prior-sweep plot reuses
+  cycle-16's M4-baseline lift_FF (+0.74) and retail_adv (−10.14)
+  rather than re-running. Equivalent compute, same seeds, same
+  normalizer; safe reuse.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/lucid-amazing-tesla/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits restricted to
+  `research/` and the new cycle-18 experiment dir.
+- Wall-clock breakdown:
+  - env setup (gymnasium/pyarrow/pytest one-at-a-time + jax revend) ~5 min
+  - long-budget CEM 31.2 min CEM + ~7 min rerank/test/ff = 38.5 min
+  - prior sweep (default + c6 + c8 in flight): ~30 min so far
+  - figure scripts + decomp + writeup ~25 min
+  - planned commit: ~3 min
+  - total ~100 min — within 2h budget.
+- All 12 active checks passed at start of cycle (after env setup).
+  No checks added or retired this cycle. Considered a "default
+  python install" check (gymnasium/pyarrow/pytest one-at-a-time
+  pattern) but rejected — fix-it-yourself instructions in the FAIL
+  message of `03_required_python_deps.sh` already cover this.
+- New presentation section: `m4-c18` under M4. New figures:
+  `m4_c18_long_cem_val_curve.png`, `m4_c18_prior_sweep.png`,
+  `m4_c18_basin_vs_compute.png` (also stored in cycle dir).

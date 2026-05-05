@@ -88,21 +88,24 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 17: M1 closed (cycle 5); **M2
+See `research/STATE.md`. As of cycle 18: M1 closed (cycle 5); **M2
 closed (cycle 13)** with deliverable test = **456.80** (piecewise
 warm-start CEM, cycle 11 d16_s2 cell, ~85% of way to 540 target).
 **M3 closed (cycle 16)** with the per-trade-size mechanism: c5↔c11
 retail-edge gap is ~95% small-bucket and the mechanism is a
 two-AMM router routing collapse (c5 captures only ~13% of small-trade
-count vs c11's ~57%). **M4 active (cycle 1 closed)**. The M4 headline
-result on real_data is now **+3.24 / lift_FF +2.77** from cycle 17's
-mirror experiment: 5-gen × 12-pop CEM directly on real_data,
-warm-started from c11 instead of c5. Same compute, same evaluator,
-same seeds as the cycle-16 c5+CEM baseline (which lifted only to
-+0.74) — the +2.03 lift_FF gap is entirely attributable to the
-warm-start anchor. **Load-bearing finding: warm-start prior dominates
-short-budget CEM on real_data; the local basin matters more than the
-optimizer.** Cycle 18 plan: longer-budget CEM from c11 (10g × 24p,
-piecewise-family ceiling test) + prior sweep across {default, c6,
-c8, c11} at fixed compute to attach numbers to the basin effect. The
-cumulative narrative is in `research/presentation/index.html`.
+count vs c11's ~57%). **M4 active (cycle 2 closed)**. The M4 headline
+result on real_data is now **+3.48 / lift_FF +3.01** from cycle 18's
+long-budget c11+CEM (10-gen × 24-pop CEM directly on real_data, 4×
+cycle-17 compute). Test retail_advantage **+3.21**, 4× cycle-17's
++0.66 — the longer CEM moved DEEPER into c11's retail-positive basin.
+The cycle-18 5-anchor prior sweep at fixed cycle-17 compute produces
+a near-monotone basin plot: final lift_FF is default +1.05 / c5 +0.74
+/ c6 +1.89 / c8_16d +2.35 / c11_short +2.77 / c11_long +3.01.
+**Load-bearing finding: warm-start basin dominates compute by ~10×
+within the piecewise family on real_data — 4× more compute from c11
+buys +0.23 lift_FF, switching c5→c11 at fixed compute buys +2.03.**
+Cycle 19 plan: policy-family escalation (ladder bucketing or MLP
+head, warm-started from c11+CEM long), plus param-importance
+ablation. The cumulative narrative is in
+`research/presentation/index.html`.

@@ -1,0 +1,9 @@
+[15:23:28] [c8_invaware_16d] prior-sweep CEM | piecewise on real_data | pop=12 gen=5 elite_n=2 workers=3
+[15:24:04] [c8_invaware_16d]   anchor val (real_data, n=128): score=  0.035 adv= -3.905 retail_adv= -6.545 (35.9s)
+[15:25:53] [c8_invaware_16d]   gen  0: best_search= 1.186 elite_mean= 1.136 median=-0.674 val= 1.961 adv=-5.475 retail_adv=-16.572 ( 75.1s + 34.4s)
+[15:27:40] [c8_invaware_16d]   gen  1: best_search= 2.259 elite_mean= 1.720 median= 0.176 val= 3.161 adv=+3.193 retail_adv=-0.267 ( 70.9s + 35.8s)
+[15:29:29] [c8_invaware_16d]   gen  2: best_search= 2.193 elite_mean= 2.173 median= 1.703 val= 3.059 adv=+3.982 retail_adv=+1.518 ( 73.2s + 36.0s)
+[15:31:18] [c8_invaware_16d]   gen  3: best_search= 2.214 elite_mean= 2.186 median= 2.080 val= 3.151 adv=+3.368 retail_adv=+0.613 ( 73.1s + 36.0s)
+[15:33:08] [c8_invaware_16d]   gen  4: best_search= 2.300 elite_mean= 2.254 median= 2.096 val= 3.201 adv=+3.274 retail_adv=+0.279 ( 73.2s + 36.0s)
+[15:33:08] [c8_invaware_16d] CEM complete in 543.8s (9.1 min)
+[15:38:25] [c8_invaware_16d]   best_by_val test_score=2.815 lift_FF=+2.345

@@ -1,0 +1,9 @@
+[14:53:49] [default] prior-sweep CEM | piecewise on real_data | pop=12 gen=5 elite_n=2 workers=3
+[14:54:24] [default]   anchor val (real_data, n=128): score= -1.185 adv= -6.803 retail_adv=-10.020 (35.3s)
+[14:56:10] [default]   gen  0: best_search= 1.162 elite_mean= 0.756 median=-2.049 val= 2.039 adv=-5.231 retail_adv=-15.148 ( 71.3s + 34.5s)
+[14:57:55] [default]   gen  1: best_search= 1.219 elite_mean= 1.075 median= 0.652 val= 1.936 adv=-5.459 retail_adv=-16.131 ( 70.2s + 34.3s)
+[14:59:39] [default]   gen  2: best_search= 1.289 elite_mean= 1.244 median= 0.945 val= 2.062 adv=-5.287 retail_adv=-15.654 ( 69.8s + 34.4s)
+[15:01:23] [default]   gen  3: best_search= 1.257 elite_mean= 1.256 median= 1.228 val= 2.038 adv=-5.307 retail_adv=-15.633 ( 70.1s + 34.3s)
+[15:03:07] [default]   gen  4: best_search= 1.289 elite_mean= 1.276 median= 1.256 val= 2.040 adv=-5.333 retail_adv=-15.802 ( 69.6s + 34.4s)
+[15:03:07] [default] CEM complete in 523.0s (8.7 min)
+[15:08:21] [default]   best_by_val test_score=1.515 lift_FF=+1.045

@@ -1,0 +1,107 @@
+{
+  "ff_test_score": 0.4703053718833298,
+  "anchors": [
+    {
+      "anchor_id": "default",
+      "anchor_val_score": -1.184566092104058,
+      "anchor_val_retail_advantage": -10.020069645507622,
+      "best_by_val": {
+        "params": {
+          "base_fee": 0.005233299041824177,
+          "base_spread": 0.004392471714234785,
+          "signal_decay": 0.6666168589385002,
+          "toxicity_decay": 0.47850591992612423,
+          "small_trade_threshold": 0.0051585573659977775,
+          "large_trade_threshold": 0.01853052650000182,
+          "continuation_small": 0.009616262311553643,
+          "continuation_medium": 0.02003397003935773,
+          "continuation_large": 0.004439552885574258,
+          "reversal_small": 0.014975901640857452,
+          "reversal_medium": 0.02608709069501366,
+          "reversal_large": 0.04254338542920721,
+          "continuation_to_same_side": -0.6227691392666267,
+          "continuation_to_cross_side": 0.18425520178890126,
+          "toxicity_to_mid": 0.03210997256164366,
+          "toxicity_to_side": 0.061611123654549904
+        },
+        "val_score": 2.062048229340265,
+        "val_edge_advantage": -5.28740320384967,
+        "val_retail_advantage": -15.653637332553494,
+        "test_score": 1.515209487143779,
+        "test_edge_advantage": -5.602680668954388,
+        "test_retail_advantage": -15.275262670662473,
+        "test_n_seeds": 256,
+        "ff_test_score": 0.4703053718833298,
+        "lift_FF": 1.044904115260449
+      }
+    },
+    {
+      "anchor_id": "c6_warmstart",
+      "anchor_val_score": -0.6144875531812224,
+      "anchor_val_retail_advantage": -9.157511194790576,
+      "best_by_val": {
+        "params": {
+          "base_fee": 0.001975647437664625,
+          "base_spread": 0.004186245054925736,
+          "signal_decay": 0.5889760674313206,
+          "toxicity_decay": 0.5705130588336509,
+          "small_trade_threshold": 0.0036854089464052127,
+          "large_trade_threshold": 0.011734032937680666,
+          "continuation_small": -0.0014213923650118197,
+          "continuation_medium": 0.014055204160346025,
+          "continuation_large": 0.019386286527135355,
+          "reversal_small": 0.016583422962648756,
+          "reversal_medium": 0.014789773754293927,
+          "reversal_large": 0.07419032135963985,
+          "continuation_to_same_side": -0.5616082120492799,
+          "continuation_to_cross_side": 0.8419073703175359,
+          "toxicity_to_mid": 0.002339022488168414,
+          "toxicity_to_side": 0.04872551020310801
+        },
+        "val_score": 2.7540599974789437,
+        "val_edge_advantage": 2.753792750467933,
+        "val_retail_advantage": -0.09718751403807602,
+        "test_score": 2.360257649326731,
+        "test_edge_advantage": 2.5069477247992196,
+        "test_retail_advantage": -0.002906300785014082,
+        "test_n_seeds": 256,
+        "ff_test_score": 0.4703053718833298,
+        "lift_FF": 1.889952277443401
+      }
+    },
+    {
+      "anchor_id": "c8_invaware_16d",
+      "anchor_val_score": 0.03479119422423734,
+      "anchor_val_retail_advantage": -6.545044767849281,
+      "best_by_val": {
+        "params": {
+          "base_fee": 0.0015822382296554233,
+          "base_spread": 0.0039596283225215075,
+          "signal_decay": 0.5618818878981566,
+          "toxicity_decay": 0.4641751091178736,
+          "small_trade_threshold": 0.002990886270771195,
+          "large_trade_threshold": 0.011958616514670816,
+          "continuation_small": -0.0005551498947913488,
+          "continuation_medium": 0.006691271423394297,
+          "continuation_large": 0.017989447451397387,
+          "reversal_small": 0.0069189234925007255,
+          "reversal_medium": 0.01769550873212014,
+          "reversal_large": 0.07856507556530282,
+          "continuation_to_same_side": -0.9831620169304316,
+          "continuation_to_cross_side": 1.292144826447849,
+          "toxicity_to_mid": 0.008013879253468206,
+          "toxicity_to_side": 0.05983848315880555
+        },
+        "val_score": 3.2009811826880856,
+        "val_edge_advantage": 3.2737143809409606,
+        "val_retail_advantage": 0.27938789407324194,
+        "test_score": 2.8152315884262222,
+        "test_edge_advantage": 3.070418636245971,
+        "test_retail_advantage": 0.3551416689724043,
+        "test_n_seeds": 256,
+        "ff_test_score": 0.4703053718833298,
+        "lift_FF": 2.3449262165428926
+      }
+    }
+  ]
+}

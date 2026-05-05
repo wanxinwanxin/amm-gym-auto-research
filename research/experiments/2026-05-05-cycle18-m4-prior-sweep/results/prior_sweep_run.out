@@ -1,0 +1,39 @@
+FF test (real_data): 0.470 (73.7s)
+
+=== anchor: default ===
+[14:53:49] [default] prior-sweep CEM | piecewise on real_data | pop=12 gen=5 elite_n=2 workers=3
+[14:54:24] [default]   anchor val (real_data, n=128): score= -1.185 adv= -6.803 retail_adv=-10.020 (35.3s)
+[14:56:10] [default]   gen  0: best_search= 1.162 elite_mean= 0.756 median=-2.049 val= 2.039 adv=-5.231 retail_adv=-15.148 ( 71.3s + 34.5s)
+[14:57:55] [default]   gen  1: best_search= 1.219 elite_mean= 1.075 median= 0.652 val= 1.936 adv=-5.459 retail_adv=-16.131 ( 70.2s + 34.3s)
+[14:59:39] [default]   gen  2: best_search= 1.289 elite_mean= 1.244 median= 0.945 val= 2.062 adv=-5.287 retail_adv=-15.654 ( 69.8s + 34.4s)
+[15:01:23] [default]   gen  3: best_search= 1.257 elite_mean= 1.256 median= 1.228 val= 2.038 adv=-5.307 retail_adv=-15.633 ( 70.1s + 34.3s)
+[15:03:07] [default]   gen  4: best_search= 1.289 elite_mean= 1.276 median= 1.256 val= 2.040 adv=-5.333 retail_adv=-15.802 ( 69.6s + 34.4s)
+[15:03:07] [default] CEM complete in 523.0s (8.7 min)
+[15:08:21] [default]   best_by_val test_score=1.515 lift_FF=+1.045
+
+=== anchor: c6_warmstart ===
+[15:08:21] [c6_warmstart] prior-sweep CEM | piecewise on real_data | pop=12 gen=5 elite_n=2 workers=3
+[15:08:57] [c6_warmstart]   anchor val (real_data, n=128): score= -0.614 adv= -5.893 retail_adv= -9.158 (35.8s)
+[15:10:44] [c6_warmstart]   gen  0: best_search= 0.980 elite_mean= 0.694 median=-1.412 val= 2.006 adv=-5.107 retail_adv=-14.669 ( 72.3s + 34.6s)
+[15:12:33] [c6_warmstart]   gen  1: best_search= 0.402 elite_mean= 0.331 median=-0.705 val= 1.152 adv=-0.229 retail_adv=-1.933 ( 72.6s + 36.1s)
+[15:14:23] [c6_warmstart]   gen  2: best_search= 1.750 elite_mean= 1.720 median=-0.429 val= 2.393 adv=+3.061 retail_adv=+0.411 ( 74.3s + 36.2s)
+[15:16:13] [c6_warmstart]   gen  3: best_search= 2.058 elite_mean= 1.965 median= 1.736 val= 2.702 adv=+2.513 retail_adv=-0.446 ( 73.9s + 36.2s)
+[15:18:03] [c6_warmstart]   gen  4: best_search= 1.980 elite_mean= 1.949 median= 1.854 val= 2.754 adv=+2.754 retail_adv=-0.097 ( 73.4s + 36.3s)
+[15:18:03] [c6_warmstart] CEM complete in 546.0s (9.1 min)
+[15:23:28] [c6_warmstart]   best_by_val test_score=2.360 lift_FF=+1.890
+
+=== anchor: c8_invaware_16d ===
+[15:23:28] [c8_invaware_16d] prior-sweep CEM | piecewise on real_data | pop=12 gen=5 elite_n=2 workers=3
+[15:24:04] [c8_invaware_16d]   anchor val (real_data, n=128): score=  0.035 adv= -3.905 retail_adv= -6.545 (35.9s)
+[15:25:53] [c8_invaware_16d]   gen  0: best_search= 1.186 elite_mean= 1.136 median=-0.674 val= 1.961 adv=-5.475 retail_adv=-16.572 ( 75.1s + 34.4s)
+[15:27:40] [c8_invaware_16d]   gen  1: best_search= 2.259 elite_mean= 1.720 median= 0.176 val= 3.161 adv=+3.193 retail_adv=-0.267 ( 70.9s + 35.8s)
+[15:29:29] [c8_invaware_16d]   gen  2: best_search= 2.193 elite_mean= 2.173 median= 1.703 val= 3.059 adv=+3.982 retail_adv=+1.518 ( 73.2s + 36.0s)
+[15:31:18] [c8_invaware_16d]   gen  3: best_search= 2.214 elite_mean= 2.186 median= 2.080 val= 3.151 adv=+3.368 retail_adv=+0.613 ( 73.1s + 36.0s)
+[15:33:08] [c8_invaware_16d]   gen  4: best_search= 2.300 elite_mean= 2.254 median= 2.096 val= 3.201 adv=+3.274 retail_adv=+0.279 ( 73.2s + 36.0s)
+[15:33:08] [c8_invaware_16d] CEM complete in 543.8s (9.1 min)
+[15:38:25] [c8_invaware_16d]   best_by_val test_score=2.815 lift_FF=+2.345
+
+=== prior-sweep summary ===
+  default                anchor_val=-1.185 -> test=+1.515 lift_FF=+1.045 retail_adv=-15.275
+  c6_warmstart           anchor_val=-0.614 -> test=+2.360 lift_FF=+1.890 retail_adv=-0.003
+  c8_invaware_16d        anchor_val=+0.035 -> test=+2.815 lift_FF=+2.345 retail_adv=+0.355
