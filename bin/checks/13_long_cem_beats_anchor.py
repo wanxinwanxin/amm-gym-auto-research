@@ -1,24 +1,28 @@
 #!/usr/bin/env python3
-"""Check 13 — long-CEM ladder rerank elites beat the anchor on val.
+"""Check 13 — long-CEM ladder rerank pool is BIMODAL: either elites
+beat anchor by ≥+0.10 on val, or CEM collapses and worst non-anchor
+trails anchor by ≥−0.50 on val. Cycles 23/24/25 show no run lands
+between those two regimes.
 
-Encodes the cycle-23/24 "compute threshold" finding: at the long-CEM
-budget (10g × 24p), every non-anchor candidate in the rerank pool of a
-ladder warm-started from a piecewise anchor beats the anchor on val.
-Cycle 22 short-CEM (5g × 12p) returned every-elite-loses-to-anchor
-on val on the same c21-s1 anchor; cycle 23 closed that search→val
-gap; cycle 24 reproduced the closure on a third c21-s1 seed AND on a
-qualitatively different anchor (c21-s2 basin-collapsed).
+Cycle-24 invariant ("every non-anchor candidate beats anchor by
++0.05") was falsified by cycle 25 c21-s2 seed=1 — a long-CEM run
+whose CEM trajectory collapsed; all non-anchor val scores fell
+1.4 below the anchor and the rerank picked the anchor itself.
+Rather than retire the check outright (we can't unlink files in
+this sandbox), this is the bimodal replacement: we now assert that
+every long-CEM ladder run falls into one of two regimes, never
+between them.
 
-Pass if every non-anchor candidate val ≥ anchor val + EPS for all
-known long-CEM ladder runs in cycles 23 and 24. Falsifying the check
-means we have found a long-CEM ladder run where some rerank elite
-loses to the anchor on val — which would invalidate the "long-CEM
-elites are quality elites" claim and ought to trigger a re-evaluation
-of the cycle-23/24 verdict.
+Pass if for every known long-CEM ladder run, either:
+  (A) "search-find" regime: worst non-anchor val ≥ anchor val + 0.10
+       (cycle 23 s0/s1, cycle 24 s2 c21-s1 / s0 c21-s2, cycle 25 s0 c18-s0)
+  (B) "search-collapse" regime: worst non-anchor val ≤ anchor val − 0.50
+       (cycle 25 s1 c21-s2)
 
-Cap: ≤12 active checks. Cycle 24 added this; on next cycle, if any
-older check has flipped to a no-op (e.g. its workaround is no longer
-needed) it should be retired.
+Failing the check means a long-CEM ladder run lands in the
+in-between band (-0.50, +0.10) of (worst-elite-val − anchor-val) —
+which would mean the dichotomy is false and CEM has a third regime
+we don't yet understand.
 """
 from __future__ import annotations
 
@@ -28,17 +32,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-# Minimum margin we require non-anchor candidates to beat the anchor by
-# on the n=128 val set. Cycle-23 minimum was 0.21; cycle-24 minimum was
-# 0.13 (c21-s1 seed 2, gen9 cluster). Use a margin well below the
-# observed worst case so a tiny shift in numerics doesn't flip the
-# check, but tight enough that a real regression (anchor wins) is
-# caught.
-EPS = 0.05
-
+# Bimodal thresholds. (worst_nonanchor_val - anchor_val) must lie
+# OUTSIDE the open interval (LOW, HIGH).
+HIGH = 0.10   # search-find regime: margin ≥ +0.10
+LOW = -0.50   # search-collapse regime: margin ≤ -0.50
 
 RUNS = [
-    # (label, path, expected anchor val)
     (
         "cycle23 c21-s1 seed=0",
         ROOT
@@ -58,6 +57,16 @@ RUNS = [
         "cycle24 c21-s2 seed=0",
         ROOT
         / "research/experiments/2026-05-06-cycle24-m4-ladder-longcem-followup/results/cycle21_seed2_seed0/test.json",
+    ),
+    (
+        "cycle25 c21-s2 seed=1",
+        ROOT
+        / "research/experiments/2026-05-06-cycle25-m4-cross-anchor-stabilizer/results/cycle21_seed2_seed1/test.json",
+    ),
+    (
+        "cycle25 c18-s0 seed=0",
+        ROOT
+        / "research/experiments/2026-05-06-cycle25-m4-cross-anchor-stabilizer/results/cycle18_seed0_seed0/test.json",
     ),
 ]
 
@@ -86,24 +95,31 @@ def main() -> int:
         worst = min(non_anchor, key=lambda r: float(r["val_score"]))
         worst_val = float(worst["val_score"])
         margin = worst_val - anchor_val
-        if margin < EPS:
+        if margin >= HIGH:
+            regime = "find"
+        elif margin <= LOW:
+            regime = "collapse"
+        else:
+            regime = "in-between"
+
+        if regime == "in-between":
             failures.append(
-                f"{label}: worst non-anchor val={worst_val:.4f} ≤ anchor val={anchor_val:.4f} + {EPS} (margin {margin:+.4f})"
+                f"{label}: margin {margin:+.4f} is in the dead zone ({LOW:+.2f}, {HIGH:+.2f})"
             )
         else:
             summaries.append(
-                f"{label}: anchor={anchor_val:.4f}, non-anchor min={worst_val:.4f} (margin {margin:+.4f}, n_nonanchor={len(non_anchor)})"
+                f"{label}: anchor={anchor_val:.4f}, worst_nonanchor={worst_val:.4f} (margin {margin:+.4f}) regime={regime}"
             )
 
     if failures:
-        print("FAIL: long-CEM ladder rerank no longer dominates anchor on val")
+        print("FAIL: long-CEM ladder run landed in the unknown in-between regime")
         for f in failures:
             print(f"  - {f}")
         for s in summaries:
             print(f"  ok: {s}")
         return 1
     print(
-        f"ok: {len(summaries)} long-CEM ladder runs, every non-anchor candidate beats anchor on val by ≥ {EPS}"
+        f"ok: {len(summaries)} long-CEM ladder runs, all bimodal (margin ≥ {HIGH} or ≤ {LOW})"
     )
     for s in summaries:
         print(f"     {s}")

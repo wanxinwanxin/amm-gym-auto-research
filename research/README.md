@@ -88,40 +88,40 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 24: M1 closed (cycle 5); **M2
+See `research/STATE.md`. As of cycle 25: M1 closed (cycle 5); **M2
 closed (cycle 13)** with deliverable challenge test = **456.80**
 (piecewise warm-start CEM, cycle-11 d16_s2 cell, ~85% of way to 540
 target). **M3 closed (cycle 16)** with the per-trade-size mechanism
 (c5↔c11 retail-edge gap is ~95% small-bucket; mechanism is a two-AMM
 router collapse — c5 captures only ~13% of small-trade count vs c11's
-~57%). **M4 active (cycle 8 closed)**.
+~57%). **M4 active (cycle 9 closed)**.
 
-**M4 long-CEM ladder update (cycle 24).** Cycle 24 ran the cycle-23
-plan-of-record: (i) third RNG seed of long-CEM ladder on the
-cycle-21-seed-1 piecewise anchor and (ii) cross-anchor long-CEM
-ladder on the cycle-21-seed-2 (basin-collapsed) anchor.
-**Result on c21-s1 (Q1 — third seed):** test +3.507, lift_FF
-+3.037, lift over same-anchor piecewise +0.137 — within +0.005 of
-cycle-23's n=2 mean. **n=3 mean lift over piecewise: +0.134 ±
-0.066** (was +0.132 ± 0.066 at n=2; the third seed moved the mean
-+0.002 and left the stddev unchanged). Cycle-23's small-but-real
-effect is reproducible.
-**Result on c21-s2 (Q2 — cross-anchor stabilizer):** test +3.293,
-lift_FF +2.822, **lift over same-anchor piecewise +0.547** (vs
-+0.000 at short-CEM in cycle 22 stretch). Long-CEM ladder rescues
-the basin-collapsed anchor that short-CEM cannot. Lift over
-piecewise is anchor-dependent: small (~+0.13) on the median basin
-(c21-s1), large (~+0.55) on the collapsed basin (c21-s2). Operational
-finding: every non-anchor candidate in the long-CEM rerank pool
-beats the anchor on val for all 4 cycle-23+24 runs (margins
-+0.13/+0.21/+0.31/+0.44); encoded as
-`bin/checks/13_long_cem_beats_anchor.py`.
+**M4 long-CEM ladder update (cycle 25).** Cycle 25 ran the cycle-24
+plan-of-record: (Q1) second rng_seed of long-CEM ladder on the c21-s2
+(basin-collapsed) anchor; (Q2) single-seed long-CEM ladder probe on the
+cycle-18-seed-0 anchor (the strongest piecewise basin, lift_FF +3.006).
+**Result on Q1: c21-s2 second seed COLLAPSED.** CEM trajectory bottomed
+out at elite-mean +1.21, all non-anchor val scores ≥1.4 below the anchor,
+rerank picked the anchor itself, lift over piecewise = **+0.000**. The
+c21-s2 n=2 mean is now **+0.273 ± 0.387** (error bar contains zero);
+the cycle-24 single-seed +0.547 was a positive tail draw, not a stable
+stabilizer signature. **Result on Q2:** c18-s0 anchor lifted **+0.250**
+over piecewise (test **+3.727**, lift_FF +3.256, retail_adv +3.541) —
+*higher* than the c21-s1 n=3 mean lift (+0.134), so the proposed
+inverse-scaling line ("ladder lift drops as piecewise quality climbs")
+is rejected. The 3-anchor curve (c21-s2 +0.27, c21-s1 +0.13, c18-s0
++0.25) is non-monotone. **The cycle-25 c18-s0 single-seed test +3.727
+is the highest single-seed real_data score on record** (n=1, supporting
+evidence). Aggregating all 6 long-CEM ladder seeds across 3 anchors:
+mean lift over piecewise +0.200 ± 0.192 — small, positive on average,
+but high-variance per seed. Long-CEM is bimodal: 5/6 in "search-find"
+(non-anchor val beats anchor by ≥+0.10), 1/6 in "search-collapse"
+(non-anchor val trails anchor by ≥+0.50). Empty dead zone in between.
 
-**Cycle-25 plan-of-record**: (i) second RNG seed on c21-s2 long-CEM
-ladder to upgrade the cross-anchor stabilizer claim from n=1 to n=2;
-(ii) c18-s0 long-CEM ladder to give a 3-anchor lift-vs-piecewise-
-quality regression line; (iii) stretch: structurally richer family
-(6-bucket ladder / smooth-head MLP / EMA-inv) at long-CEM on c21-s1,
-multi-seed.
+**Cycle-26 plan-of-record**: (i) two more rng_seeds on c18-s0 long-CEM
+ladder to upgrade the c18-s0 anchor from n=1 to n=3 — the cleanest
+single experiment for moving the M4 frontier to a new anchor cluster;
+(ii) stretch: structurally richer family at long-CEM on c21-s1,
+multi-seed (cycle-24's plan-of-record direction).
 
 The cumulative narrative is in `research/presentation/index.html`.

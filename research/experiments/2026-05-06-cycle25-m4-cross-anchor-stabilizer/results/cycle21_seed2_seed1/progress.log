@@ -1,0 +1,26 @@
+[04:07:58] M4 cycle-25 ladder LONG-CEM | anchor=cycle21_seed2 rng_seed=1 | dim=19 pop=24 gen=10 elite_n=4 workers=2
+[04:07:58]   anchor lift_FF nominal: +2.275
+[04:08:32]   anchor_ladder val (real_data, n=128): score= +3.215 adv= +1.634 retail_adv= -2.992 (33.9s)
+[04:12:12]   gen 0: best= +2.436 elite_mean= +1.398 all_mean= -1.131 (220.3s)
+[04:15:37]   gen 1: best= +1.094 elite_mean= +1.082 all_mean= +0.790 (204.7s)
+[04:19:00]   gen 2: best= +1.132 elite_mean= +1.118 all_mean= +1.062 (202.5s)
+[04:22:21]   gen 3: best= +1.144 elite_mean= +1.127 all_mean= +1.063 (201.9s)
+[04:25:44]   gen 4: best= +1.153 elite_mean= +1.128 all_mean= +1.078 (202.4s)
+[04:29:06]   gen 5: best= +1.147 elite_mean= +1.140 all_mean= +1.110 (202.3s)
+[04:32:28]   gen 6: best= +1.187 elite_mean= +1.164 all_mean= +1.117 (202.1s)
+[04:35:51]   gen 7: best= +1.190 elite_mean= +1.174 all_mean= +1.130 (202.3s)
+[04:39:13]   gen 8: best= +1.214 elite_mean= +1.207 all_mean= +1.175 (202.6s)
+[04:42:36]   gen 9: best= +1.204 elite_mean= +1.197 all_mean= +1.175 (202.4s)
+[04:42:36]   CEM done in 2043.5s
+[04:42:36]   rerank pool: 7 candidates
+[04:43:11]     rerank 0 (    anchor): val= +3.215 adv= +1.634 retail_adv= -2.992 (35.0s)
+[04:43:44]     rerank 1 (      gen8): val= +1.800 adv= -5.739 retail_adv=-17.478 (33.4s)
+[04:44:17]     rerank 2 (      gen8): val= +1.836 adv= -5.643 retail_adv=-17.029 (33.3s)
+[04:44:51]     rerank 3 (      gen8): val= +1.788 adv= -5.761 retail_adv=-17.549 (33.4s)
+[04:45:24]     rerank 4 (      gen9): val= +1.839 adv= -5.643 retail_adv=-17.067 (33.4s)
+[04:45:57]     rerank 5 (      gen9): val= +1.807 adv= -5.718 retail_adv=-17.372 (32.9s)
+[04:46:29]     rerank 6 (      gen8): val= +1.786 adv= -5.751 retail_adv=-17.471 (32.3s)
+[04:48:46]   TEST best (n=256): score= +2.746 adv= +1.267 retail_adv= -3.024
+[04:48:46]   FF test score:  +0.470
+[04:48:46]   lift_FF (test): +2.275
+[04:48:46] wrote /sessions/gallant-practical-fermi/mnt/amm-gym-auto-research/research/experiments/2026-05-06-cycle25-m4-cross-anchor-stabilizer/results/cycle21_seed2_seed1/test.json
