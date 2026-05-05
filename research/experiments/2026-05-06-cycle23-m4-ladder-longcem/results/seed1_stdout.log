@@ -1,0 +1,26 @@
+[00:08:29] M4 cycle-23 ladder LONG-CEM | anchor=cycle21_seed1 rng_seed=1 | dim=19 pop=24 gen=10 elite_n=4 workers=2
+[00:08:29]   anchor lift_FF nominal: +2.900
+[00:09:05]   anchor_ladder val (real_data, n=128): score= +3.651 adv= +5.405 retail_adv= +3.877 (36.4s)
+[00:12:56]   gen 0: best= +2.724 elite_mean= +1.115 all_mean= -1.587 (231.1s)
+[00:16:40]   gen 1: best= +2.228 elite_mean= +1.099 all_mean= -0.887 (224.3s)
+[00:20:28]   gen 2: best= +2.729 elite_mean= +2.508 all_mean= +1.190 (227.2s)
+[00:24:13]   gen 3: best= +2.788 elite_mean= +2.716 all_mean= +1.787 (225.2s)
+[00:28:04]   gen 4: best= +2.882 elite_mean= +2.860 all_mean= +2.611 (231.0s)
+[00:31:55]   gen 5: best= +3.009 elite_mean= +2.908 all_mean= +2.778 (231.4s)
+[00:35:42]   gen 6: best= +2.960 elite_mean= +2.939 all_mean= +2.846 (226.8s)
+[00:39:28]   gen 7: best= +2.994 elite_mean= +2.973 all_mean= +2.904 (226.3s)
+[00:43:14]   gen 8: best= +3.008 elite_mean= +2.996 all_mean= +2.944 (226.2s)
+[00:47:02]   gen 9: best= +3.041 elite_mean= +3.032 all_mean= +2.969 (227.9s)
+[00:47:02]   CEM done in 2277.4s
+[00:47:02]   rerank pool: 7 candidates
+[00:47:39]     rerank 0 (    anchor): val= +3.651 adv= +5.405 retail_adv= +3.877 (36.5s)
+[00:48:16]     rerank 1 (      gen9): val= +4.014 adv= +5.120 retail_adv= +2.590 (37.0s)
+[00:48:52]     rerank 2 (      gen9): val= +4.002 adv= +5.172 retail_adv= +2.650 (36.1s)
+[00:49:28]     rerank 3 (      gen9): val= +3.960 adv= +4.793 retail_adv= +2.170 (36.3s)
+[00:50:06]     rerank 4 (      gen9): val= +4.023 adv= +5.249 retail_adv= +2.765 (37.3s)
+[00:50:42]     rerank 5 (      gen5): val= +3.989 adv= +5.089 retail_adv= +2.490 (36.8s)
+[00:51:20]     rerank 6 (      gen8): val= +4.055 adv= +5.350 retail_adv= +2.845 (37.9s)
+[00:53:50]   TEST best (n=256): score= +3.437 adv= +4.665 retail_adv= +2.475
+[00:53:50]   FF test score:  +0.470
+[00:53:50]   lift_FF (test): +2.966
+[00:53:50] wrote /sessions/wonderful-gifted-pascal/mnt/amm-gym-auto-research/research/experiments/2026-05-06-cycle23-m4-ladder-longcem/results/cycle21_seed1_seed1/test.json

@@ -1,0 +1,33 @@
+{
+  "anchor": "cycle21_seed1 piecewise (long-CEM, cycle-21-seed-1 best_by_val)",
+  "anchor_test_score": 3.37,
+  "anchor_lift_FF": 2.9,
+  "cycle23_runs": [
+    {
+      "rng_seed": 0,
+      "best_by_val_source": "gen9",
+      "test_score": 3.5687391532764936,
+      "val_score": 3.8648288488697125,
+      "lift_FF": 3.098433781393164,
+      "lift_over_piecewise_anchor": 0.19843378139316403,
+      "retail_advantage_test": 4.378491446841645
+    },
+    {
+      "rng_seed": 1,
+      "best_by_val_source": "gen8",
+      "test_score": 3.4367236787122866,
+      "val_score": 4.054849000208949,
+      "lift_FF": 2.966418306828957,
+      "lift_over_piecewise_anchor": 0.066418306828957,
+      "retail_advantage_test": 2.4747728813138226
+    }
+  ],
+  "context": {
+    "cycle22_short_ladder_lift_over_piecewise": [
+      2.9,
+      2.9
+    ],
+    "cycle19_short_ladder_lift_FF_on_cycle18s0": 3.251,
+    "cycle19_lift_over_cycle18s0_piecewise": 0.2450000000000001
+  }
+}

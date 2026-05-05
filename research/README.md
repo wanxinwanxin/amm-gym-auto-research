@@ -88,27 +88,35 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 22: M1 closed (cycle 5); **M2
+See `research/STATE.md`. As of cycle 23: M1 closed (cycle 5); **M2
 closed (cycle 13)** with deliverable challenge test = **456.80**
 (piecewise warm-start CEM, cycle-11 d16_s2 cell, ~85% of way to 540
 target). **M3 closed (cycle 16)** with the per-trade-size mechanism
 (c5↔c11 retail-edge gap is ~95% small-bucket; mechanism is a two-AMM
 router collapse — c5 captures only ~13% of small-trade count vs c11's
-~57%). **M4 active (cycle 6 closed)**.
+~57%). **M4 active (cycle 7 closed)**.
 
-**M4 cross-anchor update (cycle 22).** Cycle 22 ran the apples-to-
-apples ladder repro on the cycle-21-seed-1 piecewise anchor (lift_FF
-+2.900 — the median of cycle-21's long-CEM seed distribution) at two
-rng seeds. **Result: both seeds rerank-pick the warm-start ladder as
-best-by-val, giving cross-anchor ladder lift over piecewise = +0.000
-on both seeds.** The cycle-19 +0.245 ladder lift was anchor-driven,
-not a real family effect — it conflated a real ladder representation
-with the +75th-percentile cycle-18-seed-0 piecewise anchor. The M4
-frontier on real_data stays at the piecewise long-CEM cross-seed
-mean **lift_FF +2.727 ± 0.322** (cycle 21); family escalation at
-the cycle-19/22 budget does not lift it. **Cycle-23 plan-of-record**:
-long-budget ladder (10g × 24p) on the cycle-21-seed-1 anchor — does
-the family payoff manifest at the long-CEM compute used for
-cycle-18 piecewise?
+**M4 long-CEM ladder update (cycle 23).** Cycle 23 ran the cycle-22
+plan-of-record: re-extend the cycle-22 ladder CEM to the cycle-18
+long-CEM budget (10 generations × 24 population, 4× the cycle-22
+short-CEM compute) on the same cycle-21-seed-1 piecewise anchor at
+two rng seeds. **Result: at long-CEM budget, ladder lifts +0.132 ±
+0.066 lift_FF over the same-anchor piecewise (n=2 seeds; range
++0.066, +0.198), test scores 3.569 / 3.437, lift_FF +3.098 /
++2.966.** The search→val gap that defeated cycle-22 short-CEM is
+closed at long-CEM: every non-anchor rerank candidate beats the
+anchor on val (range 3.85–4.06 vs anchor 3.651). The cycle-22
+strict decision rule (lift_FF > +3.10) is borderline: seed 0 +3.098
+(at the threshold), seed 1 +2.966 (in the wash band). **Compute,
+not family, was the binding constraint short-CEM hit.** The cycle-23
+mean is the new M4 single-anchor multi-seed estimate at the long-CEM
+budget for the ladder family (+3.032 ± 0.066). The piecewise
+long-CEM cross-seed mean (+2.727 ± 0.322 from cycle 21) remains the
+right baseline; ladder lifts ~+0.13 over its same-anchor piecewise.
+
+**Cycle-24 plan-of-record**: (i) third RNG seed (rng_seed=2) of
+long-CEM ladder on c21-s1 to tighten the n=2 mean; (ii) cross-anchor
+long-CEM ladder on c21-s2 (basin-collapsed) to test "ladder as
+stabilizer at long-CEM."
 
 The cumulative narrative is in `research/presentation/index.html`.

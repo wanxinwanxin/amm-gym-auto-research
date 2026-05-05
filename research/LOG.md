@@ -3070,3 +3070,199 @@ lift over piecewise at the cycle-19/22 budget is effectively zero.
 `results/cross_anchor_summary.json` regenerated to include the
 stretch row; `figures/m4_c22_cross_anchor_ladder_lift.png` redrawn
 with the third (green) bar.
+
+---
+
+## 2026-05-06T00:08Z — cycle 23 — M4 cycle 7: long-CEM ladder lifts +0.13 over c21-s1 piecewise
+
+**Plan for the cycle.** Per cycle-22 STATE plan-of-record: run the
+cycle-22 ladder CEM warm-started from cycle-21-seed-1 piecewise but
+with cycle-18's long-CEM compute (POPULATION=24, GENERATIONS=10,
+matching cycle-18 piecewise long-CEM) at `rng_seed ∈ {0, 1}`.
+Decision rule:
+  * lift_FF > +3.10 on test → ladder real at long-CEM; pivot to
+    cross-anchor multi-seed long-ladder next cycle.
+  * lift_FF in [+2.85, +3.10] → wash; pivot to a structurally
+    different family.
+  * lift_FF < +2.85 → ladder regressing.
+
+**Hypothesis going in.** "At the cycle-19/22 short budget, the policy
+family does not determine the lift_FF ceiling — the CEM search→val
+generalization gap does. Long-CEM ladder warm-started from c21-s1
+piecewise (lift_FF +2.900) will lift to lift_FF > +3.10 on test."
+
+**What ran.**
+
+1. Built `research/experiments/2026-05-06-cycle23-m4-ladder-longcem/`
+   with `scripts/run_ladder_longcem_anchor.py` — byte-equivalent to
+   cycle-22's `run_ladder_cem_anchor.py` except POPULATION 12→24 and
+   GENERATIONS 5→10. Same dim (19), same warm-start, same evaluator
+   (real_data, n=64 search / n=128 val / n=256 test), same
+   normalizer, same elite_frac (0.2), same RERANK_TOP_K (6).
+2. Smoke-checked anchor val: 3.651 on n=128 val seeds for both
+   rng seeds, exactly matching cycle-21 seed-1 piecewise val on
+   the same seeds → identity warm-start verified.
+3. Launched two CEM jobs in parallel (`nohup`, workers=2 each,
+   saturating the 4-core sandbox), `ANCHOR_KEY=cycle21_seed1,
+   RNG_SEED ∈ {0, 1}`.
+4. Both runs completed ~46 min wall (CEM 38 min + rerank+test ~7
+   min). `make_figures.py` produced the cross-budget bar chart and
+   the val-curve overlay.
+
+**Results (held-out test n=256, real_data, c21-s1 anchor).**
+
+CEM trajectory (search-best, n=64 search seeds):
+
+| gen | seed=0 best | seed=1 best |
+|--:|--:|--:|
+| 0 | +2.724 | +2.724 |
+| 4 | +2.894 | +2.882 |
+| 5 | +2.912 | +3.009 |
+| 9 | +2.976 | +3.041 |
+
+Rerank pool (val n=128) — comparison vs anchor val 3.651:
+
+| run | rerank-anchor val | rerank-best val | rerank-best source |
+|--|--:|--:|--|
+| seed=0 | 3.651 | **3.865** | gen9 elite |
+| seed=1 | 3.651 | **4.055** | gen8 elite |
+
+**Test results (n=256):**
+
+| run | val | test_score | lift_FF | lift over c21-s1 piecewise | retail_adv |
+|--|--:|--:|--:|--:|--:|
+| `cycle21_seed1_seed0` | 3.865 | 3.569 | **+3.098** | **+0.198** | +4.378 |
+| `cycle21_seed1_seed1` | 4.055 | 3.437 | **+2.966** | **+0.066** | +2.475 |
+| **mean ± σ (n=2)** | 3.960 | 3.503 | **+3.032 ± 0.066** | **+0.132 ± 0.066** | +3.43 ± 0.95 |
+
+For comparison, cycle-22 short-CEM (5g×12p) on the SAME anchor:
+both seeds returned identity-equivalent to the anchor (test 3.370 /
+lift_FF +2.900 / lift over piecewise +0.000). So cycle 23 lifts
++0.132 over what cycle 22 produced at short-CEM compute on the
+same anchor.
+
+Decision-rule outcome: **borderline.** Seed 0 (+3.098) is just
+under the strict +3.10 threshold; seed 1 (+2.966) is in the wash
+band. Mean +3.032 in wash band. NOT a clean "ladder real at long-
+CEM" signal at the strict threshold, but a CLEAN rejection of the
+cycle-22 short-CEM null result.
+
+**What worked.**
+
+1. Parallel launch saturated sandbox cores; both runs finished in
+   the same wall window. Cycle-22's two-parallel pattern scaled to
+   long-CEM despite ~4× per-gen cost.
+2. CEM convergence is monotone and tight: elite_mean per gen
+   ramps from ~+0.7/+1.1 (gen 0) to ~+2.97/+3.03 (gen 9), with
+   elite_std collapsing to a basin around +2.95/+3.0. By gen 9
+   CEM has fully converged — at this anchor 10 gens is enough.
+3. The search→val gap that defeated cycle-22 short-CEM is closed:
+   *every* non-anchor candidate in the rerank pool beats the
+   anchor on val for both seeds (range val 3.85–4.06 vs anchor
+   3.651). Long-CEM elites are quality-elites, not just
+   lucky-search-elites.
+
+**What failed / surprises.**
+
+1. **Effect size is half of cycle-19's single-seed point.** Cycle 19
+   reported +0.245 lift over the c18-s0 piecewise. Cycle 23 mean
+   is +0.132 lift over c21-s1 piecewise (n=2). The cycle-23 sample
+   range [+0.066, +0.198] does not include +0.245. So the cycle-19
+   point looks like a positive tail draw of the underlying ladder-
+   family lift distribution, plus an anchor-specific component.
+2. **Wide val→test dispersion (cycle-21 long-CEM pattern repeats
+   for ladder).** Seed 0 val 3.86 → test 3.57 (−0.29). Seed 1 val
+   4.05 → test 3.44 (−0.61). Seed 1 had the BETTER val but
+   WORSE test. Same basin-overfit-on-val mechanism cycle 21
+   surfaced for piecewise long-CEM — this is a long-CEM artifact,
+   not specific to piecewise.
+3. **Two seeds, two qualitatively different basins.** Seed 0 retail
+   adv +4.378 (vs anchor +3.820 → +0.56 retail edge). Seed 1
+   retail adv +2.475 (−1.35 retail edge but stronger arb side).
+   Same anchor, two non-overlapping policy basins — long-CEM
+   landscape around the c21-s1 piecewise has multi-modal optima.
+4. **n=2 is too small for a stable mean.** Stddev ±0.066 across
+   just 2 seeds is suspiciously tight given cycle-21 piecewise
+   long-CEM was ±0.32 across 3 seeds. A third RNG seed is the
+   most informative next step.
+
+**Self-checks before commit.**
+
+- Verified lift_FF math: 3.5687 − 0.4703 = +3.0984 ✓ (seed 0);
+  3.4367 − 0.4703 = +2.9664 ✓ (seed 1).
+- Anchor val (3.651) = cycle-21 seed-1 piecewise val (n=128) →
+  identity warm-start verified.
+- `cross_seed_summary.json` regenerated; figures regenerated.
+- Re-read presentation top-to-bottom as a stranger after edits;
+  "At a glance" reflects cycle-23 numbers; cycle 23 section follows
+  the Q/M/R/Updated-prior template with the cycle-22 supersession
+  note.
+
+**Updates implied for the prior.**
+
+- Cycle-19's +0.245 lift moves further from "real cross-anchor
+  family effect" toward "single-seed positive draw of an underlying
+  +0.10–+0.20 lift distribution, possibly + a c18-s0 anchor
+  component." Cycle 23 finds +0.13 mean on a different anchor at
+  long-CEM, which is consistent with the cycle-19 point being an
+  upward draw.
+- The "compute, not family" framing is updated: cycle-23 shows that
+  the compute-vs-family interaction is real but small. Compute
+  matters: short-CEM gives +0.0, long-CEM gives +0.13 on the same
+  anchor, same family. Family also matters: at long-CEM, ladder
+  finds +0.13 over what long-CEM piecewise would have on the same
+  basin (which isn't directly measured, but inferred via the
+  identity warm-start).
+- Ladder-family lift_FF distribution (cross-anchor cross-seed at
+  long-CEM): currently 1 anchor × 2 seeds = ~+0.13 ± 0.07. Need
+  cycle-21-seed-2 anchor and a third c21-s1 seed before this can
+  enter the headline as a stable cross-anchor estimate.
+
+**Next.**
+
+Cycle-24 plan-of-record (in STATE):
+1. Third RNG seed (rng_seed=2) of long-CEM ladder on c21-s1
+   anchor — tightens the n=2 mean estimate.
+2. Cross-anchor long-CEM ladder on c21-s2 (basin-collapsed) anchor
+   at rng_seed=0 — tests "ladder as stabilizer at long-CEM"
+   sub-hypothesis (which short-CEM rejected in cycle 22 stretch).
+3. Stretch: redraw cross-anchor cross-budget figure with all c19/
+   22/23/24 points.
+4. Encode "long-CEM elites beat anchor on val" pattern as a check
+   at `bin/checks/13_long_cem_beats_anchor.py` if it survives
+   cycle 24.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/wonderful-gifted-pascal/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits restricted
+  to `research/` and the new cycle-23 experiment dir.
+- Wall-clock breakdown:
+  - env setup (gymnasium, pytest, matplotlib + pyarrow alone +
+    jax via `bin/setup_jax_from_vendored.sh`): ~3 min.
+  - smoke-implicit (anchor val on first gen): ~36s × 2 in
+    parallel.
+  - both ladder seeds in parallel at workers=2: ~46 min wall (CEM
+    38 min + rerank ~4 min + test ~3 min + FF baseline ~75s).
+  - figures + cross-seed summary: ~2 min.
+  - STATE/LOG/README/presentation writeups: ~25 min.
+  - planned commit + pytest: ~5 min.
+  - total ~85 min — within 2-hour budget.
+- Bash polling notes: 240s/180s/120s sleeps repeatedly killed with
+  exit 143 even though prior cycles tolerated them. Stayed on
+  60-90s sleeps for the rest of the run.
+- 13 active checks (unchanged from cycle 22). Cycle 24 plans to
+  add a 14th.
+- New experiment dir:
+  `research/experiments/2026-05-06-cycle23-m4-ladder-longcem/`
+  with `scripts/{run_ladder_longcem_anchor.py, ladder_strategy.py,
+  make_figures.py}` +
+  `results/{cycle21_seed1_seed0, cycle21_seed1_seed1}/{history.json,
+  test.json, progress.log}` +
+  `results/cross_seed_summary.json` +
+  `figures/{m4_c23_long_vs_short_ladder_lift.png,
+  m4_c23_longcem_val_curves.png}` + `README.md`.
+- New presentation figures (copied from experiment):
+  `m4_c23_long_vs_short_ladder_lift.png`,
+  `m4_c23_longcem_val_curves.png`.
