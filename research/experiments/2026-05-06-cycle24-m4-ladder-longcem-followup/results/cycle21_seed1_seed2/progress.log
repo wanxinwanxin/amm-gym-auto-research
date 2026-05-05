@@ -1,0 +1,26 @@
+[02:07:41] M4 cycle-24 ladder LONG-CEM | anchor=cycle21_seed1 rng_seed=2 | dim=19 pop=24 gen=10 elite_n=4 workers=2
+[02:07:41]   anchor lift_FF nominal: +2.900
+[02:08:17]   anchor_ladder val (real_data, n=128): score= +3.651 adv= +5.405 retail_adv= +3.877 (35.2s)
+[02:12:04]   gen 0: best= +2.724 elite_mean= +1.450 all_mean= -3.335 (227.4s)
+[02:15:50]   gen 1: best= +2.467 elite_mean= +1.784 all_mean= -1.943 (226.2s)
+[02:19:29]   gen 2: best= +2.671 elite_mean= +2.552 all_mean= +1.116 (218.5s)
+[02:23:06]   gen 3: best= +2.680 elite_mean= +2.587 all_mean= +1.404 (217.7s)
+[02:26:45]   gen 4: best= +2.801 elite_mean= +2.788 all_mean= +2.572 (218.6s)
+[02:30:23]   gen 5: best= +2.857 elite_mean= +2.822 all_mean= +2.717 (218.6s)
+[02:34:03]   gen 6: best= +2.915 elite_mean= +2.896 all_mean= +2.812 (219.4s)
+[02:37:42]   gen 7: best= +2.943 elite_mean= +2.935 all_mean= +2.887 (219.5s)
+[02:41:22]   gen 8: best= +2.953 elite_mean= +2.949 all_mean= +2.932 (219.4s)
+[02:45:01]   gen 9: best= +2.963 elite_mean= +2.960 all_mean= +2.947 (219.5s)
+[02:45:01]   CEM done in 2204.8s
+[02:45:01]   rerank pool: 7 candidates
+[02:45:36]     rerank 0 (    anchor): val= +3.651 adv= +5.405 retail_adv= +3.877 (35.2s)
+[02:46:12]     rerank 1 (      gen9): val= +3.796 adv= +5.396 retail_adv= +3.734 (35.2s)
+[02:46:47]     rerank 2 (      gen9): val= +3.791 adv= +5.408 retail_adv= +3.763 (35.2s)
+[02:47:22]     rerank 3 (      gen9): val= +3.784 adv= +5.388 retail_adv= +3.740 (35.2s)
+[02:47:57]     rerank 4 (      gen9): val= +3.784 adv= +5.329 retail_adv= +3.658 (35.2s)
+[02:48:33]     rerank 5 (      gen8): val= +3.790 adv= +5.392 retail_adv= +3.724 (35.3s)
+[02:49:08]     rerank 6 (      gen8): val= +3.795 adv= +5.429 retail_adv= +3.786 (35.2s)
+[02:51:27]   TEST best (n=256): score= +3.507 adv= +5.216 retail_adv= +3.741
+[02:51:27]   FF test score:  +0.470
+[02:51:27]   lift_FF (test): +3.037
+[02:51:27] wrote /sessions/bold-jolly-keller/mnt/amm-gym-auto-research/research/experiments/2026-05-06-cycle24-m4-ladder-longcem-followup/results/cycle21_seed1_seed2/test.json

@@ -1,0 +1,57 @@
+{
+  "anchors": {
+    "c21s1": {
+      "piecewise_test": 3.37,
+      "piecewise_lift_FF": 2.9,
+      "long_cem_ladder_runs": [
+        {
+          "src": "cycle23",
+          "rng_seed": 0,
+          "lift_FF": 3.098433781393164,
+          "lift_over_piecewise": 0.19843378139316403,
+          "retail_advantage_test": 4.378491446841645
+        },
+        {
+          "src": "cycle23",
+          "rng_seed": 1,
+          "lift_FF": 2.966418306828957,
+          "lift_over_piecewise": 0.066418306828957,
+          "retail_advantage_test": 2.4747728813138226
+        },
+        {
+          "src": "cycle24",
+          "rng_seed": 2,
+          "lift_FF": 3.0371940553400267,
+          "lift_over_piecewise": 0.13719405534002682,
+          "retail_advantage_test": 3.74071702992188
+        }
+      ],
+      "n_seeds": 3,
+      "long_cem_ladder_mean_lift_FF": 3.0340153811873827,
+      "long_cem_ladder_std_lift_FF": 0.06606511453202601,
+      "long_cem_ladder_mean_lift_over_piecewise": 0.13401538118738263,
+      "long_cem_ladder_std_lift_over_piecewise": 0.06606511453202601,
+      "short_cem_ladder_lift_FF": [
+        2.9,
+        2.9
+      ]
+    },
+    "c21s2": {
+      "piecewise_test": 2.745,
+      "piecewise_lift_FF": 2.275,
+      "long_cem_ladder_lift_FF": 2.8222968803311534,
+      "long_cem_ladder_lift_over_piecewise": 0.5472968803311535,
+      "long_cem_ladder_retail_advantage_test": -0.9952343540879252,
+      "short_cem_ladder_lift_FF": [
+        2.275
+      ]
+    }
+  },
+  "decision_rule": {
+    "c21s1_n3_target_band_lift_FF": [
+      2.95,
+      3.1
+    ],
+    "c21s2_long_cem_target_lift_over_piecewise": "+0.05 (stabilizer hypothesis)"
+  }
+}

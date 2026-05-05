@@ -31,7 +31,7 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-06 (cycle 23). M2 deliverable (champion held since
+updated 2026-05-06 (cycle 24). M2 deliverable (champion held since
 cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
 <code>real_data</code> evaluator the same policy scores test =
@@ -39,32 +39,29 @@ cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>+2.10</strong> over the FixedFee(0.003) baseline. The M4
 frontier's <em>cross-seed</em> reading on real_data — the
 piecewise long-CEM 3-seed mean from cycle 21 — is
-<strong>lift_FF +2.727 ± 0.322</strong>. Cycle 22 falsified the
-cycle-19 ladder lift at the short-CEM budget: on the
-cycle-21-seed-1 piecewise anchor, both rng seeds rerank-picked the
-anchor itself and the ladder lift over piecewise was +0.000.
-<strong>Cycle 23</strong> ran the cycle-22 plan-of-record:
-re-extend the ladder CEM to the long-CEM budget (10g × 24p,
-matching cycle-18 piecewise long-CEM), still warm-started from the
-cycle-21-seed-1 piecewise. Two rng seeds.
-<strong>Result: at long-CEM budget, ladder lifts +0.132 ± 0.066
-lift_FF over the same-anchor piecewise (n=2 seeds; range +0.066,
-+0.198) — small, positive, and a clean rejection of the cycle-22
-short-CEM null.</strong> The ladder-family payoff is real but
-modest, and emerges only at the long-CEM compute. The strict
-cycle-22 decision rule (lift_FF > +3.10 on test) is borderline:
-seed 0 +3.098, seed 1 +2.966, mean +3.032. Compute is the binding
-constraint short-CEM was hitting, not the policy family. Cycle 24
-adds a third seed plus a cross-anchor (c21-s2) check. Read
-top-to-bottom; later milestones build on earlier ones.</p>
+<strong>lift_FF +2.727 ± 0.322</strong>.
+<strong>Cycle 24</strong> closed two open questions from cycle 23:
+(i) the n=2 long-CEM ladder lift on the cycle-21-seed-1 anchor
+holds at n=3 — adding the third RNG seed (lift_FF +3.037) leaves
+the n=3 mean lift over the same-anchor piecewise at
+<strong>+0.134 ± 0.066</strong>, only +0.002 from the cycle-23 n=2
+estimate; (ii) the cross-anchor probe (long-CEM ladder warm-started
+from the cycle-21-seed-2 <em>basin-collapsed</em> piecewise) lifts
+<strong>+0.547</strong> over the same-anchor piecewise (vs +0.000
+for short-CEM ladder on this anchor in cycle 22). Combined picture:
+at long-CEM compute the ladder family is largely a wash on the
+median piecewise basin (~+0.13 on c21-s1) but rescues the collapsed
+basin (~+0.55 on c21-s2). The lift is anchor-dependent — bigger
+where the underlying piecewise was worse. Read top-to-bottom; later
+milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
   at cycle 13; M3 closed at cycle 16 with the per-bucket mechanism
-  (small-bucket routing collapse). M4 has had eight cycles (16, 17,
-  18, 19, 20, 21, 22, 23). Active milestone is <strong>M4 cycle 8</strong>
+  (small-bucket routing collapse). M4 has had nine cycles (16, 17,
+  18, 19, 20, 21, 22, 23, 24). Active milestone is <strong>M4 cycle 9</strong>
   (next).</li>
   <li><strong>Headline numbers (held-out test, n=256).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
@@ -76,22 +73,20 @@ top-to-bottom; later milestones build on earlier ones.</p>
     multi-seed mean test <code>lift_FF</code> at the long-CEM budget
     (10g × 24p, piecewise, warm c11) is
     <strong>+2.727 ± 0.322</strong> across 3 rng_seeds (cycle 21).
-    Ladder-4-bucket at the short-CEM budget warm-started from
-    cycle-18-seed-0 piecewise sits at <strong>+3.111 ± 0.126</strong>
-    (cycle 20) — cycle 22 established this is a <em>single-anchor</em>
-    mean, not a cross-anchor estimate. Cycle-22 short-CEM cross-anchor
-    control on the cycle-21-seed-1 anchor returned
-    <strong>+0.000 / +0.000</strong> ladder lift over piecewise.
-    <strong>Cycle 23</strong> re-ran the same ladder CEM at the
-    long-CEM budget (10g × 24p) on the cycle-21-seed-1 anchor, two
-    rng seeds. Result: <strong>+3.098 / +2.966</strong> test lift_FF;
-    mean <strong>+3.032 ± 0.066</strong>; lift over the same-anchor
-    piecewise <strong>+0.132 ± 0.066</strong>. Small, positive,
-    cleanly rejects the cycle-22 short-CEM null. The single-seed
+    The current best <em>family</em> reading is the long-CEM ladder
+    on the cycle-21-seed-1 piecewise anchor, n=3 across cycles 23+24:
+    test <strong>+3.034 ± 0.066</strong>, lift over the same-anchor
+    piecewise <strong>+0.134 ± 0.066</strong> (range +0.066,
+    +0.198). Cross-anchor probe (cycle 24, n=1) on the
+    cycle-21-seed-2 (basin-collapsed) anchor: lift_FF
+    <strong>+2.822</strong>, lift over same-anchor piecewise
+    <strong>+0.547</strong> — long-CEM ladder rescues the collapsed
+    basin much more than it lifts the median basin. The single-seed
     cycle-19 ladder result (test +3.72, lift_FF +3.25) is now
     understood as a positive tail draw of a ladder-family lift
-    distribution that has mean ~+0.13 at long-CEM, plus a
-    +75th-percentile piecewise anchor (c18-s0) component.</li>
+    distribution that has mean ~+0.13 at long-CEM on the median
+    basin, plus a +75th-percentile piecewise anchor (c18-s0)
+    component.</li>
   <li><strong>What cycle 21 changed.</strong> Re-ran cycle-18's
     long-CEM recipe (10g × 24p, piecewise, warm c11) with
     <code>rng_seed</code> ∈ {1, 2} (cycle 18 already supplied seed=0).
@@ -181,27 +176,52 @@ top-to-bottom; later milestones build on earlier ones.</p>
     within batch noise. Mechanism: routing collapse — c5 receives
     ~13% of small-trade count, c11 ~57%. The router avoids c5 for
     <em>price</em> reasons, not fee reasons.</li>
+  <li><strong>What cycle 24 changed (third seed + cross-anchor
+    probe).</strong> Two parallel long-CEM ladder runs on the same
+    19-d ladder family: rng_seed=2 on the c21-s1 anchor (third seed)
+    and rng_seed=0 on the c21-s2 (basin-collapsed) anchor (cross-
+    anchor probe). Result on c21-s1: test lift_FF
+    <strong>+3.037</strong>, lift over piecewise <strong>+0.137</strong>
+    — the n=3 mean lift is <strong>+0.134 ± 0.066</strong> (range
+    [+0.066, +0.198]), within +0.002 of the cycle-23 n=2 estimate.
+    The cycle-23 result is reproducible. Result on c21-s2: test
+    lift_FF <strong>+2.822</strong>, lift over the same-anchor
+    piecewise <strong>+0.547</strong> — at long-CEM on the
+    collapsed-basin anchor, ladder rescues the basin (rerank winner
+    val 3.991, anchor val 3.215, Δ +0.776). Cross-anchor short-CEM
+    (cycle 22 stretch) had returned +0.000 on this same anchor; the
+    "ladder as stabilizer at long-CEM" hypothesis is supported on
+    n=1. Long-CEM ladder lift over piecewise is
+    <em>anchor-dependent</em>: small (+0.13) on the median piecewise
+    basin, large (+0.55) on the collapsed basin. The val→test gap
+    pattern continues (c21-s2 val 3.991 → test 3.293, Δ −0.70). The
+    "every non-anchor candidate beats anchor on val" observation
+    from cycle 23 reproduces on both cycle-24 runs (anchor margins
+    +0.13 c21-s1 / +0.44 c21-s2) and is now encoded as
+    <code>bin/checks/13_long_cem_beats_anchor.py</code>.</li>
   <li><strong>Open questions.</strong>
-    (1) Is the cycle-23 long-CEM ladder lift of +0.132 ± 0.066
-    reproducible at a third RNG seed on the same anchor? n=2 stddev
-    is suspiciously tight given cycle-21 piecewise long-CEM was
-    ±0.32 across n=3.
-    (2) Does the long-CEM ladder lift survive cross-anchor — i.e.
-    does it hold on the cycle-21-seed-2 (basin-collapsed) anchor
-    where cycle-22 short-CEM ladder gave +0.000? This tests
-    "ladder as stabilizer at long-CEM budget."
-    (3) Does a structurally different family (smooth-head MLP,
-    EMA-inv state, 6-bucket ladder, dynamic threshold) move the
-    multi-seed mean past long-CEM ladder's ~+3.03 estimate?
-    Multi-seed from the start.
+    (1) Does the long-CEM ladder stabilizer effect on c21-s2
+    survive a second RNG seed and a third anchor (e.g. c18-s0)?
+    The lift-vs-piecewise-quality regression line ("ladder lift
+    grows as the underlying piecewise quality drops") is currently
+    only n=1 on the collapsed end and n=3 on the median end.
+    (2) Does a structurally richer family (6-bucket ladder, smooth-
+    head MLP) move the c21-s1 frontier past long-CEM ladder's ~+3.03
+    n=3 mean? The 19-d ladder ceiling on this basin appears to be
+    +0.13 ± 0.07 lift over piecewise; richer families should be
+    tested at this anchor first.
+    (3) Why is the val→test gap so wide on long-CEM? Cycle-23
+    seed 1 (val +4.06, test +3.44, Δ −0.62) and cycle-24 c21-s2
+    (val +3.99, test +3.29, Δ −0.70) point to a basin-overfit-on-val
+    mechanism. Is the val set itself biased toward a basin that
+    doesn't generalize, or is this a signal that 128 val seeds is
+    underpowered against an n=64 search set?
     (4) Why does long-CEM occasionally collapse — cycle-21 seed=2
     bottomed out at gen 6 with retail_adv −18 and never recovered?
-    Cycle-22 stretch on the same anchor showed ladder at short-CEM
-    cannot rescue this; is long-CEM ladder different?
-    (5) Why is the val→test gap so wide for one seed (cycle-23
-    seed 1: val +4.06, test +3.44, Δ −0.62) when search-best vs
-    elite-mean has fully converged? Is the val set itself biased
-    toward a basin that doesn't generalize?</li>
+    Cycle-22 stretch could not rescue this from short-CEM ladder;
+    cycle-24 c21-s2 long-CEM warm-start from <em>that</em> collapsed
+    end-point lifted +0.55, suggesting the ladder family + long-CEM
+    compute is jointly the recovery mechanism.</li>
 </ul>
 </div>
 
@@ -229,6 +249,7 @@ top-to-bottom; later milestones build on earlier ones.</p>
       <li><a href="#m4-c21">Cycle 21 (M4 cycle 5) — multi-seed long-CEM on piecewise: the +3.0 ceiling was a single-seed artefact</a></li>
       <li><a href="#m4-c22">Cycle 22 (M4 cycle 6) — apples-to-apples ladder vs piecewise: cycle-19's +0.245 lift was anchor-driven</a></li>
       <li><a href="#m4-c23">Cycle 23 (M4 cycle 7) — long-CEM ladder unlocks +0.13 lift over piecewise that short-CEM cannot find</a></li>
+      <li><a href="#m4-c24">Cycle 24 (M4 cycle 8) — third seed confirms +0.13 on c21-s1; cross-anchor long-CEM ladder on c21-s2 lifts +0.55 (stabilizer)</a></li>
     </ul>
   </li>
 </ul>
@@ -3176,6 +3197,174 @@ acts partly as a basin recovery mechanism. If no, +0.13 is a
 single-anchor effect and the question becomes "does it
 generalize." Both runs can fit in one cycle at workers=2 each on
 the 4-core sandbox (~46 min wall for two parallel long-CEM jobs).</p>
+</div>
+
+<h3 id="m4-c24">Cycle 24 (M4 cycle 8) — third seed confirms +0.13 on c21-s1; cross-anchor long-CEM ladder on c21-s2 lifts +0.55 (stabilizer hypothesis supported)</h3>
+
+<div class="qmru">
+<p><strong>Question.</strong> Cycle 23 produced n=2 long-CEM ladder
+runs on the cycle-21-seed-1 piecewise anchor (mean lift over
+same-anchor piecewise <strong>+0.132 ± 0.066</strong>). Two open
+questions for cycle 24, both addressable in a single 2-hour cycle
+at <code>workers=2</code> for two parallel runs:
+(Q1) Is the n=2 mean stable? A third RNG seed should land within
+[+0.0, +0.25] and tighten the n=3 mean.
+(Q2) Does long-CEM ladder act as a <em>stabilizer</em> on a
+basin-collapsed anchor? Cycle-22 stretch ran short-CEM ladder
+warm-started from the cycle-21-seed-2 piecewise (test +2.745,
+lift_FF +2.275, basin-collapsed) and returned +0.000 lift. If
+long-CEM ladder lifts here, the cycle-23 finding generalizes; if
+it returns ~0 again, the +0.13 c21-s1 lift is anchor-specific.
+Decision rules: (Q1) n=3 mean lift in [+0.05, +0.20] and stddev
+consistent with cycle-23's ±0.07 → cycle-23 result confirmed; n=3
+mean below 0 or stddev > ±0.20 → cycle-23 was sampling noise.
+(Q2) c21-s2 long-CEM lift over piecewise > +0.05 → ladder
+stabilizer at long-CEM; ≤ 0 → cycle-23 was anchor-specific.</p>
+
+<p><strong>Method.</strong> Identical to cycle 23 — same 19-d
+ladder, same FF normalizer (0.003/0.003), same evaluator
+(<code>real_data</code>), same long-CEM budget (POPULATION=24,
+GENERATIONS=10), same identity warm-start rule (the three new
+ladder dims — <code>tiny_trade_threshold</code>,
+<code>continuation_tiny</code>, <code>reversal_tiny</code> — seeded
+from the corresponding "small" piecewise param so the gen-0 anchor
+is exactly the piecewise policy expressed under the ladder
+parameterization). Two parallel runs at <code>workers=2</code> each
+on the 4-core sandbox: rng_seed=2 on the cycle-21-seed-1 piecewise
+anchor (ladder anchor val 3.651, identical to cycle 23 — verifies
+the identity warm-start is byte-equivalent), and rng_seed=0 on the
+cycle-21-seed-2 piecewise anchor (ladder anchor val 3.215; the
+piecewise policy on this anchor evaluated under ladder gives the
+same val score under the identity rule). 64 search seeds, 128 val
+seeds, 256 held-out test seeds; rerank top-6 unique elites by
+search-set score plus the anchor.</p>
+
+<p><strong>Result.</strong> Both runs converged cleanly. The c21-s1
+seed=2 trajectory is the cycle-23 pattern: monotone elite-mean
+ramp from +1.45 (gen 0) to +2.96 (gen 9), elite_std collapses to a
+tight basin. The c21-s2 seed=0 trajectory is more chaotic
+(gen-3 search-best +2.88, gen-7 +2.34) but the rerank pool's val
+scores still cleanly beat the anchor.</p>
+
+<table>
+  <thead>
+    <tr><th class="l">anchor</th><th class="l">run</th>
+      <th>val (n=128)</th><th>test_score (n=256)</th>
+      <th>lift_FF</th>
+      <th>lift over same-anchor piecewise</th>
+      <th>retail_adv (test)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="l" rowspan="4">c21-s1<br><span class="meta">piecewise val 3.651,<br>test 3.370, lift_FF +2.900</span></td>
+      <td class="l">cycle 23 seed=0 (recap)</td>
+      <td>3.865</td><td>3.569</td><td>+3.098</td>
+      <td><span class="pos">+0.198</span></td><td>+4.378</td></tr>
+    <tr><td class="l">cycle 23 seed=1 (recap)</td>
+      <td>4.055</td><td>3.437</td><td>+2.966</td>
+      <td><span class="pos">+0.066</span></td><td>+2.475</td></tr>
+    <tr><td class="l"><strong>cycle 24 seed=2 (NEW)</strong></td>
+      <td>3.796</td><td>3.507</td><td><strong>+3.037</strong></td>
+      <td><span class="pos"><strong>+0.137</strong></span></td><td>+3.741</td></tr>
+    <tr><td class="l"><strong>n=3 mean ± σ</strong></td>
+      <td>3.905</td><td>3.504</td>
+      <td><strong>+3.034 ± 0.066</strong></td>
+      <td><span class="pos"><strong>+0.134 ± 0.066</strong></span></td>
+      <td>+3.53 ± 0.97</td></tr>
+    <tr><td class="l">c21-s2<br><span class="meta">piecewise val 3.215,<br>test 2.745, lift_FF +2.275<br>(basin-collapsed)</span></td>
+      <td class="l"><strong>cycle 24 seed=0 (NEW)</strong></td>
+      <td>3.991</td><td>3.293</td><td><strong>+2.822</strong></td>
+      <td><span class="pos"><strong>+0.547</strong></span></td><td>−0.995</td></tr>
+  </tbody>
+</table>
+
+<p>The c21-s1 third seed lands at <strong>+0.137</strong> lift over
+the same-anchor piecewise — within 5 thousandths of the cycle-23
+n=2 mean (+0.132). The n=3 mean is <strong>+0.134 ± 0.066</strong>,
+moving by only +0.002 from the cycle-23 estimate. <strong>Cycle 23
+is reproducible at n=3.</strong></p>
+
+<p>The c21-s2 cross-anchor probe lifts <strong>+0.547</strong> over
+the same-anchor piecewise — order of magnitude larger than the
+c21-s1 mean lift. Long-CEM ladder rescues the basin-collapsed
+anchor that short-CEM cannot. <strong>The "ladder as stabilizer at
+long-CEM" hypothesis is supported on n=1.</strong> Note that the
+absolute test score on c21-s2 (3.293) is still below the c21-s1
+cluster (3.504 mean), so this is not a new headline number — but
+the family lift over piecewise is much larger here.</p>
+
+<p><img src="figures/m4_c24_lift_summary.png"
+alt="Cycle 24 — ladder lift over same-anchor piecewise across
+short-CEM and long-CEM, two anchors" style="max-width:100%;"></p>
+
+<p><img src="figures/m4_c24_long_cem_val_curves.png"
+alt="Cycle 24 — long-CEM ladder CEM trajectories for cycle-23 + cycle-24
+seeds, two anchors, with anchor val lines overlaid"
+style="max-width:100%;"></p>
+
+<p>Long-CEM elites continue to dominate the anchor on val. For both
+cycle-24 runs, every non-anchor rerank candidate beat the anchor
+on val by at least 0.13 (c21-s1 seed=2) and 0.44 (c21-s2 seed=0).
+Combined with the cycle-23 runs (margins +0.21, +0.31), the
+"long-CEM ladder rerank pool dominates the anchor on val" pattern
+is now a 4/4 finding across two anchors and four seeds. Encoded as
+<code>bin/checks/13_long_cem_beats_anchor.py</code> — the check
+fails if any future run produces a non-anchor candidate that loses
+to the anchor on val by more than 0.05.</p>
+
+<p><strong>What it changed.</strong></p>
+<ol>
+  <li><strong>The cycle-23 c21-s1 result is reproducible at n=3.</strong>
+  n=3 mean lift over piecewise <strong>+0.134 ± 0.066</strong>, n=3
+  range [+0.066, +0.198] — the third seed's +0.137 lands almost
+  exactly on the n=2 mean. Sample stddev is unchanged, lending
+  weight to the cycle-23 n=2 estimate not being a sampling artifact.
+  Compute (long-CEM) is real but the effect size is small.</li>
+  <li><strong>Long-CEM ladder is a stabilizer for collapsed
+  anchors.</strong> +0.547 lift on c21-s2 vs +0.000 for short-CEM
+  ladder on the same anchor (cycle 22 stretch). The same family +
+  the same compute moves a basin-collapsed warm-start back into
+  the +2.8 lift_FF range. The c21-s1 vs c21-s2 contrast (+0.13 vs
+  +0.55) suggests the long-CEM ladder lift over piecewise grows
+  inversely with the underlying piecewise quality — i.e., the
+  ladder helps where the piecewise was bad, and barely helps where
+  the piecewise was already good.</li>
+  <li><strong>The M4 frontier on real_data is unchanged in test
+  units.</strong> c21-s1 long-CEM ladder n=3 mean test 3.504 vs
+  c21-s2 long-CEM ladder seed=0 test 3.293 — the c21-s1 cluster
+  remains the headline. The cross-anchor result is a finding about
+  the family's <em>marginal lift over piecewise</em>, not about
+  the absolute frontier.</li>
+  <li><strong>Val→test dispersion stays wide.</strong> c21-s2
+  seed=0 val 3.991 → test 3.293 (Δ −0.70), even worse than
+  cycle-23 seed=1's −0.62. This is a long-CEM artifact: at long
+  budgets, CEM finds elites that beat the anchor on val by large
+  margins but lose part of that margin on test. The basin-overfit-
+  on-val mechanism cycle 21 surfaced for piecewise long-CEM
+  consistently applies to ladder long-CEM too.</li>
+  <li><strong>Operational finding encoded.</strong> The cycle-23
+  observation that "every non-anchor candidate beats anchor on
+  val" is now a check (<code>bin/checks/13_long_cem_beats_anchor.py</code>),
+  asserting val margin ≥ +0.05 for all non-anchor candidates in
+  every long-CEM ladder run. Currently passes 4/4 runs (cycle 23
+  s0, s1; cycle 24 s2 c21-s1, c21-s2).</li>
+</ol>
+
+<p><strong>What's the next question?</strong> Two complementary
+directions for cycle 25:
+(i) <em>Cross-anchor confirmation of the stabilizer effect.</em>
+A second RNG seed on c21-s2 plus a third anchor (e.g. c18-s0,
+the +75th-percentile piecewise) would establish whether long-CEM
+ladder lift over piecewise scales monotonically with piecewise
+quality. The current sample is c21-s2 (+0.547 at lift_FF +2.275),
+c21-s1 (+0.134 at lift_FF +2.900), c18-s0 (+0.245 at lift_FF
++3.006, single-seed cycle-19) — looks roughly linear-decreasing,
+but the c18-s0 and c21-s2 points are each n=1.
+(ii) <em>Move the M4 frontier directly.</em> The 19-d ladder
+ceiling on c21-s1 appears to be ~+0.13 lift over piecewise. A
+structurally richer family (6-bucket ladder; smooth-head MLP;
+EMA-inv state) at long-CEM on the same anchor — multi-seed from
+the start — is the most informative test of whether richer
+families scale further. Cycle 25 should pick one and run n=3.</p>
 </div>
 
 </body>

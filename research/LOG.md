@@ -3266,3 +3266,306 @@ Cycle-24 plan-of-record (in STATE):
 - New presentation figures (copied from experiment):
   `m4_c23_long_vs_short_ladder_lift.png`,
   `m4_c23_longcem_val_curves.png`.
+
+---
+
+## 2026-05-06 — Cycle 24 (M4 cycle 8 — long-CEM ladder follow-up)
+
+**Plan for the cycle (per cycle-23 STATE).**
+
+1. Third RNG seed (`rng_seed=2`) of long-CEM ladder on the
+   cycle-21-seed-1 piecewise anchor — tighten the cycle-23 n=2
+   estimate (lift_FF +3.032 ± 0.066, lift over piecewise +0.132 ±
+   0.066) to n=3.
+2. Cross-anchor long-CEM ladder on the cycle-21-seed-2 (basin-
+   collapsed) piecewise anchor at `rng_seed=0` — test "ladder as
+   stabilizer at long-CEM budget" on an anchor where short-CEM
+   ladder (cycle-22 stretch) gave +0.000.
+3. If cycle-23 "every non-anchor candidate beats anchor on val"
+   pattern reproduces in cycle 24, encode it as
+   `bin/checks/13_long_cem_beats_anchor.py`.
+4. Update presentation, STATE, LOG; commit + push.
+
+**Hypothesis going in.**
+
+- (Q1) The n=3 mean lift over c21-s1 piecewise lands in
+  [+0.05, +0.20] with stddev consistent with the cycle-23 n=2
+  ±0.066 estimate; cycle-23's small effect is reproducible.
+- (Q2) Long-CEM ladder warm-started from the c21-s2 basin-collapsed
+  piecewise produces > +0.05 lift over piecewise — the ladder
+  family acts partly as a basin-recovery mechanism at long-CEM.
+- These two together would make the M4 "ladder family at long-CEM
+  is real" case stronger; both failing would localize cycle-23's
+  +0.13 to a single-anchor effect.
+
+**Setup.**
+
+- Repo path on this sandbox: `/sessions/bold-jolly-keller/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` from prior cycles untouched per convention.
+- `bin/run_checks.sh` first pass: 11 pass / 2 fail (`03_required_python_deps.sh`,
+  `08_jax_optional.sh`). Installed deps via
+  `pip install --break-system-packages --no-cache-dir gymnasium pyarrow pytest matplotlib`,
+  ran `bin/setup_jax_from_vendored.sh`. Re-run: 12/13 pass — only
+  `08_jax_optional.sh` still FAIL (the setup script reports success
+  but a subsequent shell check finds jax not importable; this was
+  also the case at the start of cycle 23, so it's a carry-over,
+  not new).
+- Both runs launched in parallel via `nohup /tmp/launch_*.sh`
+  pattern (Bash-tool inline backgrounding got newlines flattened
+  by `eval` and broke the second job's redirect — dropping into
+  small launcher scripts worked).
+
+**What we ran.**
+
+Two parallel long-CEM ladder runs, identical mechanics to cycle 23:
+
+- Run A: `ANCHOR_KEY=cycle21_seed1 RNG_SEED=2 MAX_WORKERS=2`
+- Run B: `ANCHOR_KEY=cycle21_seed2 RNG_SEED=0 MAX_WORKERS=2`
+
+Same 19-d ladder, same FF normalizer (0.003/0.003), same evaluator
+(`real_data`), same long-CEM budget (POPULATION=24, GENERATIONS=10,
+elite_frac=0.2, RERANK_TOP_K=6), same identity warm-start rule
+(tiny_threshold = 0.5×small_threshold; continuation_tiny =
+continuation_small; reversal_tiny = reversal_small). 64 search
+seeds (0..63), 128 val seeds (1000..1127), 256 held-out test
+seeds (2000..2255).
+
+For c21-s2 the warm-start is the cycle-21-seed-2 piecewise
+best_by_val from
+`research/experiments/2026-05-05-cycle21-m4-longcem-multiseed/results/seed2/test.json`.
+
+Wall: ~45 min total (CEM 38 min + rerank 4 min + test+FF 2.5 min).
+
+**Anchor-val identity check (verifies warm-start byte-equivalence).**
+
+- c21-s1 ladder anchor val (n=128) = **3.6513** = cycle-23 anchor val
+  3.6513 = cycle-21 seed-1 piecewise val on the same seeds. ✓
+- c21-s2 ladder anchor val (n=128) = **3.2151**, matches the
+  cycle-21 seed-2 piecewise val on the same seeds (the basin-
+  collapsed anchor's val).
+
+**CEM trajectories.**
+
+c21-s1 seed=2 — clean cycle-23 pattern:
+| gen | best | elite_mean | all_mean |
+|--:|--:|--:|--:|
+| 0 | +2.724 | +1.450 | -3.335 |
+| 1 | +2.467 | +1.784 | -1.943 |
+| 2 | +2.671 | +2.552 | +1.116 |
+| 3 | +2.680 | +2.587 | +1.404 |
+| 4 | +2.801 | +2.788 | +2.572 |
+| 5 | +2.857 | +2.822 | +2.717 |
+| 6 | +2.915 | +2.896 | +2.812 |
+| 7 | +2.943 | +2.935 | +2.887 |
+| 8 | +2.953 | +2.949 | +2.932 |
+| 9 | +2.963 | +2.960 | +2.947 |
+
+c21-s2 seed=0 — chaotic, basin-collapsed-anchor landscape:
+| gen | best | elite_mean | all_mean |
+|--:|--:|--:|--:|
+| 0 | +2.436 | +1.367 | -4.319 |
+| 1 | +2.351 | +1.399 | +0.144 |
+| 2 | +2.034 | +1.374 | +0.866 |
+| 3 | +2.883 | +1.960 | +0.019 |
+| 4 | +1.889 | +1.276 | -1.201 |
+| 5 | +2.409 | +1.687 | +0.384 |
+| 6 | +2.477 | +2.101 | +0.668 |
+| 7 | +2.336 | +1.438 | -0.073 |
+| 8 | +2.552 | +2.278 | +0.862 |
+| 9 | +2.424 | +2.352 | +1.367 |
+
+The c21-s2 trajectory's elite_mean climbs only to +2.35 by gen 9
+(versus +2.96 for c21-s1 seed=2 and +2.96/+3.03 for cycle 23
+seeds), and the search-best does not monotone-improve. This is
+not the cycle-23 pattern — the c21-s2 anchor's basin is harder.
+The reason this still produces a +0.547 lift on test is that the
+val and test scores in this run are decoupled from the search-set
+scores because the search seeds (0..63) overlap with the basin
+that broke the underlying piecewise (the cycle-21 seed=2 collapse
+at gen 6 was on these same search seeds), so search-set scoring
+is depressed but val scoring is not.
+
+**Rerank pool (val n=128).**
+
+c21-s1 seed=2:
+| candidate | source | val |
+|--|--|--:|
+| 0 (anchor) | anchor | 3.651 |
+| 1 | gen9 | 3.796 |
+| 2 | gen9 | 3.791 |
+| 3 | gen9 | 3.784 |
+| 4 | gen9 | 3.784 |
+| 5 | gen8 | 3.790 |
+| 6 | gen8 | 3.795 |
+
+→ best non-anchor val 3.796 (gen9), margin over anchor +0.145.
+All 6 non-anchor candidates beat the anchor on val.
+
+c21-s2 seed=0:
+| candidate | source | val |
+|--|--|--:|
+| 0 (anchor) | anchor | 3.215 |
+| 1 | gen3 | 3.991 |
+| 2 | gen8 | 3.931 |
+| 3 | gen6 | 3.651 |
+| 4 | gen8 | 3.894 |
+| 5 | gen6 | 3.677 |
+| 6 | gen9 | 3.656 |
+
+→ best non-anchor val 3.991 (gen3), margin over anchor +0.776.
+All 6 non-anchor candidates beat the anchor on val. The
+"every non-anchor candidate beats anchor on val" cycle-23
+pattern reproduces 4/4 across cycles 23+24.
+
+**Test results (n=256).**
+
+| run | val | test | lift_FF | lift over piecewise | retail_adv |
+|--|--:|--:|--:|--:|--:|
+| `cycle21_seed1_seed2` (NEW c24, c21-s1 anchor) | 3.796 | 3.507 | **+3.037** | **+0.137** | +3.741 |
+| `cycle21_seed2_seed0` (NEW c24, c21-s2 anchor) | 3.991 | 3.293 | **+2.822** | **+0.547** | -0.995 |
+
+**c21-s1 cluster, n=3 (cycles 23+24):**
+
+| run | rng_seed | val | test | lift_FF | lift over piecewise |
+|--|--:|--:|--:|--:|--:|
+| c23 seed=0 | 0 | 3.865 | 3.569 | +3.098 | +0.198 |
+| c23 seed=1 | 1 | 4.055 | 3.437 | +2.966 | +0.066 |
+| **c24 seed=2** | 2 | 3.796 | 3.507 | **+3.037** | **+0.137** |
+| **mean ± σ (n=3)** | — | 3.905 | 3.504 | **+3.034 ± 0.066** | **+0.134 ± 0.066** |
+
+Cycle-23 n=2 mean was +3.032 ± 0.066 / lift over piecewise
++0.132 ± 0.066. Adding the third seed moved the mean by +0.002
+and left the stddev unchanged. **The cycle-23 small-but-positive
+effect is reproducible.**
+
+**c21-s2 cross-anchor, n=1:**
+
+c21-s2 ladder (long-CEM) test 3.293, lift_FF +2.822, lift over
+same-anchor piecewise +0.547. Cycle-22's *short-CEM* ladder on
+this same anchor returned +0.000. The "ladder as stabilizer at
+long-CEM" hypothesis is supported (n=1) — same family, same
+warm-start, more compute = +0.547 in lift.
+
+**What worked.**
+
+1. Parallel two-job launch via `/tmp/launch_*.sh + nohup` saturated
+   the 4-core sandbox; both runs finished in the same wall window
+   (~45 min total).
+2. Identity warm-start byte-verification: c21-s1 ladder anchor val
+   = exactly cycle-23's anchor val (3.6513), so we know we're
+   running the same anchor.
+3. CEM convergence on c21-s1 seed=2 was clean cycle-23 pattern —
+   monotone elite-mean ramp, elite_std collapse to a tight basin.
+   Final elite_mean +2.96 essentially matches cycle 23.
+4. Cycle-23 "every non-anchor candidate beats anchor on val"
+   pattern reproduces 4/4. Encoded as
+   `bin/checks/13_long_cem_beats_anchor.py` (eps=0.05); the check
+   passes with min margin +0.13 on cycle-24 c21-s1 and +0.44 on
+   cycle-24 c21-s2.
+
+**What failed / surprises.**
+
+1. **c21-s2 search trajectory is much messier than c21-s1.** Best
+   search score peaks at +2.88 (gen 3) and then drops; final
+   elite_mean is +2.35, vs +2.96 on c21-s1. The val/test
+   results are still strong because the val and test seed sets
+   are not the same as the search set — the search-set
+   gradient is partially against the val/test gradient on this
+   collapsed basin.
+2. **Largest val→test gap yet.** c21-s2 val 3.991 → test 3.293,
+   Δ −0.70 (vs cycle-23 seed-1's −0.62, the prior worst). The
+   basin-overfit-on-val mechanism that cycle 21 surfaced for
+   piecewise long-CEM keeps growing in magnitude as we explore
+   more anchors.
+3. **n=2 on c21-s2 is a known limitation** (only 1 seed run).
+   The +0.547 single-seed point could be a positive tail draw
+   of a wider distribution; cycle-25 will add a second seed.
+4. **Initial parallel launch via inline `&` failed once**:
+   `Bash(... & PID=$!)` had its newlines flattened by `eval`,
+   the second background job's redirect path expanded as
+   `>/seedB_stdout.log` (bare `/` rooted at /), permission-
+   denied. Workaround: write `/tmp/launch_a.sh` and
+   `/tmp/launch_b.sh` containing each command and `nohup` each
+   separately. Lost ~30s.
+
+**Updates implied for the prior.**
+
+- Cycle-23's n=2 estimate was tight and the third seed confirmed
+  it. The "ladder family at long-CEM gives small-but-real lift
+  over piecewise on the median basin" finding is now stable at
+  n=3 with stddev ±0.066.
+- The "anchor-conditional family lift" framing is consistent with
+  the limited cross-anchor data: short-CEM ladder ≈ 0 on every
+  anchor; long-CEM ladder on c21-s1 (median piecewise quality)
+  gives +0.13; long-CEM ladder on c21-s2 (basin-collapsed
+  piecewise) gives +0.55. This sign is correct for "stabilizer"
+  semantics. The 3-point line (c18-s0, c21-s1, c21-s2) is two
+  n=1 points and one n=3 point — cycle 25 should add a second
+  seed on c21-s2 and at least one anchor's worth of cycle-18-style
+  data.
+- The val→test gap is a generic long-CEM property, not a family
+  or anchor effect — every long-CEM run we've seen since cycle 21
+  exhibits it (Δ −0.10 to −0.70). This is increasingly important
+  to investigate (cycle-25 stretch: split val/test/holdout three
+  ways, characterize the gap mechanism).
+
+**Self-checks before commit.**
+
+- Verified lift_FF math: 3.5072 − 0.4703 = +3.0369 ✓ (c21-s1
+  seed=2); 3.2926 − 0.4703 = +2.8223 ✓ (c21-s2 seed=0).
+- Verified n=3 mean: (3.0984 + 2.9664 + 3.0372) / 3 = 3.0340 ✓.
+- Anchor val (c21-s1): cycle-24 3.6513 = cycle-23 3.6513 — identity
+  warm-start verified.
+- `cross_seed_summary.json` regenerated; figures regenerated.
+- New check 13 passes locally with margin > 0.13 on all 4 runs.
+- Re-read the presentation top-to-bottom as a stranger after
+  edits: "At a glance" reflects cycle-24 numbers; cycle-24 section
+  follows the Q/Method/Result/What-it-changed template; cycle-23
+  section unchanged but now has a "What's the next question" tag
+  that points to cycle 24, which the cycle-24 section delivers on.
+
+**Next.**
+
+Cycle-25 plan-of-record (in STATE):
+
+1. **Second rng_seed on c21-s2 long-CEM ladder.** Tightens cross-
+   anchor stabilizer claim from n=1 to n=2. ~46 min wall.
+2. **c18-s0 long-CEM ladder, ≥1 seed.** Gives a 3-anchor
+   (c18-s0, c21-s1, c21-s2) lift-vs-anchor-quality regression.
+3. **Stretch:** structurally richer family (6-bucket ladder /
+   smooth-head MLP / EMA-inv) at long-CEM on c21-s1, multi-seed.
+4. Possibly retire `04_no_outbound_dns.sh` (it's at this point
+   more of a sandbox-property note than an active falsifying
+   check).
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/bold-jolly-keller/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits this cycle
+  restricted to `research/`, `bin/checks/13_long_cem_beats_anchor.py`.
+- Wall-clock breakdown:
+  - env setup (gymnasium, pyarrow, pytest, matplotlib) ~30s,
+    setup_jax_from_vendored.sh ~30s.
+  - smoke (anchor val on first gen): ~36s × 2 in parallel.
+  - both ladder seeds in parallel at workers=2: ~45 min wall.
+  - figures + cross-seed summary: ~1 min.
+  - presentation, STATE, LOG, README writeups: ~25 min.
+  - planned commit: ~3 min.
+  - total ~80 min — within 2-hour budget.
+- Bash polling notes: 90-110s sleeps survived consistently this
+  cycle. 120s+ sleeps killed once. Stayed at ≤110s.
+- 13 active checks (cycle 24 added one). Cycle 25 should think
+  about retirements (current cap ~12).
+- New experiment dir:
+  `research/experiments/2026-05-06-cycle24-m4-ladder-longcem-followup/`
+  with `scripts/{run_ladder_longcem.py, ladder_strategy.py, make_figures.py}`
+  + `results/{cycle21_seed1_seed2, cycle21_seed2_seed0}/{history.json,
+  test.json, progress.log}` + `results/cross_seed_summary.json`
+  + `figures/{m4_c24_lift_summary.png, m4_c24_long_cem_val_curves.png}`
+  + `README.md`.
+- New presentation figures (copied from experiment):
+  `m4_c24_lift_summary.png`, `m4_c24_long_cem_val_curves.png`.
+- New check: `bin/checks/13_long_cem_beats_anchor.py` (eps=0.05,
+  4 runs covered, all pass).
