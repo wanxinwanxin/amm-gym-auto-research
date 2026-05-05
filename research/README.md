@@ -88,17 +88,21 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 14: M1 closed (cycle 5); **M2
+See `research/STATE.md`. As of cycle 17: M1 closed (cycle 5); **M2
 closed (cycle 13)** with deliverable test = **456.80** (piecewise
 warm-start CEM, cycle 11 d16_s2 cell, ~85% of way to 540 target).
-Cycle 13's gen=24 long-run CEM confirmed the recipe ceiling — the
-val-best after 24 generations was the anchor itself (gen 0). **M3
-active**. Cycle 14 ran the M3 cycle-1 dual-curve eval over the
-chronological M2 anchor sequence; first OOD result lands at
-real_data lift = **+2.92** above FixedFee, with a striking three-regime
-shape: early M2 anchors (c5, c6) are *actively harmful* OOD; the c8
-→ c9-EMA segment is high-leverage; cycles 9-EMA → 13 plateau OOD
-just like they plateau in-distribution. Cycle 15 plan: add held-out
-test seeds, replicate inversion on second anchor chain, decompose
-c5 real_data PnL to localize the failure mode. The cumulative
-narrative is in `research/presentation/index.html`.
+**M3 closed (cycle 16)** with the per-trade-size mechanism: c5↔c11
+retail-edge gap is ~95% small-bucket and the mechanism is a
+two-AMM router routing collapse (c5 captures only ~13% of small-trade
+count vs c11's ~57%). **M4 active (cycle 1 closed)**. The M4 headline
+result on real_data is now **+3.24 / lift_FF +2.77** from cycle 17's
+mirror experiment: 5-gen × 12-pop CEM directly on real_data,
+warm-started from c11 instead of c5. Same compute, same evaluator,
+same seeds as the cycle-16 c5+CEM baseline (which lifted only to
++0.74) — the +2.03 lift_FF gap is entirely attributable to the
+warm-start anchor. **Load-bearing finding: warm-start prior dominates
+short-budget CEM on real_data; the local basin matters more than the
+optimizer.** Cycle 18 plan: longer-budget CEM from c11 (10g × 24p,
+piecewise-family ceiling test) + prior sweep across {default, c6,
+c8, c11} at fixed compute to attach numbers to the basin effect. The
+cumulative narrative is in `research/presentation/index.html`.

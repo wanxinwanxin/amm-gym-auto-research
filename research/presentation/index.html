@@ -31,67 +31,71 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-05 (cycle 16). M2 deliverable (champion held since
+updated 2026-05-05 (cycle 17). M2 deliverable (champion held since
 cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
 <code>real_data</code> evaluator the same policy scores test =
 <strong>+2.57</strong> [CI +1.98, +3.16], a lift of
-<strong>+2.10</strong> over the FixedFee(0.003) baseline. Cycle 16
-ran the per-trade-size decomposition that cycle 15 set up: <strong>the
-c5↔c11 retail-edge gap is almost entirely a small-trade phenomenon</strong>
-(−10.67 of the −11.20 overall difference), and the mechanism is a
-<strong>routing collapse</strong> rather than a fee-level problem.
-Cycle 16 also planted the M4 cycle-0 baseline: a 5-gen × 12-pop CEM
-directly on <code>real_data</code> from the c5 anchor reaches lift_FF
-= <strong>+0.74</strong> on test, well below c11's +2.10 — so
-direct-on-real_data optimization, at this budget, doesn't reach the
-M2 ceiling. Read top-to-bottom; later milestones build on earlier
-ones.</p>
+<strong>+2.10</strong> over the FixedFee(0.003) baseline. Cycle 17
+ran the M4 mirror experiment — direct CEM-on-real_data warm-started
+from c11 instead of c5 — and lifted to test
+<strong>+3.24 / lift_FF +2.77</strong>, the new
+<code>real_data</code> headline. The mirror's lift over the c5+CEM
+M4 baseline (+2.03 lift_FF, same compute, same evaluator, only the
+warm-start differs) is the cycle's load-bearing finding: <strong>the
+warm-start prior dominates short-budget CEM on real_data; the local
+basin matters more than the optimizer.</strong> Read top-to-bottom;
+later milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
-  at cycle 13. M3 has had three cycles (14, 15, 16); cycle 16 also
-  opened M4 with a pre-launch baseline. Active milestone is now
-  M4 cycle 1.</li>
-  <li><strong>Headline numbers (held-out test, n=256, 95% bootstrap CI).</strong>
+  at cycle 13. M3 closed cycle 16 with the per-bucket mechanism
+  (small-bucket routing collapse). M4 has had two cycles (16, 17).
+  Active milestone is now <strong>M4 cycle 2</strong>.</li>
+  <li><strong>Headline numbers (held-out test, n=256).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
-    [448.0, 465.7] (16-d piecewise CEM, rng_seed=2; target 540).
-    M3 (real_data): same champion scores test <strong>+2.57</strong>
-    [+1.98, +3.16], a lift of <strong>+2.10</strong> over the
-    FixedFee(0.003) baseline of 0.470. M4 cycle-0 baseline (5-gen
-    × 12-pop CEM directly on real_data from c5):
-    <strong>+0.74 lift_FF</strong> on test, ~63% of the c11 ceiling.</li>
-  <li><strong>What we've learned about M2 generalization (now
-  with mechanism).</strong> Cycle 14 mapped the dual curve;
-  cycle 15 added bootstrap CIs and a retail/arb decomposition that
-  pinned the early-anchor failure on the retail side
-  (retail_edge_advantage swings −10.0 → +1.1 across the M2
-  trajectory; arb_loss_advantage stays in +1.7 to +3.7). Cycle 16
-  decomposed the retail gap by trade-size bucket: <strong>−10.67 of
+    [bootstrap 95% CI 448.0, 465.7] (16-d piecewise CEM, rng_seed=2;
+    target 540). M3 (real_data, c11 anchor): same champion scores
+    test <strong>+2.57</strong> [+1.98, +3.16], a lift of
+    <strong>+2.10</strong> over the FixedFee(0.003) baseline of
+    0.470. <strong>M4 (real_data, current best)</strong>: c11 + CEM
+    test <strong>+3.24, lift_FF +2.77</strong> (cycle-17 mirror,
+    5-gen × 12-pop CEM directly on real_data warm-started from c11).
+    The c5+CEM baseline at the same compute reaches +0.74 lift_FF —
+    +2.03 lift_FF lower than the c11+CEM mirror.</li>
+  <li><strong>What we've learned about M2 generalization (M3
+  closed).</strong> Cycle 14 mapped the dual curve; cycle 15 added
+  bootstrap CIs and a retail/arb decomposition that pinned the
+  early-anchor failure on the retail side. Cycle 16 decomposed
+  the c5↔c11 retail gap by trade-size bucket: <strong>−10.67 of
   the −11.20 overall difference is in the small bucket</strong>;
-  medium/large are within batch noise. The mechanism is a
-  <em>routing collapse</em>: c5 receives ~13% of small-trade count
-  while c11 receives ~57%. Per-unit-volume markout on the small
-  trades that <em>do</em> reach c5 is actually slightly below
-  FixedFee — so the router avoids c5 for <em>price</em> reasons
-  (mid placement / inventory skew), not fee reasons.</li>
-  <li><strong>What we've learned about direct-on-real_data
-  optimization (M4 cycle 0).</strong> Starting from c5 with a
-  5-gen × 12-pop CEM, the score climbs from −0.35 → +1.21
-  (+0.74 lift_FF on test), but retail_advantage <em>worsens</em>
-  from −10.14 → −13.10. All score gain is from arb. Direct CEM
-  finds an arb-side local optimum that doesn't fix the
-  small-bucket routing problem. The c11 anchor (an M2 challenge
-  byproduct) remains the strongest real_data policy on file.</li>
-  <li><strong>Open questions.</strong> (1) Does direct CEM on
-  real_data lift past +2.10 lift_FF when warm-started from c11
-  rather than c5? (Cycle 17 mirror experiment.) (2) Is the
-  cycle-16 M4 baseline retail_advantage drop (−10.14 → −13.10)
-  also a small-bucket worsening? (Cycle 17 decomp.) (3) Can a
-  retail-aware auxiliary loss (score + α × retail_edge) steer CEM
-  from c5 into the retail-fix basin?</li>
+  medium/large are within batch noise. Mechanism: routing
+  collapse — c5 receives ~13% of small-trade count, c11 receives
+  ~57%. Per-unit-volume markout on small trades that <em>do</em>
+  reach c5 is actually slightly below FixedFee — the router
+  avoids c5 for <em>price</em> reasons, not fee reasons.</li>
+  <li><strong>What we've learned about M4 (basin matters more than
+  the optimizer).</strong> Cycle 16's c5+CEM baseline lifted to
+  +0.74 but worsened retail_advantage. Cycle 17's c11+CEM mirror
+  — same compute, same evaluator, only the warm-start changes —
+  lifted to +2.77 AND kept retail_advantage positive (+0.66).
+  Per-bucket decomposition: c11+CEM <em>preserves</em> c11's
+  small-bucket retail edge (+1.45 [bootstrap 95% CI +1.05, +1.82],
+  vs the c11 anchor's +1.17), while c5+CEM <em>amplifies</em> the
+  c5 routing collapse (small-bucket submission share drops from
+  c5's 13% to 5.8%). The dominant CEM-induced retail degradation
+  in c5+CEM is in the <em>large</em> bucket (−2.40 of −3.20),
+  not small — falsifying the cycle-17 prior that the M4 baseline
+  retail drop was small-bucket dominated.</li>
+  <li><strong>Open questions.</strong> (1) Does longer-budget CEM
+  (10-gen × 24-pop) from c11 lift past +3.0 lift_FF, or saturate
+  near +2.77? (2) At fixed compute, what does final lift_FF look
+  like as a function of warm-start anchor — i.e. is the basin
+  effect monotonic in starting-line lift_FF? (3) Can a
+  retail-aware auxiliary loss (score + α × retail_edge_advantage)
+  bridge from c5 into the c11 basin?</li>
 </ul>
 </div>
 
@@ -112,6 +116,7 @@ ones.</p>
   <li><a href="#m4">M4 — Direct optimization on the realistic environment (active milestone)</a>
     <ul>
       <li><a href="#m4-c16">Cycle 16 (M4 cycle 0) — pre-launch baseline: direct CEM from c5</a></li>
+      <li><a href="#m4-c17">Cycle 17 (M4 cycle 1) — mirror experiment: direct CEM from c11; basin matters more than the optimizer</a></li>
     </ul>
   </li>
 </ul>
@@ -225,6 +230,35 @@ scale with policy complexity?
   a fixed reference that is itself path-realistic. Distinct from
   <code>edge_advantage</code>, which compares against the
   normalizer venue's edge in the <em>same</em> simulation.</li>
+  <li><strong>Mirror experiment (cycle 17).</strong> Re-running an
+  earlier experiment with one and only one input changed, keeping
+  everything else identical (compute, evaluator, seeds, search
+  recipe). Used here to isolate the effect of the warm-start
+  anchor: cycle-17's run is byte-for-byte cycle-16's M4 baseline
+  except the init mean is c11's params instead of c5's.</li>
+  <li><strong>Basin (or local basin).</strong> Informally, the
+  region of parameter space around an anchor that short-budget CEM
+  explores before its sampling distribution shrinks. Two anchors
+  are "in different basins" when small perturbations of either
+  cannot reach the other within a few CEM generations. Cycle 17
+  shows the c5 basin and the c11 basin produce qualitatively
+  different policies (retail-amplifying vs retail-preserving) at
+  the same compute budget.</li>
+  <li><strong>Prior sweep (vs complexity sweep).</strong> Two
+  orthogonal axes of M4 search. A <em>complexity sweep</em> varies
+  the policy family (parameter count, expressiveness) at fixed
+  warm-start. A <em>prior sweep</em> varies the warm-start anchor
+  at fixed family and compute. Cycle 17 falsified an implicit
+  cycle-16 assumption that complexity is the dominant axis;
+  cycle 18 will run the prior sweep to attach numbers to that
+  finding.</li>
+  <li><strong>Rerank pool injection (cycle 17).</strong> An
+  operational pattern: when CEM is warm-started from a known-good
+  anchor, inject the anchor itself into the rerank pool (the set
+  of candidates re-evaluated on val before picking best-by-val).
+  This guarantees best-by-val cannot regress past the anchor when
+  CEM gen-by-gen val noise (~0.1–0.4 score units on n=128) could
+  otherwise let an unlucky candidate win.</li>
 </ul>
 </div>
 
@@ -1817,6 +1851,149 @@ M4 cycle 1.
   a piecewise-family real_data ceiling and M4 needs richer
   families or a retail-aware loss.</li>
 </ol>
+</div>
+
+<h3 id="m4-c17">Cycle 17 (M4 cycle 1) — mirror experiment: direct CEM from c11; basin matters more than the optimizer</h3>
+
+<p><strong>Question.</strong> The cycle-16 baseline's score gain
+came entirely from arb, not retail, and ended at +0.74 lift_FF — far
+short of the c11 anchor's +2.10. Two non-mutually-exclusive
+hypotheses survived: (a) direct CEM on real_data could lift past
+c11 from a better starting point, in which case the
+warm-start <em>prior</em> dominates the policy class; (b) c11 is a
+ceiling for the piecewise family on real_data, and any anchor would
+saturate there. Cycle 17 runs the cleanest possible test of (a) vs
+(b): the same CEM as cycle 16, byte-for-byte, except the init mean
+is c11's params instead of c5's. We refer to this as a
+<em>mirror experiment</em> (single-input difference, otherwise
+identical) and reserve the prior-sweep framing for cycle 18. The
+cycle-16 STATE.md set a numerical decision rule before cycle 17 ran:
+<em>c11+CEM lift_FF &gt; +2.20 ⇒ "warm-start prior dominates";</em>
+<em>+2.00 to +2.20 ⇒ piecewise ceiling near +2.10;</em>
+<em>&lt; +2.00 ⇒ CEM is regressing c11.</em></p>
+
+<p><strong>Method.</strong> Identical to cycle 16's
+<code>run_m4_baseline_cem.py</code> except init mean = c11_d16_s2
+best-by-val params. Population 12, generations 5, elite_frac 0.2,
+init_std_frac 0.10, search seeds 0..63, val seeds 1000..1127, test
+seeds 2000..2255, normalizer FixedFee(0.003), 3 workers, rng_seed=0.
+The rerank pool injects the c11 anchor itself before adding 6
+elites by search score (the
+<em>rerank pool injection</em> trick — guarantees best-by-val
+cannot regress past the anchor on this run; see glossary). Wall-clock
+~34 min CEM (incl. a ~26-min sandbox stall on gen 3) + ~7 min
+rerank/test.</p>
+
+<p><strong>Result — c11+CEM lifts to +2.77; the &gt;+2.20 branch
+of the decision rule fires.</strong> Per-gen val trajectory:</p>
+
+<table>
+<tr><th>gen</th><th>best_search</th><th>val score</th><th>val retail_adv</th><th>val edge_adv</th></tr>
+<tr><td>—</td><td class="l">c11 anchor</td><td>+2.918</td><td>+1.067</td><td>+3.053</td></tr>
+<tr><td>0</td><td>+1.955</td><td>+2.918</td><td>+1.067</td><td>+3.053</td></tr>
+<tr><td>1</td><td>+2.398</td><td>+3.313</td><td>−1.758</td><td>+2.822</td></tr>
+<tr><td>2</td><td>+2.854</td><td>+3.473</td><td>+0.495</td><td>+3.935</td></tr>
+<tr><td>3</td><td>+3.000</td><td><strong>+3.720</strong></td><td>+0.696</td><td>+4.147</td></tr>
+<tr><td>4</td><td>+2.990</td><td>+3.673</td><td>−0.207</td><td>+3.697</td></tr>
+</table>
+
+<p>Best-by-val (gen 3) on the held-out test split (n=256): test
+score <strong>+3.242</strong>, FixedFee test 0.470, lift_FF
+<strong>+2.772</strong>, test retail_advantage <strong>+0.66</strong>,
+test edge_advantage +3.76. Same compute, same evaluator, same seeds
+as the cycle-16 baseline — only the warm-start changed — and the
+result is +2.03 lift_FF higher.</p>
+
+<figure>
+  <img src="m4_c17_lift_summary.png" alt="lift_FF summary">
+  <figcaption>4-anchor lift-vs-FixedFee summary on the held-out test
+  split (n=256). The c5 anchor scores below FixedFee on real_data;
+  the c5+CEM cycle-16 baseline lifts to +0.74; the c11 anchor (M2
+  byproduct) scores +2.10; the cycle-17 c11+CEM mirror lifts to
+  <strong>+2.77</strong>. The dashed line at +2.20 is the cycle-16
+  decision threshold. Same compute and same evaluator across the two
+  CEM runs; the +2.03 lift_FF gap is entirely attributable to the
+  warm-start anchor.</figcaption>
+</figure>
+
+<figure>
+  <img src="m4_c17_gen_val_curves.png" alt="c5 vs c11 CEM val curves">
+  <figcaption>Per-generation val score (n=128) for the two M4 CEM
+  runs. The c11+CEM trajectory starts above the c5+CEM
+  trajectory's <em>final</em> generation and never converges. The
+  dashed reference lines are the anchors' own val scores; the dotted
+  reference is FixedFee on real_data (~0.47). c11+CEM converges to
+  best-by-val at gen 3.</figcaption>
+</figure>
+
+<p><strong>Per-bucket decomposition: c11+CEM stays in c11's retail
+basin; c5+CEM amplifies the routing collapse.</strong> We re-ran
+cycle-16's per-trade-size decomposition on (a) the cycle-16 M4
+baseline's best-by-val params and (b) this cycle's c11+CEM
+best-by-val params, and merged with cycle 16's c5 / c11 numbers.
+On n=128 val seeds, retail_edge_advantage with bootstrap 95% CIs:</p>
+
+<table>
+<tr><th class="l">anchor</th><th>small</th><th>medium</th><th>large</th><th>overall</th></tr>
+<tr><td class="l">c5 anchor</td><td>−9.51 [−9.60, −9.41]</td><td>+0.04</td><td>−0.66</td><td>−10.14</td></tr>
+<tr><td class="l">c5 + CEM (cycle 16 baseline)</td><td class="neg">−10.33 [−10.45, −10.21]</td><td>+0.06</td><td class="neg">−3.06 [−3.71, −2.45]</td><td class="neg">−13.33</td></tr>
+<tr><td class="l">c11 anchor</td><td class="pos">+1.17 [+0.99, +1.32]</td><td>−0.02</td><td>−0.08</td><td class="pos">+1.07</td></tr>
+<tr><td class="l">c11 + CEM (this cycle)</td><td class="pos">+1.45 [+1.05, +1.82]</td><td>+0.07</td><td>−0.83</td><td class="pos">+0.70</td></tr>
+</table>
+
+<p>Routing share on the small bucket (count_sub / count_norm,
+mean per episode):</p>
+
+<table>
+<tr><th class="l">anchor</th><th>count_sub</th><th>count_norm</th><th>submission share</th></tr>
+<tr><td class="l">c5</td><td>401.6</td><td>2621.2</td><td>13.3%</td></tr>
+<tr><td class="l">c5 + CEM</td><td class="neg">164.7</td><td>2653.6</td><td class="neg">5.8%</td></tr>
+<tr><td class="l">c11</td><td>2031.7</td><td>1546.2</td><td>56.8%</td></tr>
+<tr><td class="l">c11 + CEM</td><td class="pos">1932.6</td><td>1265.4</td><td class="pos">60.4%</td></tr>
+</table>
+
+<figure>
+  <img src="m4_c17_retail_edge_by_bucket.png" alt="per-bucket retail_edge_advantage">
+  <figcaption>Retail edge advantage by trade-size bucket, four
+  anchors. Error bars are bootstrap 95% CIs (n=128 val seeds). The
+  c5+CEM bar in the small bucket sits below the c5 anchor — the
+  optimizer made the routing collapse <em>worse</em>, not better.
+  The c11+CEM bar in the small bucket sits slightly <em>above</em>
+  the c11 anchor — CEM stayed in the basin and improved within
+  it. The dominant CEM-induced regression in the c5 run is in the
+  <em>large</em> bucket (−2.40), not small.</figcaption>
+</figure>
+
+<div class="insight">
+<strong>What it changed.</strong> Three findings.
+<ol>
+  <li><strong>The warm-start prior dominates short-budget CEM on
+  real_data.</strong> Same compute, same evaluator, same seeds —
+  c5-start vs c11-start gap is +2.03 lift_FF. The c11+CEM mirror is
+  the new real_data headline (+2.77) and reframes M4 as a
+  basin-search problem first, a complexity-search problem second.</li>
+  <li><strong>CEM stays in the basin it starts from.</strong> c11's
+  small-bucket retail-friendly routing is preserved (and slightly
+  improved) by 5 generations of CEM; c5's small-bucket routing
+  collapse is amplified. The mechanism is consistent: CEM finds
+  whatever local optimum is closest to the anchor, and "closest"
+  means routing/pricing structure, not just score.</li>
+  <li><strong>The cycle-17 prior on the M4 baseline retail drop
+  was wrong (and that's useful).</strong> Going in, we expected
+  the M4 baseline's overall retail_advantage drop (−10.14 →
+  −13.33 on val) to be small-bucket-dominated, by analogy with
+  the c5↔c11 GAP. Reality: the drop is mostly large-bucket
+  (−2.40 of −3.20, ~75%); small only contributes ~26%
+  (−0.82). Don't reuse "small-bucket dominates the GAP" priors
+  when reasoning about "CEM-induced DEGRADATION" — different
+  mechanisms.</li>
+</ol>
+What's the next question? Two: (a) is +2.77 saturation or
+mid-trajectory? A 10-gen × 24-pop CEM from c11 (4× compute) is the
+direct test. (b) Is the basin effect monotonic in starting-line
+lift_FF, or are there pathological anchors that beat c11+CEM at
+the same compute? A prior sweep at fixed compute across {default,
+c6, c8, c11} answers this. Both run as cycle 18.
 </div>
 
 </body>

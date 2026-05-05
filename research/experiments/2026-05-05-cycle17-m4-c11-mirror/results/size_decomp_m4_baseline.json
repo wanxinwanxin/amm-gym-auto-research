@@ -1,0 +1,200 @@
+{
+  "evaluator_kind": "real_data",
+  "n_seeds": 128,
+  "seeds_range": [
+    1000,
+    1128
+  ],
+  "normalizer_fee": 0.003,
+  "small_cut": 0.003,
+  "large_cut": 0.012,
+  "anchors": [
+    {
+      "label": "c5_baseline",
+      "n_seeds": 128,
+      "per_bucket": {
+        "small": {
+          "retail_edge_advantage_mean": -9.507561931685515,
+          "retail_edge_advantage_ci95": [
+            -9.60191819192314,
+            -9.413309253510473
+          ],
+          "edge_sub_mean": 1.0177365255874262,
+          "edge_norm_mean": 10.525298457272942,
+          "count_sub_mean": 401.6171875,
+          "count_norm_mean": 2621.21875,
+          "amt_y_sub_mean": 358.45820653752367,
+          "amt_y_norm_mean": 2974.7020495440506
+        },
+        "medium": {
+          "retail_edge_advantage_mean": 0.035958749846674576,
+          "retail_edge_advantage_ci95": [
+            -0.14695036506419054,
+            0.23316472346684441
+          ],
+          "edge_sub_mean": 2.9266122292547063,
+          "edge_norm_mean": 2.8906534794080314,
+          "count_sub_mean": 3.6171875,
+          "count_norm_mean": 4.140625,
+          "amt_y_sub_mean": 223.58480457538394,
+          "amt_y_norm_mean": 274.0960394187815
+        },
+        "large": {
+          "retail_edge_advantage_mean": -0.6651343793959589,
+          "retail_edge_advantage_ci95": [
+            -0.8832483724891295,
+            -0.4692739153686765
+          ],
+          "edge_sub_mean": 1.6275669807741084,
+          "edge_norm_mean": 2.292701360170067,
+          "count_sub_mean": 0.6484375,
+          "count_norm_mean": 0.9375,
+          "amt_y_sub_mean": 85.54513230260852,
+          "amt_y_norm_mean": 132.19720204332674
+        }
+      },
+      "identity_check": {
+        "max_abs_err_sub": 1.2434497875801753e-14,
+        "max_abs_err_norm": 1.2434497875801753e-13
+      },
+      "overall_retail_edge_advantage": -10.136737561234803,
+      "elapsed_s": 45.30904960632324
+    },
+    {
+      "label": "m4_baseline",
+      "n_seeds": 128,
+      "anchor_params": {
+        "base_fee": 0.0033006375478787527,
+        "base_spread": 0.005250695965182226,
+        "signal_decay": 0.5197253349483911,
+        "toxicity_decay": 0.5215881156541683,
+        "small_trade_threshold": 0.004059042716434599,
+        "large_trade_threshold": 0.01830798512659926,
+        "continuation_small": 0.004653816150696683,
+        "continuation_medium": 0.014471890992106093,
+        "continuation_large": 0.014853883537272915,
+        "reversal_small": 0.013589768508865745,
+        "reversal_medium": 0.02005172677621231,
+        "reversal_large": 0.06147217471970454,
+        "continuation_to_same_side": -0.7002388922932792,
+        "continuation_to_cross_side": 0.5945329800586886,
+        "toxicity_to_mid": 0.0,
+        "toxicity_to_side": 0.03504609558211528
+      },
+      "anchor_source": "research/experiments/2026-05-05-cycle16-trade-size-decomp/results/m4_baseline/test.json",
+      "per_bucket": {
+        "small": {
+          "retail_edge_advantage_mean": -10.329726854064784,
+          "retail_edge_advantage_ci95": [
+            -10.453201931484458,
+            -10.207388614362293
+          ],
+          "edge_sub_mean": 0.739837499654203,
+          "edge_norm_mean": 11.069564353718985,
+          "count_sub_mean": 164.7265625,
+          "count_norm_mean": 2653.5546875,
+          "amt_y_sub_mean": 165.8051246939027,
+          "amt_y_norm_mean": 3161.231613011831
+        },
+        "medium": {
+          "retail_edge_advantage_mean": 0.057258403544040576,
+          "retail_edge_advantage_ci95": [
+            -0.4143538751148852,
+            0.5397449178515418
+          ],
+          "edge_sub_mean": 3.3195702185797336,
+          "edge_norm_mean": 3.2623118150356927,
+          "count_sub_mean": 2.84375,
+          "count_norm_mean": 3.984375,
+          "amt_y_sub_mean": 178.69515105582067,
+          "amt_y_norm_mean": 290.7720194019645
+        },
+        "large": {
+          "retail_edge_advantage_mean": -3.060444054101131,
+          "retail_edge_advantage_ci95": [
+            -3.7128555588813823,
+            -2.4494840431297744
+          ],
+          "edge_sub_mean": 0.826028580400972,
+          "edge_norm_mean": 3.8864726345021032,
+          "count_sub_mean": 0.328125,
+          "count_norm_mean": 1.3828125,
+          "amt_y_sub_mean": 42.4619951934358,
+          "amt_y_norm_mean": 208.2597540356606
+        }
+      },
+      "identity_check": {
+        "max_abs_err_sub": 1.0658141036401503e-14,
+        "max_abs_err_norm": 9.947598300641403e-14
+      },
+      "overall_retail_edge_advantage": -13.332912504621873,
+      "elapsed_s": 32.25111627578735
+    },
+    {
+      "label": "c11_d16_s2",
+      "n_seeds": 128,
+      "per_bucket": {
+        "small": {
+          "retail_edge_advantage_mean": 1.1671095127747098,
+          "retail_edge_advantage_ci95": [
+            0.9929422108228341,
+            1.3181005695942776
+          ],
+          "edge_sub_mean": 5.863472335480966,
+          "edge_norm_mean": 4.696362822706257,
+          "count_sub_mean": 2031.7109375,
+          "count_norm_mean": 1546.234375,
+          "amt_y_sub_mean": 1857.8735983444526,
+          "amt_y_norm_mean": 1477.4501468442907
+        },
+        "medium": {
+          "retail_edge_advantage_mean": -0.021931731878931104,
+          "retail_edge_advantage_ci95": [
+            -0.12124191149258087,
+            0.08044335583900632
+          ],
+          "edge_sub_mean": 2.5850050666811693,
+          "edge_norm_mean": 2.6069367985601004,
+          "count_sub_mean": 3.9140625,
+          "count_norm_mean": 3.953125,
+          "amt_y_sub_mean": 248.33341064344205,
+          "amt_y_norm_mean": 251.7054054778734
+        },
+        "large": {
+          "retail_edge_advantage_mean": -0.07849679892134431,
+          "retail_edge_advantage_ci95": [
+            -0.1879110868510301,
+            0.0219050849396232
+          ],
+          "edge_sub_mean": 1.7798431317821715,
+          "edge_norm_mean": 1.8583399307035156,
+          "count_sub_mean": 0.7734375,
+          "count_norm_mean": 0.7890625,
+          "amt_y_sub_mean": 105.24339033581293,
+          "amt_y_norm_mean": 109.12827752039179
+        }
+      },
+      "identity_check": {
+        "max_abs_err_sub": 4.796163466380676e-14,
+        "max_abs_err_norm": 4.085620730620576e-14
+      },
+      "overall_retail_edge_advantage": 1.0666809819744345,
+      "elapsed_s": 49.509403228759766
+    }
+  ],
+  "total_elapsed_s": 32.276296854019165,
+  "diffs": {
+    "small": {
+      "m4_minus_c5": -0.8221649223792689,
+      "m4_minus_c11": -11.496836366839494
+    },
+    "medium": {
+      "m4_minus_c5": 0.021299653697366,
+      "m4_minus_c11": 0.07919013542297168
+    },
+    "large": {
+      "m4_minus_c5": -2.3953096747051723,
+      "m4_minus_c11": -2.9819472551797865
+    }
+  }
+}

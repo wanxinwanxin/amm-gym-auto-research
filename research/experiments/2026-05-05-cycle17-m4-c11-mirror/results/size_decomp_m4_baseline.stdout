@@ -1,0 +1,12 @@
+[12:52:28] Cycle 17 — M4 baseline per-trade-size decomposition; evaluator=real_data; n_seeds=128
+[12:52:28]   anchor: m4_baseline (n_params=16); reported test_retail_advantage=-13.105
+[12:52:36]     seed 32/128 | 8.0s elapsed
+[12:52:45]     seed 64/128 | 16.1s elapsed
+[12:52:53]     seed 96/128 | 24.2s elapsed
+[12:53:01]     seed 128/128 | 32.3s elapsed
+[12:53:01]   m4_baseline | overall retail_adv=-13.333 | sub_id_err=1.07e-14 norm_id_err=9.95e-14 | 32.3s
+[12:53:01]     small  adv=-10.330 [-10.45,-10.21] | n_sub= 164.7 n_norm=2653.6 | edge_sub= +0.740 edge_norm=+11.070
+[12:53:01]     medium adv= +0.057 [ -0.41, +0.54] | n_sub=   2.8 n_norm=   4.0 | edge_sub= +3.320 edge_norm= +3.262
+[12:53:01]     large  adv= -3.060 [ -3.71, -2.45] | n_sub=   0.3 n_norm=   1.4 | edge_sub= +0.826 edge_norm= +3.886
+[12:53:01]   per-bucket diffs (m4 - c5, m4 - c11): {'small': {'m4_minus_c5': -0.8221649223792689, 'm4_minus_c11': -11.496836366839494}, 'medium': {'m4_minus_c5': 0.021299653697366, 'm4_minus_c11': 0.07919013542297168}, 'large': {'m4_minus_c5': -2.3953096747051723, 'm4_minus_c11': -2.9819472551797865}}
+[12:53:01] -> wrote /sessions/eager-kind-hawking/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle17-m4-c11-mirror/results/size_decomp_m4_baseline.json (0.5 min)

@@ -1,0 +1,39 @@
+[12:09:58] M4 c11 mirror CEM | piecewise on real_data | pop=12 gen=5 elite_n=2 init_std_frac=0.1 workers=3
+[12:10:33]   c11 val (real_data, n=128): score=  2.918 adv= +3.053 retail_adv= +1.067 (34.4s)
+[12:12:23]   gen  0: best_search= 1.955 elite_mean= 1.448 median=-0.803 val= 2.918 adv=+3.053 retail_adv=+1.067 ( 76.0s + 34.7s)
+[12:14:09]   gen  1: best_search= 2.398 elite_mean= 2.183 median=-0.020 val= 3.313 adv=+2.822 retail_adv=-1.758 ( 70.9s + 34.3s)
+[12:15:56]   gen  2: best_search= 2.854 elite_mean= 2.843 median= 2.269 val= 3.473 adv=+3.935 retail_adv=+0.495 ( 73.3s + 34.7s)
+[12:42:52]   gen  3: best_search= 3.000 elite_mean= 2.932 median= 2.554 val= 3.720 adv=+4.147 retail_adv=+0.696 (1581.1s + 34.6s)
+[12:44:43]   gen  4: best_search= 2.990 elite_mean= 2.948 median= 2.782 val= 3.673 adv=+3.697 retail_adv=-0.207 ( 75.1s + 35.5s)
+[12:44:43] CEM complete in 2050.2s (34.2 min)
+[12:51:03]   FixedFee test (real_data): 0.470 (69.1s)
+[12:51:03]   -> wrote /sessions/eager-kind-hawking/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle17-m4-c11-mirror/results/m4_c11_mirror/test.json
+[12:51:03] {
+  "params": {
+    "base_fee": 0.0007492192988665796,
+    "base_spread": 0.003686950935696736,
+    "signal_decay": 0.7583306790808898,
+    "toxicity_decay": 0.6269773146668973,
+    "small_trade_threshold": 0.00315078896032388,
+    "large_trade_threshold": 0.011496568307501457,
+    "continuation_small": -0.00011791355263698402,
+    "continuation_medium": 0.009358726874914675,
+    "continuation_large": 0.017455581194889047,
+    "reversal_small": 0.008392472513842782,
+    "reversal_medium": 0.016853244737236726,
+    "reversal_large": 0.07533155702272559,
+    "continuation_to_same_side": -0.6150076117850778,
+    "continuation_to_cross_side": 1.4577762159136194,
+    "toxicity_to_mid": 0.012362104092518809,
+    "toxicity_to_side": 0.06921154910088446
+  },
+  "val_score": 3.7197535331678844,
+  "val_edge_advantage": 4.147124229854016,
+  "val_retail_advantage": 0.6963585610029241,
+  "test_score": 3.2424133741953534,
+  "test_edge_advantage": 3.762265890822152,
+  "test_retail_advantage": 0.6628975862318871,
+  "test_n_seeds": 256,
+  "ff_test_score": 0.4703053718833298,
+  "lift_FF": 2.7721080023120237
+}

@@ -1,93 +1,121 @@
 # State — current cycle
 
-**Last updated**: 2026-05-05 (cycle 16 — closed)
+**Last updated**: 2026-05-05 (cycle 17 — closed)
 
 ## Active milestone
 
-**M3 cycle 3 (closed) → M4 cycle 0 (closed) → M4 cycle 1 (next).**
-Cycle 16 (this cycle) ran the per-trade-size decomposition that the
-cycle-15 plan-of-record requested, and ran the M4 pre-launch
-baseline as a small-budget direct-CEM-on-real_data experiment from
-the c5 anchor. Both produced sharp findings; M4 cycle 1 has a
-concrete plan.
+**M4 cycle 1 (closed) → M4 cycle 2 (next).**
+Cycle 17 ran the cycle-16 plan-of-record: (1) mirror experiment —
+direct CEM-on-real_data warm-started from c11 instead of c5, and
+(2) per-bucket decomposition of the cycle-16 M4 baseline. Both
+produced sharp findings; the load-bearing one is that the
+warm-start prior dominates short-budget CEM on real_data, which
+re-frames M4 as a prior-sweep before a complexity-sweep.
 
-## Headline numbers (held; reproduced cycle 16)
+## Headline numbers (held; reproduced cycle 17)
 
 - **Best M2 score (challenge test, n=256): 456.80**
   [CI 448.0, 465.7] — c11 d16_s2 (cycle-11 grid CEM, M2 deliverable).
-- **Best real_data lift_FF (test, n=256): +2.104**
-  for c11 d16_s2 (same anchor; OOD).
-- **M4 baseline lift_FF (test, n=256): +0.739**
-  (cycle-16 5-gen × 12-pop CEM from c5 on real_data).
+- **Best real_data lift_FF (test, n=256): +2.772**
+  for c11 + CEM (cycle-17 mirror, 5-gen × 12-pop CEM warm-started
+  from c11_d16_s2). Up from c11 anchor's +2.10 (M2 deliverable)
+  and the c5+CEM M4 baseline's +0.74.
+- **Same compute, c5-start vs c11-start gap: 2.03 lift_FF.** Same
+  evaluator (real_data), same population (12), same gens (5),
+  same seeds — only the warm-start changed.
 
-## Cycle-16 verdict
+## Cycle-17 verdict
 
-1. **Cycle-15's "early anchors are net-harmful OOD on retail
-   side" finding now has a *single-mechanism* explanation.** The
-   c5-vs-c11 retail_edge_advantage gap is almost entirely small-
-   bucket: −10.67 of the −11.20 overall difference. Medium and
-   large buckets are within batch noise (medium +0.06, large
-   −0.59). 95% bootstrap CIs on the small-bucket gap put c5 at
-   −9.51 [−9.60, −9.41] vs c11 at +1.17 [+0.99, +1.32].
-2. **The mechanism is a *routing collapse*, not a fee-level
-   problem.** c5 receives ~13% of small-trade count (401.6 vs
-   2621.2 routed to FixedFee); c11 receives ~57% (2031.7 vs
-   1546.2). Per-unit-volume markout (bps) on the small trades
-   that *do* reach c5 is 28.39 bps vs FF's 35.38 bps — i.e.
-   c5's small-trade fee is *under* 0.003 on average. The router
-   is sending small flow to FF for *price* reasons (mid placement
-   / inventory skew), not fee reasons.
-3. **Direct CEM on real_data from c5 is real but slow, and
-   amplifies the retail problem.** 5-gen × 12-pop CEM lifts c5
-   from −1.214 → +0.739 lift_FF on test. retail_advantage went
-   from c5's −10.14 → M4-baseline's −13.10 (worse). All score
-   gain came from arb, not retail. c11 (M2 deliverable, +2.10
-   lift_FF) still beats this baseline by +1.36 lift points.
-4. **Identity check on the per-bucket re-derivation is tight.**
-   Max abs error between simulator-aggregate `retail_edge_*` and
-   the per-event sum: 4.8e-14 (sub), 4.1e-14 (norm). Float
-   roundoff only. The per-bucket numbers are not introducing a
-   new measurement bias.
+1. **Decision rule from cycle 16 fires the "warm-start prior
+   dominates" branch.** c11+CEM lift_FF = +2.77 > +2.20 threshold.
+   The piecewise family on real_data has demonstrable headroom;
+   the bottleneck is finding the right starting basin.
 
-## Active hypothesis going into cycle 17
+2. **c11+CEM stays in c11's retail basin; c5+CEM amplifies the
+   routing collapse.** Per-bucket retail_edge_advantage on n=128
+   val seeds:
 
-> **"The local basin matters more than the policy family for M4
-> on real_data. Direct CEM on real_data from c11 lifts past +2.10
-> lift_FF; from c5 it converges to a different (arb-favoring) local
-> optimum that doesn't fix the small-bucket routing."**
+       anchor               | small  | medium | large  | overall
+       c5 baseline          | -9.51  | +0.04  | -0.66  | -10.14
+       c5 + CEM (c16 M4)    | -10.33 | +0.06  | -3.06  | -13.33
+       c11_d16_s2           | +1.17  | -0.02  | -0.08  | +1.07
+       c11 + CEM (this c)   | +1.45  | +0.07  | -0.83  | +0.70
+
+   c11+CEM keeps small-bucket retail edge POSITIVE and *slightly
+   higher* than the c11 anchor itself. Routing share on the small
+   bucket: c5 13.3%, c5+CEM 5.8% (worse), c11 56.8%, c11+CEM
+   60.4% (preserved/improved).
+
+3. **Cycle-17 prior — "M4 baseline retail drop is small-bucket
+   dominated" — is partially falsified.** Of the M4-vs-c5
+   retail-advantage drop of -3.20:
+   - small: -0.82 (~26%)
+   - medium: +0.02 (~-1%)
+   - large: -2.40 (~75%)
+   The dominant CEM-induced retail degradation is large-bucket.
+   The small bucket got slightly worse, not dramatically. Don't
+   reuse "small-bucket dominates the GAP" priors when reasoning
+   about "CEM-induced DEGRADATION" — different mechanisms.
+
+## Active hypothesis going into cycle 18
+
+> **"The piecewise family on real_data has more headroom than
+> +2.77 lift_FF. Either (a) longer-budget CEM from c11
+> monotonically climbs past +3.0 within ~10 gens, or (b) the basin
+> matters so much that the right experiment is to seed CEM from
+> many anchors and see which basins generalize best."**
 >
-> If true: M4 cycle 1's "policy complexity sweep" should be
-> augmented with a "policy prior sweep" (vary the warm-start anchor
-> while fixing the family). The richest-policy story is dominated
-> by where you start.
+> If true (a): a 10-gen × 24-pop CEM from c11 lifts to >= +3.2 by
+> gen ~6-7 and we close M4 cycle 2 with a clean piecewise-family
+> ceiling estimate.
 >
-> If false (c11+CEM saturates near +2.10): we have strong evidence
-> that c11 is a real_data ceiling for the piecewise family, and M4
-> needs richer families (ladder, MLP) or a retail-aware
-> auxiliary loss.
+> If true (b) but not (a): some non-c11 anchor (default, c8) lifts
+> past +3.0 with the same 5-gen × 12-pop budget, and the
+> family-vs-prior question becomes the M4 cycle 3 framing.
+>
+> If neither: c11+CEM saturates near +2.77 in 10 gens AND no other
+> anchor reaches +3.0 → c11 is the piecewise-family real_data
+> ceiling and M4 cycle 3 has to escalate to richer families
+> (ladder, MLP) or retail-aware loss.
 
-## Cycle-17 plan-of-record
+## Cycle-18 plan-of-record
 
-1. **Mirror experiment.** Run the same 5-gen × 12-pop CEM with
-   `evaluator_kind="real_data"` but warm-start from c11_d16_s2.
-   Same compute budget. Compare gen-by-gen trajectory and final
-   test lift_FF to cycle 16's M4 baseline (+0.739). Decision rule:
-   - if c11+CEM > +2.20 lift_FF → "the warm-start prior dominates";
-     M4 cycle 1 framing pivots to a prior-sweep.
-   - if c11+CEM ∈ [+2.00, +2.20] → c11 is a piecewise-family
-     real_data ceiling; need richer family or retail-aware loss.
-   - if c11+CEM < +2.00 → CEM on real_data is regressing c11; the
-     real_data evaluator is actively misleading the optimizer.
-   ~14 min.
-2. **Decomp the cycle-16 M4 baseline.** Rerun
-   `eval_size_decomp.py` against the M4-baseline best-by-val
-   params to confirm the retail_advantage drop (−10.14 → −13.10)
-   is a small-bucket worsening (the obvious hypothesis), and to
-   measure how the medium/large buckets moved. ~2 min.
-3. *(stretch, only if 1+2 finish in <30 min)* Retail-aware CEM:
-   redefine score = edge_advantage + α × retail_edge_advantage
-   with α=0.2, rerun from c5 with same budget. Tests whether a
-   small retail penalty steers CEM into the retail-fix basin.
+1. **Longer-budget CEM from c11.** 10-gen × 24-pop on real_data,
+   warm-started from c11_d16_s2. Same evaluator, same seeds, same
+   normalizer. Watch for plateau in best_search and val. Decision
+   rule:
+   - if test lift_FF > +3.20 → real_data ceiling > +3.20; M4 cycle
+     2 = "is +3.20 the actual ceiling or do we keep climbing?"
+   - if test lift_FF in [+2.80, +3.20] → c11+CEM saturating
+     near +3.0; ceiling probably nearby.
+   - if test lift_FF < +2.80 (i.e. < this cycle's 5-gen result)
+     → CEM noise or the longer run found a different elite that
+     overfit val; investigate.
+   - Wall-clock estimate: ~30-40 min CEM + ~10 min rerank/test ≈
+     50 min. Use the nohup + poll-every-8-min pattern from cycle 16.
+
+2. **Prior sweep at fixed compute.** 5-gen × 12-pop CEM (this
+   cycle's exact budget) from each of {default-piecewise, c6
+   (cycle-6 warm-start), c8 (inv-aware), c11_d16_s2 — already done
+   as the cycle-17 mirror, included for axis continuity}. Plot
+   final lift_FF vs starting-line lift_FF. Single-figure answer
+   to "how does basin determine convergence?"
+   - Wall-clock: ~50 min (3 new runs × ~12 min each + figure).
+
+3. *(stretch, only if 1 + 2 finish in <90 min)* Retail-aware CEM
+   from c5: redefine search score = edge_advantage + 0.2 ×
+   retail_edge_advantage. Same 5-gen × 12-pop budget. Tests
+   whether a small retail penalty bridges from c5 to the c11
+   basin.
+
+## M4 cumulative history
+
+| pass | family | warm-start | budget | test lift_FF | retail_adv |
+|--|--|--|--|--:|--:|
+| anchor (c5) | piecewise | inh | — | -1.22 | -10.14 |
+| anchor (c11_d16_s2) | piecewise | warm c5 (M2) | challenge CEM | +2.10 | +1.08 (val) |
+| **c5 + CEM** | piecewise | c5 | 5g×12p, real_data | **+0.74** | -13.10 |
+| **c11 + CEM** | piecewise | c11_d16_s2 | 5g×12p, real_data | **+2.77** | +0.66 |
 
 ## M2 cumulative history (closed; reproduced for context)
 
@@ -107,18 +135,23 @@ concrete plan.
 | c12 stage 2 | piecewise (fresh) | 16 | default+wide | 0 | 418.65 | (not OOD-evaluated) |
 | c13 longrun | piecewise | 16 | warm | 0 | 456.80 | +2.57 (+2.10) — same as c11 |
 | c16 M4 baseline | piecewise | 16 | c5 warm + real_data CEM | 0 | (not measured) | +1.21 (+0.74) |
+| **c17 M4 mirror** | piecewise | 16 | c11 warm + real_data CEM | 0 | (not measured) | **+3.24 (+2.77)** |
 
 ## Blockers for user
 
-- **jax install OOMs on this sandbox.** Same as cycles 11-15 — 3.9
+- **jax install OOMs on this sandbox.** Same as cycles 11-16 — 3.9
   GB RAM, no swap, `pip install jax[cpu]` dies with exit 143.
   Documented as the passing-when-failing check
   `bin/checks/08_jax_optional.sh` (vendored wheels make it
   importable on this fresh sandbox after the cycle's setup step).
+- **pyarrow install OOMs on this sandbox** (added cycle 17). Not
+  needed for current cycle's experiments; flagged for any future
+  driver that wants Parquet round-trips. Workaround: use JSON or
+  feather via `pandas.to_feather` (pandas dep is preinstalled).
 - **torch not installed on this sandbox** — `tests/test_training.py`
   collection fails with `ModuleNotFoundError: No module named 'torch'`.
-  Passes through `--ignore`d list during `pytest -x -q`. Either
-  install torch host-side or treat as an acknowledged-skipped suite.
+  Either install torch host-side or treat as an
+  acknowledged-skipped suite.
 - **Push topology** (origin git@github.com…; sandbox can't resolve
   DNS) means commits are pushed by host-side tooling, not in-sandbox.
   Cycle-1 `checks/04_no_outbound_dns.sh` already encodes this as a
@@ -131,33 +164,39 @@ concrete plan.
 - Use `python3` (system, 3.10.12); `.venv/bin/python` is broken on
   this Linux sandbox.
 - Project deps for fresh sandbox: `pip install --break-system-packages
-  --no-cache-dir gymnasium pyarrow pytest matplotlib`. (numpy is
-  preinstalled.) jax via `bin/setup_jax_from_vendored.sh`.
+  --no-cache-dir gymnasium pytest matplotlib`. (numpy is preinstalled;
+  pyarrow OOMs and is optional for the experiments.) jax via
+  `bin/setup_jax_from_vendored.sh`.
 - Cannot `unlink` files in the sandbox results dir; drivers should
   open log files in `"w"` mode to truncate instead of deleting.
-  **Cycle-16 reminder**: when authoring a new long-running driver,
+  Cycle-16+17 reminder: when authoring a new long-running driver,
   do NOT copy `LOGFILE.unlink(missing_ok=True)` from cycle-6 etc.
   Use `LOGFILE.open("w").close()` instead. (Encoded as the
   passing-when-failing check 05.)
-- CPU: 4 cores. CEM at pop=12 / dim=16 / 3 workers ≈ 67 s/gen on
-  real_data (vs ~125 s/gen on challenge with pop=24); scaling
-  roughly linear in pop. Real_data eval is slightly slower per
-  candidate (10000 episode steps reading from empirical
-  distribution).
+- CPU: 4 cores. CEM at pop=12 / dim=16 / 3 workers ≈ 70-80 s/gen on
+  real_data; pop=24 ≈ ~125 s/gen extrapolating from cycle 6. Real_data
+  eval slightly slower per candidate (10000 episode steps reading
+  from empirical distribution) than challenge eval.
 - **Bash-tool polling subtlety**: `sleep N` with N > 600 is killed
   with exit 143; even N ≈ 540 sometimes returns 143. Pattern that
-  works: launch via `nohup ... &` once, then poll `progress.log`
-  every 8-9 min. Cycle 16 used this pattern for the 14-min M4
-  baseline.
-- **Sandbox can rotate mid-run**: cycle 16 saw a sandbox restart
-  during the first M4 attempt. Always set up incrementally-saved
-  checkpoints (`history.json` written every gen) so a restart
-  doesn't lose the search trajectory.
+  works: launch via `nohup ... &` once, then poll the experiment's
+  `progress.log` every 8-9 min.
+- **Sandbox can stall mid-run**: cycle 17 saw a ~26-min stall on
+  gen 3 of an otherwise ~70 s/gen CEM. Always set up
+  incrementally-saved checkpoints (`history.json` written every
+  gen) so a stall (or restart) doesn't lose the search trajectory.
+- **Rerank pool injection trick (added cycle 17)**: when running
+  CEM from a known-good warm-start anchor on real_data, inject the
+  anchor itself into the rerank pool BEFORE adding elites by
+  search score. Guarantees `best_by_val` cannot regress past the
+  anchor — important when CEM gen-by-gen val noise (~0.1-0.4 score
+  units on n=128) could otherwise let a candidate with a lucky
+  val draw be picked over the anchor.
 - **`bin/checks/` policy**: `bash bin/run_checks.sh` first thing
   every cycle. Currently 12 active checks (no addition or
-  retirement cycle 16). Carry-forward `08_jax_optional` and
+  retirement cycle 17). Carry-forward `08_jax_optional` and
   `04_no_outbound_dns` are passing-when-failing predictors
   documenting the sandbox topology, not work-to-do — keep them.
 - **Inherited working-tree changes** (across `arena_eval/`,
   `arena_policies/`, `arena_search/`, `tests/`, etc.) untouched per
-  convention; cycle-16's only edits were under `research/`.
+  convention; cycle-17's only edits were under `research/`.

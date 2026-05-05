@@ -1982,3 +1982,181 @@ plant a flag for M4 cycle 1.
   cycle-6 patterns; switched to truncate-on-open. Worth noting
   for any future driver-author: the cycle-15 LOG already flagged
   this gotcha for `progress.log`-style writes.
+
+---
+
+## 2026-05-05T13:00Z — cycle 17 — M4 mirror: c11+CEM lifts past +2.20, prior dominates short-budget CEM
+
+**Plan for the cycle.** Cycle 16 closed with two open questions baked
+into a decision rule: (1) does direct CEM-on-real_data from the c11
+anchor saturate near +2.10 lift_FF (piecewise-family real_data
+ceiling), or lift past it (warm-start prior dominates)? (2) the
+cycle-16 M4 baseline retail_advantage degradation (-10.14 → -13.10,
+test) — is it concentrated in the small-trade bucket (the obvious
+hypothesis given the cycle-16 c5 vs c11 small-bucket gap), or
+distributed differently?
+
+The cycle-17 plan-of-record (from cycle-16 STATE.md) was: (a) mirror
+experiment — same 5-gen × 12-pop CEM as cycle 16, but warm-started
+from c11_d16_s2; (b) per-trade-size decomposition of the M4 baseline
+best-by-val params; (c) stretch — retail-aware CEM tiebreaker.
+
+**What I ran.**
+
+1. `run_m4_c11_mirror_cem.py` — identical to cycle-16's
+   `run_m4_baseline_cem.py` except init mean = c11_d16_s2 best-by-val
+   params. Same population (12), generations (5), elite_frac (0.2),
+   init_std_frac (0.10), search/val/test seeds (0..63 / 1000..1127 /
+   2000..2255), normalizer FixedFee(0.003, 0.003), rng_seed (0). 3
+   workers. The rerank pool injects the c11 anchor itself before
+   adding 6 elites by search score — guarantees no regression past
+   the anchor on best-by-val.
+
+2. `eval_size_decomp_m4_baseline.py` — per-bucket retail_edge
+   decomposition on the cycle-16 M4 baseline best-by-val params,
+   merged with cycle-16's c5 / c11 numbers into a single 3-anchor
+   table.
+
+3. (added mid-cycle) `eval_size_decomp_c11_mirror.py` — per-bucket
+   decomp on this cycle's c11+CEM best-by-val params, to test
+   whether CEM stayed in c11's retail basin or drifted toward c5's
+   arb-side basin.
+
+4. `make_figures.py` — three PNGs: gen-by-gen val curves (c5+CEM vs
+   c11+CEM), 4-anchor per-bucket grouped bar, 4-anchor lift_FF
+   summary.
+
+(Stretch retail-aware CEM not run — cycle budget consumed by a
+mid-run sandbox stall during gen 3 that added ~26 min wall-clock,
+plus the unplanned c11-mirror decomp that turned out to be the
+load-bearing finding.)
+
+**What worked / what I learned.**
+
+- **Decision rule fires: warm-start prior dominates short-budget
+  CEM on real_data.** c11+CEM lift_FF on test (n=256) = **+2.77**,
+  comfortably above the +2.20 threshold. By contrast c5+CEM ended
+  at +0.74. Same compute budget, same evaluator, same population —
+  +2.03 lift_FF difference is entirely attributable to where the
+  CEM started.
+
+- **The c11 trajectory converges in val by gen 3.** Per-gen val
+  scores: 2.918 (anchor), 3.313 (gen 1), 3.473 (gen 2), 3.720
+  (gen 3, best-by-val), 3.673 (gen 4). The gen-3 best-by-val is
+  what scored +2.77 on test.
+
+- **c11+CEM preserves retail basin; c5+CEM amplifies the routing
+  collapse.** Per-bucket retail_edge_advantage (n=128 val):
+
+      anchor               | small  | medium | large  | overall
+      c5 baseline          | -9.51  | +0.04  | -0.66  | -10.14
+      c5 + CEM (c16 M4)    | -10.33 | +0.06  | -3.06  | -13.33
+      c11_d16_s2           | +1.17  | -0.02  | -0.08  | +1.07
+      c11 + CEM (this c)   | +1.45  | +0.07  | -0.83  | +0.70
+
+  c11+CEM held the small-bucket retail edge POSITIVE (+1.45,
+  bootstrap CI [+1.05, +1.82], if anything *better* than the c11
+  anchor's +1.17). The +0.83 large-bucket regression is small in
+  absolute terms (~1 trade per episode) but qualitatively similar
+  to c5+CEM's larger -3.06 regression. CEM regresses on the large
+  bucket from any starting point, just less so when starting from
+  a basin where large-bucket pricing is already close to FF.
+
+- **Cycle-17 hypothesis ("M4 baseline retail drop is dominated by
+  small-bucket worsening") is partially falsified.** Of the M4-vs-c5
+  drop of -3.20:
+  - small: -0.82 (~26%)
+  - medium: +0.02 (~-1%)
+  - large: -2.40 (~75%)
+  The dominant degradation is large-bucket. The small bucket got
+  slightly worse, not the dominant driver. The cycle-16 prior (
+  "small-bucket dominates the c5/c11 GAP") is correct (-10.67 of
+  -11.20 there); but the cycle-17 prior ("small-bucket also
+  dominates the c5+CEM degradation") is wrong.
+
+- **Routing share evidence on the small bucket is striking.** c5
+  routes 13.3% of small trades to submission; c5+CEM routes only
+  5.8% (CEM made the routing collapse *worse*). c11 routes 56.8%;
+  c11+CEM routes 60.4% (basin preserved, slightly improved).
+
+**What failed (or surprised on the downside).**
+
+- **gen 3 stalled mid-run for ~26 min** (1581 s for one gen vs the
+  ~75 s typical). The other 4 gens completed in ~70-80 s each as
+  expected. I suspect a sandbox slowdown rather than a code path —
+  rng_seed and search seeds are deterministic, so this isn't search-
+  noise. Did not impede the result; the gen completed. Not encoding
+  as a check (this is the second time I've seen sandbox-stall on a
+  long-running CEM and there's no falsifying programmatic test for
+  "sandbox slowed down").
+
+- **My intuitive prior on cycle-17 hypothesis (b) was wrong.** I'd
+  expected M4-baseline retail drop to be dominated by small-bucket
+  worsening (because the c5/c11 retail GAP is small-bucket
+  dominated). Reality: the M4 baseline retail DEGRADATION from
+  c5 is predominantly large-bucket. Updates implied: when
+  reasoning about CEM-from-anchor effects on the realistic
+  evaluator, don't reuse priors about the c5/c11 GAP — the
+  *pattern of degradation* and the *pattern of difference* are
+  different mechanisms.
+
+- **The "small-bucket routing collapse" framing of cycle 16 is
+  still correct for c5 vs c11 but is NOT the right framing for
+  cycle-16 M4 baseline vs c5.** The cycle-16 LOG and STATE
+  emphasized small-bucket as THE mechanism; cycle 17 shows it's
+  the dominant inter-anchor difference but not the dominant
+  CEM-effect.
+
+**Updates implied for the prior.**
+
+- **The local basin matters more than the policy family for
+  short-budget CEM on real_data.** This is now a load-bearing
+  finding for M4. Same compute, same family — +2.03 lift_FF
+  difference between c5-start and c11-start. M4's policy
+  complexity sweep cannot be evaluated without controlling for
+  warm-start.
+
+- **Re-frame cycle-18+ as a prior sweep** at fixed compute and
+  fixed family before doing complexity sweeps. Vary the warm-start
+  anchor across {default, c5, c6, c8, c11} and measure final
+  lift_FF. This isolates basin from family.
+
+- **A longer-budget CEM from c11 is probably the next single most
+  informative experiment.** c11+CEM hasn't plateaued at gen 4
+  (median search score still rising; val is mildly oscillating
+  near 3.7 but gen 3 won). 10-gen × 24-pop should resolve whether
+  the piecewise family on real_data caps near +3.0 lift_FF or has
+  more headroom.
+
+**Next.**
+
+- **Cycle-18 plan-of-record:**
+  1. *Longer-budget CEM from c11.* 10-gen × 24-pop on real_data,
+     same anchor. Total compute ≈ 4× this cycle. Tests the
+     piecewise-family real_data ceiling.
+  2. *Prior sweep at fixed compute.* 5-gen × 12-pop CEM from
+     each of {default-piecewise, c6, c8, c11_d16_s2, c11_d24_s0}.
+     Plot final lift_FF vs anchor. Disentangles basin from
+     compute.
+  3. *(stretch)* Retail-aware CEM from c5 with the +0.2 ×
+     retail_edge_advantage tiebreaker. Tests whether a small
+     retail penalty bridges to the c11 basin.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/eager-kind-hawking/mnt/amm-gym-auto-research`.
+- Edits restricted to `research/` and the new cycle-17 experiment dir.
+  Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention.
+- Wall-clock: ~5 min orient + ~5 min env setup + ~34 min CEM (incl.
+  ~26 min sandbox stall on gen 3) + ~7 min rerank/test + ~1 min
+  M4-baseline decomp + ~1 min c11-mirror decomp + ~1 min figures +
+  ~30 min STATE/LOG/presentation/README + commit ≈ 84 min. Within
+  the 2h budget despite the stall.
+- All 12 active checks pass at start of cycle (08_jax_optional and
+  03_required_python_deps pass after `pip install gymnasium` +
+  `bin/setup_jax_from_vendored.sh`). No checks added or retired
+  this cycle.
+- `pyarrow` install OOM'd on this sandbox; not needed for the
+  cycle's experiments (only for some BigQuery exports). Logged but
+  not encoded.
