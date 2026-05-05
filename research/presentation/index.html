@@ -31,25 +31,27 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-05 (cycle 19). M2 deliverable (champion held since
+updated 2026-05-05 (cycle 20). M2 deliverable (champion held since
 cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
 <code>real_data</code> evaluator the same policy scores test =
 <strong>+2.57</strong> [CI +1.98, +3.16], a lift of
 <strong>+2.10</strong> over the FixedFee(0.003) baseline. Cycle 18
-established the piecewise-family <code>real_data</code> ceiling near
+established a piecewise-family <code>real_data</code> reading near
 test <strong>+3.48 / lift_FF +3.01</strong> via a long-budget CEM
-warm-started from c11. <strong>Cycle 19</strong> attacked the next
-question — is the ceiling representational or compute-limited? — with
-two experiments: (a) a 16-param "step-back-to-anchor" importance
-ablation on c11+CEM long (load is concentrated in <em>base_fee</em>,
-Δ&nbsp;val −1.946, and <em>reversal_small</em>, Δ&nbsp;val −0.755);
-(b) a policy-family escalation to a 4-bucket "ladder" controller
-(splits the small-trade bucket in two; 19 dims total) warm-started
-from c11+CEM long. The ladder lifts the headline to test
-<strong>+3.72 / lift_FF +3.25</strong>, a +0.25 incremental gain in
-the [+3.20, +3.50] "marginal" band of the cycle-18 decision rule —
-the family is part of the answer but not a step-change.
+warm-started from c11 (single seed). Cycle 19 ran a single-seed
+4-bucket "ladder" family escalation and reported
+<strong>+3.72 / +3.25</strong>, a +0.25 incremental lift.
+<strong>Cycle 20</strong> ran the cycle-19 plan-of-record
+reproducibility check at <code>rng_seed</code> 1 and 2: the ladder's
+3-seed mean test <code>lift_FF</code> on real_data is
+<strong>+3.111 ± 0.126</strong> (range +3.006 to +3.251, with seed=2
+returning the warm-start unchanged). Cycle-19's +3.25 was a
+single-seed positive draw, not a reproducible family lift; the
+<strong>"+3.0 lift_FF ceiling" hypothesis is re-confirmed at
+multi-seed</strong> across both piecewise (cycle 18) and ladder
+(cycle 20) families. Going forward, any family/budget claim at this
+CEM budget needs ≥3 seeds before being entered as a headline.
 Read top-to-bottom; later milestones build on earlier ones.</p>
 
 <div class="summary">
@@ -57,41 +59,64 @@ Read top-to-bottom; later milestones build on earlier ones.</p>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
   at cycle 13; M3 closed at cycle 16 with the per-bucket mechanism
-  (small-bucket routing collapse). M4 has had four cycles (16, 17,
-  18, 19). Active milestone is <strong>M4 cycle 4</strong> (next).</li>
+  (small-bucket routing collapse). M4 has had five cycles (16, 17,
+  18, 19, 20). Active milestone is <strong>M4 cycle 5</strong>
+  (next).</li>
   <li><strong>Headline numbers (held-out test, n=256).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
     [bootstrap 95% CI 448.0, 465.7] (16-d piecewise CEM, rng_seed=2;
     target 540). M3 (real_data, c11 anchor): same champion scores
     test <strong>+2.57</strong> [+1.98, +3.16], lift_FF
     <strong>+2.10</strong> over FixedFee(0.003) baseline 0.470.
-    <strong>M4 (real_data, current best)</strong>: ladder-4-bucket
-    family warm-started from c11+CEM long, test <strong>+3.72, lift_FF
-    +3.25</strong> (cycle 19, 5-gen × 12-pop CEM, 19 dims). Test
-    retail_advantage <strong>+3.11</strong>, essentially flat vs the
-    +3.21 c11+CEM long achieved — score gain is on the arb side.</li>
+    <strong>M4 (real_data, current frontier)</strong>: across the
+    cycle-18/19/20 CEM budget, the multi-seed mean test
+    <code>lift_FF</code> sits in <strong>[+3.00, +3.11]</strong>
+    on both piecewise (cycle 18, single seed +3.006) and ladder-4-
+    bucket (cycle 20, 3 seeds, mean <strong>+3.111 ± 0.126</strong>,
+    range [+3.006, +3.251]). Cycle-19's +3.25 single-seed result is
+    the upper end of this distribution, not a reproducible new
+    headline. The single-seed cycle-19 ladder result remains the
+    nominal best (test <strong>+3.72, lift_FF +3.25</strong>), but
+    is reported here as a positive-tail draw, not a population
+    estimate.</li>
+  <li><strong>What cycle 20 changed.</strong> The cycle-19 plan-of-
+    record reproducibility check (re-run ladder CEM with
+    <code>rng_seed=1</code>, then <code>rng_seed=2</code>) returned
+    test <code>lift_FF</code> +3.076 and +3.006 respectively. With
+    n=3 seeds the ladder family adds <strong>+0.105 mean</strong>
+    over c11+CEM long — within ±0.13 seed stddev. Cycle-19's
+    "+0.245 incremental gain from family escalation" is overconfident
+    at n=1; the cycle-18 "saturating near +3.0" verdict is
+    re-confirmed multi-seed. Single-seed CEM at this budget is
+    high-variance enough that any future family-escalation claim
+    needs ≥3 seeds before being entered as a headline.</li>
   <li><strong>What we've learned about M4 (basin dominates compute).</strong>
     The cycle-18 prior sweep (5-gen × 12-pop CEM from each of
     {default, c5, c6, c8_16d, c11}, fixed compute) produces a near-
     monotone basin plot: anchor val score predicts ~80% of the
-    variance in final lift_FF. Final lift_FF: default <strong>+1.05</strong>,
-    c5 <strong>+0.74</strong>, c6 <strong>+1.89</strong>, c8_16d <strong>+2.35</strong>, c11_short
-    <strong>+2.77</strong>, c11_long <strong>+3.01</strong>. Same family, same compute,
-    same seeds — only the warm-start changes. Multiplying the CEM
-    compute budget by 4 (cycle-17 c11_short → cycle-18 c11_long) buys
-    only +0.23 lift_FF; switching the warm-start from c5 to c11 at
-    fixed cycle-17 compute buys +2.03. <strong>Basin dominates
-    compute by ~10×.</strong></li>
-  <li><strong>What we've learned about retail (cycle-18 update).</strong>
-    The longer CEM didn't merely repeat cycle-17's gains — it moved
-    DEEPER into c11's retail-positive basin. Per-bucket decomp on
-    long-CEM best-by-val (n=128 val): small-bucket retail_adv
-    <strong>+3.31</strong> [bootstrap 95% CI +3.15, +3.45] vs the c11
-    anchor's +1.17 and cycle-17 c11+CEM's +1.45. Medium and large
-    buckets are statistical noise. <em>Score gain and retail-edge
-    gain are not in tension here</em>: the optimizer found a region
-    of policy space where small-bucket pricing simultaneously
-    extracts more arb edge AND grants more retail surplus.</li>
+    variance in final lift_FF. Final single-seed lift_FF: default
+    <strong>+1.05</strong>, c5 <strong>+0.74</strong>, c6
+    <strong>+1.89</strong>, c8_16d <strong>+2.35</strong>, c11_short
+    <strong>+2.77</strong>, c11_long <strong>+3.01</strong>. Same
+    family, same compute, same seeds — only the warm-start changes.
+    Switching the warm-start from c5 to c11 at fixed cycle-17 compute
+    buys +2.03 lift_FF; multiplying the CEM compute budget by 4
+    (cycle-17 c11_short → cycle-18 c11_long) buys +0.23.
+    <strong>Basin dominates compute by ~10×.</strong> (Caveat: this
+    is single-seed across all anchors. With cycle-20's ±0.13 stddev,
+    individual-anchor numbers can move ±0.25 across rng_seeds; the
+    rank-ordering effect is still the dominant signal.)</li>
+  <li><strong>What we've learned about retail (cycle-18 / -20 update).</strong>
+    Cycle 18's longer CEM moved deeper into c11's retail-positive
+    basin: small-bucket retail_adv <strong>+3.31</strong> [bootstrap
+    95% CI +3.15, +3.45] vs the c11 anchor's +1.17 and cycle-17
+    c11+CEM's +1.45. Cycle 20 added a sober note: the retail vs
+    arb split varies wildly across rng_seeds for the same family at
+    the same budget (ladder retail_adv +3.11 / +3.83 / +3.22 across
+    seeds 0/1/2 — a 0.7 spread). Cycle-19's "family escalation pays
+    on the arb side, compute extension pays on the retail side"
+    generalisation was overfit to a single-seed comparison; the
+    relationship is not stable enough to read as a mechanism.</li>
   <li><strong>What we've learned about M2 generalization (M3 closed).</strong>
     Cycle 14 mapped the dual curve; cycle 15 added bootstrap CIs and
     a retail/arb decomposition pinning the early-anchor failure on
@@ -101,31 +126,20 @@ Read top-to-bottom; later milestones build on earlier ones.</p>
     within batch noise. Mechanism: routing collapse — c5 receives
     ~13% of small-trade count, c11 ~57%. The router avoids c5 for
     <em>price</em> reasons, not fee reasons.</li>
-  <li><strong>What cycle 19 added (param-importance + ladder).</strong>
-    The step-back-to-anchor ablation on c11+CEM long localizes the
-    gain over the c11 anchor to two parameters carrying ~80% of the
-    individual importance: <em>base_fee</em> (Δ val −1.946 when reset)
-    and <em>reversal_small</em> (Δ val −0.755). The remaining 14
-    parameters each contribute Δ &lt; 0.32. The ladder-4-bucket family
-    (splits "small" into "tiny" + "small"; 19 dims total) warm-started
-    from c11+CEM long lifts test from +3.48 to <strong>+3.72</strong>
-    (lift_FF +3.01 → +3.25) in 5 gens × 12 pop. The CEM pushed
-    <em>reversal_small</em> to its lower bound (−0.01) — consistent
-    with the ablation finding that reversal_small is load-bearing and
-    the optimizer wants to turn the small-bucket reversal-defense term
-    into a small-bucket reversal <em>incentive</em> when given the
-    extra resolution.</li>
   <li><strong>Open questions.</strong>
-    (1) Does relaxing the reversal_small lower bound (or a wider
-    init_std on the new dims) buy further lift, or is +3.25 the
-    ladder ceiling? (2) Does a finer ladder (k=5, k=8) or a fundamentally
-    different state representation (EMA-inv, MLP head over the same
-    inputs) unlock the +0.5 step-change cycle 18 conjectured, or
-    is +3.5 lift_FF the structural ceiling for piecewise-style families?
-    (3) Cycle-19 ladder retail_adv is essentially flat at +3.11
-    (vs c11+CEM long +3.21) — does the family escalation help in
-    arb-side regions only, or does a wider rerank pool (more compute)
-    recover the retail edge?</li>
+    (1) Is the +3.0 lift_FF on real_data a <em>budget</em> ceiling
+    or a <em>population</em> ceiling? Cycle 21 plans a multi-seed
+    repeat of cycle-18's long-CEM recipe (10g × 24p) on c11+CEM
+    long itself with rng_seed ∈ {0, 1, 2} — same family, same
+    budget, just three seeds — to find out.
+    (2) Once the ceiling shape is pinned down, does a structurally
+    different family (smooth-head MLP, EMA-inv state) lift the
+    multi-seed mean above +3.20? This is now a multi-seed question
+    from the start.
+    (3) Why does seed=2 of the ladder CEM never beat the warm-start
+    on val? Is the population init_std too narrow on the inherited
+    dims, or is the search-seed batch sometimes mis-aligned with
+    the val distribution?</li>
 </ul>
 </div>
 
@@ -149,6 +163,7 @@ Read top-to-bottom; later milestones build on earlier ones.</p>
       <li><a href="#m4-c17">Cycle 17 (M4 cycle 1) — mirror experiment: direct CEM from c11; basin matters more than the optimizer</a></li>
       <li><a href="#m4-c18">Cycle 18 (M4 cycle 2) — long-budget CEM + 5-anchor prior sweep; basin dominates compute by ~10×</a></li>
       <li><a href="#m4-c19">Cycle 19 (M4 cycle 3) — param-importance ablation + ladder-family escalation</a></li>
+      <li><a href="#m4-c20">Cycle 20 (M4 cycle 4) — ladder-CEM seed reproducibility check (REPRO_FAIL)</a></li>
     </ul>
   </li>
 </ul>
@@ -313,6 +328,26 @@ scale with policy complexity?
   <code>(continuation_small, reversal_small)</code>, the ladder
   reproduces piecewise behaviour exactly at gen 0 (verified 0.000
   diff on 8 challenge seeds).</li>
+  <li><strong>rng_seed (CEM rng_seed).</strong> The integer seeding
+  the numpy <code>default_rng</code> that draws CEM populations
+  generation by generation. <em>Distinct</em> from search/val/test
+  seeds, which are simulator-evaluation seeds: those are fixed across
+  rng_seeds. Changing the rng_seed re-rolls every CEM sample
+  generation 1 onwards (gen 0 is shared because the warm-start mean
+  is injected as candidate 0).</li>
+  <li><strong>REPRO_FAIL / REPRO_OK / REPRO_BETTER (cycle 20).</strong>
+  Decision-rule labels for a reproducibility check on a prior
+  cycle's headline. Cycle 19 set a strict band [+3.15, +3.35] for
+  the ladder's test <code>lift_FF</code>; cycle 20 seed=1 returned
+  +3.076 (below band) → REPRO_FAIL. The label is a research
+  bookkeeping device, not an indictment — REPRO_FAIL just means
+  "the previous cycle's reading sits outside the seed-noise floor."</li>
+  <li><strong>Seed dispersion (cycle 20).</strong> The standard
+  deviation of a held-out test metric across rng_seeds when all
+  other knobs are held fixed. For the ladder CEM at the cycle-20
+  budget, lift_FF stddev = ±0.126 across 3 seeds. Used in cycle 20
+  to argue that single-seed lift claims at this budget are
+  high-variance.</li>
 </ul>
 </div>
 
@@ -2368,15 +2403,28 @@ sub-additivity is intrinsic to the score landscape, not a bug.</p>
 
 <p>Ladder vs piecewise c11+CEM long: <strong>+0.245 lift_FF</strong>,
 <strong>+0.245 test score</strong>, retail_adv <em>−0.10</em>
-(essentially flat). This sits in the [+3.20, +3.50] "marginal" band of
-the cycle-18 decision rule — not the &gt; +3.50 "structural" band —
-so a 4-bucket ladder genuinely helps but does not lift the picture
-into a new regime. The ladder's best-by-val pushed the new
-<code>reversal_small</code> all the way to the lower bound (−0.01)
-while the inherited <code>reversal_small</code> for the rebroken bucket
-stayed close to its anchor; the <code>tiny_trade_threshold</code>
-widened from 0.00142 (init) to 0.00243, growing the tiny bucket's
-share of small trades.</p>
+(essentially flat) <em>at <code>rng_seed=0</code></em>. This sits in
+the [+3.20, +3.50] "marginal" band of the cycle-18 decision rule.
+The ladder's best-by-val pushed the new <code>reversal_small</code>
+all the way to the lower bound (−0.01) while the inherited
+<code>reversal_small</code> for the rebroken bucket stayed close to
+its anchor; the <code>tiny_trade_threshold</code> widened from
+0.00142 (init) to 0.00243, growing the tiny bucket's share of small
+trades.</p>
+<div class="callout" style="border-left:4px solid #b6841c; background:#fff8e6; padding:0.6em 1em; margin:1em 0; font-size:0.95em;">
+<strong>Superseded by cycle 20 (see below).</strong> The single-seed
+<code>+3.251 / +0.245</code> headline reported here did not survive the
+cycle-19 plan-of-record reproducibility check. With three rng_seeds
+(0, 1, 2) the ladder family's mean test <code>lift_FF</code> is
+<strong>+3.111 ± 0.126</strong>, range [+3.006, +3.251]. The
+single-seed +0.245 incremental gain over c11+CEM long collapses to
+<strong>+0.105 ± 0.13</strong> at n=3 — within seed noise. The
+"saturating near +3.0" verdict from cycle 18 is re-confirmed at
+multi-seed across both piecewise (cycle 18, 1 seed) and ladder
+(cycle 20, 3 seeds). The cycle-19 reading of the ablation as
+mechanistic ground for family escalation is not invalidated; the
+<em>magnitude</em> of the family payoff was overestimated at n=1.
+</div>
 
 <p><strong>What it changed.</strong></p>
 <ol>
@@ -2422,6 +2470,134 @@ CEM stochasticity, not a single-seed pickup of a lucky elite. Cycle
 20 will pick (c) first as a cheap reproducibility check, then (a)
 or (b) depending on whether the seed-1 result lands above or below
 the seed-0 lift_FF.</p>
+</div>
+
+<div class="cycle">
+<h3 id="m4-c20">Cycle 20 (M4 cycle 4) — ladder-CEM seed reproducibility check (REPRO_FAIL)</h3>
+
+<p><strong>Question.</strong> Cycle 19 ran the 4-bucket ladder family
+CEM with <code>rng_seed=0</code> and reported test <code>lift_FF
++3.251</code> — the upper edge of cycle-18's [+3.20, +3.50] "marginal"
+band. The cycle-19 STATE plan-of-record explicitly flagged the
+single-seed risk and called for a reproducibility check at
+<code>rng_seed=1</code> as cycle 20's first task: was that signal
+seed-stable, or did cycle-19 catch a lucky pick of the search
+distribution? The decision rule was strict — seed-1 lift_FF in
+[+3.15, +3.35] reproducible, &lt;+3.15 lucky, &gt;+3.35 even better.
+Why this matters: a +0.245 single-seed lift sits inside the typical
+range of CEM rng-stream noise at this budget, so the cycle-19
+"family escalation pays" verdict could not be trusted without a second
+data point.</p>
+
+<p><strong>Method.</strong> Identical CEM mechanics, identical search
+seeds (0..63), val seeds (1000..1127), and test seeds (2000..2255) to
+cycle 19 — only <code>rng_seed</code> changed: 0 → 1, then 0 → 2 once
+seed-1 returned below the band. Sharing the seed splits across
+rng_seeds means any test-score drift across runs is attributable to
+the CEM rng stream alone, not to evaluator data drift. Anchor
+warm-start unchanged: c11+CEM long params expanded to 19 dims with the
+identity warm-start (<code>tiny = small</code>). FF baseline
+re-evaluated on the same TEST seeds.</p>
+
+<p><strong>Result.</strong></p>
+
+<figure>
+  <img src="m4_c20_seed_dispersion.png" alt="bar chart of test lift_FF across rng_seeds 0/1/2 vs c11+CEM long anchor and cycle-19 reproducibility band">
+  <figcaption>Test <code>lift_FF</code> for the ladder-4-bucket family
+  across three rng_seeds (held-out test n=256, real_data). The
+  cycle-18 c11+CEM long single-seed anchor (+3.006, dashed black
+  line) sits below all three ladder points but well within their
+  spread. The yellow band marks cycle-19's strict
+  reproducibility decision rule [+3.15, +3.35]. Seed=0 lands at
+  the upper edge; seed=1 lands below; seed=2 returns the warm-start
+  anchor unchanged because every elite candidate scored below the
+  anchor on val.</figcaption>
+</figure>
+
+<table>
+<thead>
+<tr>
+  <th class="l">rng_seed</th>
+  <th class="l">source pick</th>
+  <th>test_score</th>
+  <th>lift_FF</th>
+  <th>retail_adv</th>
+  <th>edge_adv</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0 (cycle 19)</td><td class="l">gen 4 elite</td><td>+3.721</td><td class="pos">+3.251</td><td>+3.113</td><td>+5.163</td></tr>
+<tr><td>1 (cycle 20)</td><td class="l">gen 4 elite</td><td>+3.546</td><td>+3.076</td><td>+3.834</td><td>+5.431</td></tr>
+<tr><td>2 (cycle 20)</td><td class="l"><em>anchor</em> (CEM elites lost on val)</td><td>+3.476</td><td>+3.006</td><td>+3.215</td><td>+4.925</td></tr>
+<tr><td colspan="2" class="l"><strong>mean ± stddev (n=3)</strong></td><td><strong>+3.581</strong></td><td><strong>+3.111 ± 0.126</strong></td><td>+3.39 ± 0.39</td><td>+5.17 ± 0.25</td></tr>
+<tr><td colspan="2" class="l">c11+CEM long anchor (cycle 18, single seed)</td><td>+3.476</td><td>+3.006</td><td>+3.215</td><td>+4.925</td></tr>
+</tbody>
+</table>
+
+<figure>
+  <img src="m4_c20_val_curves.png" alt="ladder CEM search-score trajectories for rng_seeds 0/1/2">
+  <figcaption>Per-generation best/elite-mean search-score trajectory
+  for the three ladder CEM rng_seeds. The seed=2 trajectory (green) is
+  strictly below the warm-start anchor's effective search-side
+  baseline of ~2.9 — every gen returns an elite worse than gen 0 — and
+  consequently no candidate survives val rerank against the anchor.
+  Seeds 0 and 1 both climb above the warm-start by gen 4 but converge
+  to elite-mean values within a few hundredths of each other, despite
+  ending at +0.175 lift_FF apart on test.</figcaption>
+</figure>
+
+<p>The seed=2 outcome is the most informative single data point. With
+the same warm-start, same population size, same generation count, same
+init_std fractions, same evaluator, same search seeds — only the rng
+stream changed — the CEM produced a population trajectory that never
+escaped the warm-start basin. One in three rng_seeds at this budget
+returns the anchor unchanged. The seed=1 outcome is also informative:
+the chosen candidate scored val 3.930 (above anchor 3.885 by +0.045)
+but on test it dropped to 3.546 (val→test gap of −0.384, larger than
+seed=0's −0.309), pulling lift_FF below the cycle-19 band.</p>
+
+<p><strong>What it changed.</strong></p>
+<ol>
+  <li><strong>Cycle-19's headline was a single-seed positive draw, not
+  a reproducible family lift.</strong> The 3-seed ladder mean test
+  <code>lift_FF</code> is +3.111, stddev ±0.126, range [+3.006, +3.251].
+  Cycle-19's +3.251 is the maximum of that distribution, ~1σ above the
+  mean. Over c11+CEM long's anchor +3.006, the family payoff is
+  <strong>+0.105 ± 0.13 mean</strong> at n=3 — a signal indistinguishable
+  from zero at this budget.</li>
+  <li><strong>The cycle-18 "saturating near +3.0" verdict is
+  re-confirmed at multi-seed.</strong> Across families (piecewise long-
+  CEM, ladder-4bucket) and across rng_seeds, the test <code>lift_FF</code>
+  on real_data sits in [+3.00, +3.11]. Whatever cycle-19's gen-4
+  candidate found, the population mean has not moved. Whether
+  this is a budget ceiling or a representational ceiling is now the
+  live M4 question.</li>
+  <li><strong>Single-seed CEM at this budget is high-variance.</strong>
+  Pop=12 × gen=5 produces gen-4-best-on-val test scores with stddev
+  ~0.13 across rng_seeds — comparable to the typical claimed effect
+  size of family/budget escalations at this stage. Going forward, any
+  M4 family-or-budget claim at this CEM budget needs ≥3 seeds before
+  being entered as a headline.</li>
+  <li><strong>Cycle-19's "family pays on arb side, compute extension
+  pays on retail side" generalisation was overfit.</strong> Within the
+  ladder family alone, the 3 rng_seeds produce retail_adv of +3.11 /
+  +3.83 / +3.22 — a 0.7 spread. The family doesn't have a stable
+  retail/arb signature; the same family at the same budget finds basins
+  with very different splits. The cycle-19 reading was a
+  single-seed coincidence, not a mechanism.</li>
+</ol>
+
+<p>What's the next question? Whether the +3.0 ceiling is a
+<em>budget</em> or a <em>population</em> property. The natural test is
+to repeat cycle-18's long-CEM recipe (10g × 24p, piecewise, warm c11)
+across 3 rng_seeds — no family change, just three seeds — and see what
+the multi-seed mean <code>lift_FF</code> looks like. If &gt; +3.20, the
++3.0 was a budget/anchor-search-noise ceiling and additional compute
+on the prior family is the answer; if it stays in [+3.00, +3.20], the
++3.0 is a population ceiling and a structurally different family
+(smooth-head MLP, EMA-inv state) is the next move — but with ≥3 seeds
+from the start. Cycle 21 will run this multi-seed long-CEM
+reproducibility check.</p>
 </div>
 
 </body>

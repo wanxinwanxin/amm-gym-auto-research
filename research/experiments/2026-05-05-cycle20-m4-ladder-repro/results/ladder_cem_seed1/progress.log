@@ -1,0 +1,21 @@
+[18:07:12] M4 cycle-20 ladder-family CEM repro | dim=19 | pop=12 gen=5 elite_n=2 init_std_inh=0.05 init_std_new=0.15 workers=3 RNG_SEED=1
+[18:07:45]   anchor_ladder val (real_data, n=128): score= +3.885 adv= +5.257 retail_adv= +3.268 (33.6s)
+[18:09:01]   gen 0: best= +2.901 elite_mean= +2.226 all_mean= -1.674 (75.6s)
+[18:10:12]   gen 1: best= +2.914 elite_mean= +2.909 all_mean= +1.534 (71.1s)
+[18:11:24]   gen 2: best= +3.021 elite_mean= +3.016 all_mean= +2.924 (71.5s)
+[18:12:35]   gen 3: best= +3.056 elite_mean= +3.053 all_mean= +2.969 (71.6s)
+[18:13:47]   gen 4: best= +3.073 elite_mean= +3.070 all_mean= +3.055 (71.7s)
+[18:13:47]   CEM done in 361.5s
+[18:13:47]   rerank pool: 7 candidates (anchor + top 6 unique elites)
+[18:14:21]     rerank 0 (    anchor): val= +3.885 adv= +5.257 retail_adv= +3.268 (34.0s)
+[18:14:55]     rerank 1 (      gen4): val= +3.930 adv= +5.723 retail_adv= +3.853 (34.0s)
+[18:15:29]     rerank 2 (      gen4): val= +3.902 adv= +5.699 retail_adv= +3.848 (34.0s)
+[18:16:03]     rerank 3 (      gen3): val= +3.896 adv= +5.715 retail_adv= +3.855 (33.9s)
+[18:16:36]     rerank 4 (      gen3): val= +3.903 adv= +5.721 retail_adv= +3.890 (33.7s)
+[18:17:10]     rerank 5 (      gen2): val= +3.851 adv= +5.876 retail_adv= +4.153 (33.7s)
+[18:17:44]     rerank 6 (      gen2): val= +3.865 adv= +5.619 retail_adv= +3.758 (33.6s)
+[18:19:59]   TEST best (n=256): score= +3.546 adv= +5.431 retail_adv= +3.834
+[18:19:59]   FF test score:  +0.470
+[18:19:59]   lift_FF (test): +3.076
+[18:19:59]   verdict (+3.076 vs cycle-19 +3.251): REPRO_FAIL
+[18:19:59] wrote /sessions/eager-exciting-allen/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle20-m4-ladder-repro/results/ladder_cem_seed1/test.json

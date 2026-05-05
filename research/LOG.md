@@ -2544,3 +2544,145 @@ Cycle-20 plan-of-record (in STATE):
   `figures/{m4_c19_param_importance.png, m4_c19_ladder_val_curve.png}`.
 - New presentation figures: `m4_c19_param_importance.png`,
   `m4_c19_ladder_val_curve.png` (also in cycle dir).
+
+---
+
+## 2026-05-05 cycle 20 — M4 cycle 4: ladder-CEM seed reproducibility check (REPRO_FAIL)
+
+**Plan for the cycle.** Per cycle-19 STATE plan-of-record: re-run the
+ladder CEM with `rng_seed=1` (cycle-19 used seed 0). Decision rule on
+test lift_FF: [+3.15, +3.35] reproducible / <+3.15 lucky / >+3.35
+better. If repro succeeds, attempt smooth-head MLP escalation (stretch).
+
+**Hypothesis.** Cycle-19's +3.251 lift_FF is seed-stable to ±0.1; the
+ladder family genuinely beats c11+CEM long by ≈+0.25 lift_FF.
+
+**What ran.**
+
+1. Repro check seed=1: cycle-19 ladder CEM (5g × 12p, 19d, identical
+   warm-start, identical search/val/test seed splits). Result on
+   held-out test n=256: lift_FF +3.076. **Below the [+3.15, +3.35]
+   band → REPRO_FAIL**.
+2. Given the seed-1 miss, ran a third seed (seed=2) to estimate the
+   ladder's seed-distribution mean and dispersion. Seed=2 returned
+   lift_FF +3.006 — the rerank-pool best on val was the **anchor
+   itself** (CEM never produced a candidate that beat the warm-start
+   on val). One in three seeds returned the warm-start unchanged.
+3. Built a 3-seed dispersion figure and per-gen search-score
+   trajectory figure. Wrote a cross-seed summary.
+
+**Results (held-out test n=256, real_data):**
+
+| seed | source pick | test_score | lift_FF | retail_adv | edge_adv |
+|--:|--|--:|--:|--:|--:|
+| 0 (cycle 19) | gen 4 elite | 3.721 | +3.251 | +3.113 | +5.163 |
+| 1 (cycle 20) | gen 4 elite | 3.546 | +3.076 | +3.834 | +5.431 |
+| 2 (cycle 20) | anchor (CEM never beat warm-start) | 3.476 | +3.006 | +3.215 | +4.925 |
+
+- Cross-seed lift_FF: **mean +3.111**, **stddev ±0.126**, range
+  [+3.006, +3.251] (Δ=0.245).
+- Anchor (c11+CEM long, single seed): +3.006.
+- Ladder lift over c11+CEM long: **+0.105 mean** vs cycle-19's
+  +0.245 single-seed claim.
+
+**What worked.** The ProcessPoolExecutor + nohup pattern is now boring
+and reliable — both seed-1 and seed-2 runs completed in ~12 min
+each without retries. The shared seed-split across rng_seeds isolates
+the rng stream as the single source of variance, exactly as
+intended.
+
+**What failed / surprises.**
+
+1. **Cycle-19's headline was a single-seed positive draw, not a
+   reproducible family lift.** With 3 seeds the ladder family adds
+   +0.105 lift_FF on average — within the ±0.13 seed stddev. Cycle 19's
+   "+0.25 incremental gain" verdict was overconfident at n=1.
+2. **Seed=2 produced no improvement at all**: the search-CEM produced
+   a strictly worse trajectory than the warm-start on every gen, and
+   the rerank correctly returned the anchor. This is informative
+   about the optimization landscape — at this budget the rng stream
+   sometimes places the gen-0 population in a region where the
+   subsequent CEM iterates converge below the warm-start.
+3. **Retail vs arb split varies wildly across seeds.** Seed=0:
+   retail +3.11 / edge +5.16. Seed=1: retail +3.83 / edge +5.43.
+   Same family, same budget, different basins. Cycle-19's
+   generalization that "family escalation pays on the arb side,
+   compute extension pays on the retail side" was overfit to a
+   single-seed comparison.
+4. **The cycle-18 "saturating near +3.0" verdict, which cycle 19
+   partially falsified, is RE-CONFIRMED at this CEM budget.** Across
+   families and across rng seeds the mean lift_FF on real_data sits
+   in [+3.00, +3.11]. Whatever cycle-19's gen-4 candidate found,
+   the population mean has not moved.
+
+**Self-checks before commit.**
+
+- Re-read presentation top-to-bottom as a stranger. The "At a glance"
+  and the cycle-19 section must be revised: the +3.72 / +3.25 number
+  is no longer the headline; the multi-seed +3.111 ± 0.126 is.
+- Verified the lift_FF math from each test.json:
+  seed=0: 3.721213 - 0.470305 = 3.250908 ✓
+  seed=1: 3.546481 - 0.470305 = 3.076175 ✓
+  seed=2: 3.476019 - 0.470305 = 3.005714 ✓ (= c11+CEM long)
+- Sanity: anchor val for all 3 seeds is identical (3.885) — the
+  anchor is deterministic; only the rng stream that draws CEM
+  populations differs.
+
+**Updates implied for the prior.**
+
+- Single-seed CEM at this budget (pop=12 × gen=5) has ±0.13 stddev
+  on the gen-4 best-on-val candidate's test_score. *Any* future
+  M4 family-escalation claim at this budget needs ≥3 seeds.
+- The ladder family did not unlock any structural headroom over
+  c11+CEM long. Within seed noise, the two are equivalent. The
+  open question (M4): is there *any* policy family that lifts
+  real_data lift_FF above ~+3.10 at this evaluator/budget?
+- The smooth-head MLP escalation that cycle-19 STATE recommended
+  for cycle 20 is **deferred**: the premise it would have built
+  on (ladder lifted lift_FF over piecewise) is now in question.
+  The right next experiment is either (a) larger CEM budget on
+  c11+CEM long itself, multi-seeded, to see whether the "saturating
+  near +3.0" is a population-mean ceiling vs an upper-tail estimate;
+  or (b) a structurally different policy family — EMA-inv state,
+  or learned smooth pricing head — but multi-seeded from the
+  start, not single-seeded.
+
+**Next.**
+
+Cycle-21 plan-of-record (in STATE):
+1. Multi-seed budget-extension on c11+CEM long itself (no family
+   change). Run cycle-18's long-CEM recipe (10g × 24p) with 3
+   seeds. If cross-seed mean lift_FF stays ≈+3.0 and seed std is
+   ~0.13, the +3.0 ceiling is a population ceiling (structural).
+   If mean lifts >+3.2 with multiple seeds, the ceiling was a budget
+   ceiling.
+2. Conditional on (1): a new family experiment (smooth-head MLP, or
+   EMA-inv) but with ≥3 seeds *from the start*.
+3. *(stretch)* Encode the "n=1 family escalation is unreliable" rule
+   as a `bin/checks/` script that flips if a future single-seed
+   experiment lifts beyond the multi-seed ladder mean by > 1 stddev.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/eager-exciting-allen/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits restricted to
+  `research/` and the new cycle-20 experiment dir.
+- Wall-clock breakdown:
+  - env setup (3 deps, jax from vendored): ~2 min
+  - seed=1 run (CEM + rerank + test): ~13 min
+  - seed=2 run: ~13 min
+  - figure script + cross-seed summary: ~2 min
+  - LOG/STATE/presentation/README writeups: ~25 min
+  - total ~55 min — within budget.
+- 12 active checks. 03_required_python_deps and 08_jax_optional both
+  passed after the cycle's setup step (same as prior cycles). No
+  checks added or retired this cycle.
+- New experiment dir:
+  `research/experiments/2026-05-05-cycle20-m4-ladder-repro/`
+  with `scripts/{ladder_strategy.py, run_ladder_cem_seed1.py,
+  run_ladder_cem_seed2.py, make_figures.py}` + results subdirs +
+  `figures/{m4_c20_seed_dispersion.png, m4_c20_val_curves.png}` +
+  `README.md`.
+- New presentation figures: `m4_c20_seed_dispersion.png`,
+  `m4_c20_val_curves.png`.
