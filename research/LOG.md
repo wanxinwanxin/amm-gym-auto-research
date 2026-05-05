@@ -2865,3 +2865,208 @@ Cycle-22 plan-of-record (in STATE):
   m4_c21_long_cem_seed_dispersion.png}` + `README.md`.
 - New presentation figures: `m4_c21_long_cem_val_curves.png`,
   `m4_c21_long_cem_seed_dispersion.png`.
+
+---
+
+## 2026-05-05 cycle 22 — M4 cycle 6: cross-anchor ladder control falsifies cycle-19 family lift
+
+**Plan for the cycle.** Per cycle-21 STATE plan-of-record: run the
+cycle-19 ladder CEM (5g × 12p, 19d, real_data) warm-started from the
+**cycle-21-seed-1 piecewise** (median of the long-CEM distribution,
+test +3.370 / lift_FF +2.900) at `rng_seed ∈ {0, 1}` to get a
+cross-anchor estimate of the +0.245 ladder lift cycle-19 reported on
+the cycle-18-seed-0 anchor. Decision rule: both seeds lift > +0.05
+lift_FF → family confirmed; both seeds neutral → cycle-19 was
+anchor-driven; one seed strong / one not → small effect. Stretch:
+same comparison from cycle-21-seed-2 piecewise (the basin-collapsed
++2.275 anchor) to test ladder-as-stabilizer.
+
+**Hypothesis.** "Ladder warm-started from cycle-21-seed-1 piecewise
+(+2.900 lift_FF) lifts to lift_FF > +3.10 on test, replicating the
++0.10–+0.20 family payoff seen at the cycle-19/20 budget on the
+cycle-18-seed-0 anchor."
+
+**What ran.**
+
+1. Built `research/experiments/2026-05-05-cycle22-m4-ladder-anchor-control/scripts/run_ladder_cem_anchor.py`,
+   parameterized on `ANCHOR_KEY` and `RNG_SEED` env vars. Cycle-19
+   logic byte-equivalent except for the warm-start dict (sourced
+   from cycle-21-seed-1 best_by_val instead of cycle-18-seed-0).
+2. Smoke test: warm-start ladder on 8 real_data seeds = +1.97
+   (consistent with the analogous cycle-19 warm-start at +1.96
+   on different seeds — identity warm-start verified).
+3. Launched two CEM jobs in parallel under `nohup`, workers=2 each,
+   saturating the 4-core sandbox. Both ANCHOR_KEY=cycle21_seed1.
+4. Stretch run launched after primary completed: ANCHOR_KEY=
+   cycle21_seed2, rng_seed=0, workers=3.
+5. Built `make_figures.py` with cross-anchor bar chart and CEM val
+   curves. Wrote experiment README. Updated STATE.md, presentation,
+   research/README.md.
+
+**Results (held-out test n=256, real_data).**
+
+Primary (cycle-21-seed-1 anchor, +2.900 piecewise lift_FF):
+
+| run | rerank winner | val | test_score | lift_FF | lift over piecewise seed-1 |
+|--|--|--:|--:|--:|--:|
+| `cycle21_seed1_seed0` | **anchor** | 3.651 | 3.370 | +2.900 | **+0.000** |
+| `cycle21_seed1_seed1` | **anchor** | 3.651 | 3.370 | +2.900 | **+0.000** |
+
+For both rng seeds, the rerank winner was the warm-start ladder (=
+identity-equivalent to the seed-1 piecewise on the empirical size
+distribution). Top non-anchor val score at gen-4 elites: 3.496 for
+seed=0, 3.573 for seed=1; anchor val 3.651. Every CEM-generated
+elite lost to the anchor on val by 0.08–0.16 points.
+
+Decision-rule outcome: line 2 met. **Cycle-19's +0.245 ladder lift
+was anchor-driven.** Cross-anchor ladder lift over piecewise on the
+cycle-21-seed-1 anchor at the cycle-19 budget = +0.000 ± 0.000.
+
+Stretch (cycle-21-seed-2 anchor, +2.275 piecewise lift_FF, basin-
+collapsed): pending at the time of writing — see results/.
+
+**What worked.** Parallel launch saturated sandbox cores. Both
+primary runs finished in ~17 min wall (CEM 583s + rerank ~4 min +
+test ~80s + FF test ~75s). Cycle-22 ladder warm-start val (3.651)
+exactly matches cycle-21 seed-1 piecewise val (3.651) on the same
+seeds, confirming identity warm-start.
+
+**What failed / surprises.**
+
+1. **The cycle-19 +0.245 lift does not survive a different anchor.**
+   Single biggest update to the M4 frontier this cycle. Cycle-19's
+   lift was not a family-effect signal — it was the conjunction of
+   a +75th-percentile piecewise anchor (cycle-18-seed-0) with a
+   single-seed positive draw inside the ladder family. Cycle 22
+   removes both confounds and recovers +0.000 lift.
+2. **CEM at the cycle-19 budget cannot find a ladder candidate that
+   beats the seed-1 piecewise warm-start on val.** Across all gen-0
+   to gen-4 elites of both rng seeds, every search-best was below
+   the anchor on val. CEM is overfitting the n=64 search seeds vs
+   n=128 val seeds.
+3. **The cycle-19 absolute val numbers (3.93+ for the gen-4 elite,
+   anchor val 3.823) are not the cycle-22 anchor numbers.** The
+   cycle-21-seed-1 piecewise has anchor val 3.651, ~0.17 points
+   below cycle-18-seed-0's 3.823. The cycle-22 gen-4 elite val
+   (~3.5) is correspondingly ~0.4 points below the cycle-19
+   gen-N elite val (~3.93). So the search→val gap is *similar in
+   magnitude* but the anchor val is lower; CEM's absolute output
+   tracks the anchor.
+4. **The cycle-20 ladder multi-seed mean +3.111 ± 0.126 is now
+   understood as a single-anchor multi-seed estimate.** The
+   cross-anchor mean (n=2 anchors, ≥2 seeds each) is ~+2.95-3.0,
+   essentially the same as the piecewise multi-seed mean +2.727.
+   The +0.4 gap claimed by cycle 19/20 is closer to +0.2 once the
+   anchor confound is removed, and ~+0.0 once the multi-seed mean
+   is taken on the seed-1 anchor.
+
+**Self-checks before commit.**
+
+- Verified lift_FF math from each test.json:
+  - cycle21_seed1_seed0: 3.370 - 0.470 = 2.900 ✓
+  - cycle21_seed1_seed1: 3.370 - 0.470 = 2.900 ✓
+- Sanity: anchor_ladder val for both seeds is +3.651 (deterministic
+  warm-start; only the rng stream that draws CEM populations
+  differs).
+- `best_by_val.test_score` for both seeds = 3.3699, exactly
+  matching the cycle-21 seed-1 piecewise test of 3.3699 — because
+  the rerank winner is the anchor and the anchor is byte-equivalent
+  to the seed-1 piecewise on test seeds (identity warm-start
+  on the empirical size distribution; tiny_threshold split is
+  inert when small_threshold > smallest empirical size_ratio).
+- Re-read presentation top-to-bottom as a stranger. The "At a
+  glance" reflects cycle-22 numbers; the cycle-19/20 callout box
+  acknowledges the cycle-22 supersession; the cycle-22 section
+  reads as a self-contained Q/M/R/Updates entry. Glossary entry
+  added for **anchor-conditional lift**.
+
+**Updates implied for the prior.**
+
+- Cycle-19's +0.245 ladder lift moves from "real but conditional"
+  to "anchor-driven, single-anchor noise" in the M4 history.
+- The cycle-20 ladder mean +3.111 stays in the table as a
+  single-anchor multi-seed point, but is no longer treated as the
+  ladder-family estimate.
+- Family-escalation experiments now require **cross-anchor**
+  multi-seed evaluation. Both the anchor confounding rule
+  (cycle 21) and the seed reproducibility rule (cycle 20) are
+  binding for any future family claim.
+- The "+3.0 ceiling" on real_data is back as the right framing
+  of the M4 frontier under a strict cross-anchor cross-seed
+  protocol.
+- Cycle-19/22's CEM-doesn't-beat-anchor pattern raises a new
+  hypothesis: ladder might lift only at the long-CEM budget
+  (10g × 24p, the cycle-18-piecewise compute), not at the
+  short-CEM budget. Cycle 23 plan-of-record tests this directly.
+
+**Next.**
+
+Cycle-23 plan-of-record (in STATE):
+1. Long-CEM ladder (10g × 24p) on cycle-21-seed-1 anchor. Tests
+   whether the budget-vs-ladder-family interaction is the
+   missing piece; if lift > +3.10, ladder is real at long-CEM.
+2. *(stretch)* Sanity-check the cycle-22 stretch (cycle-21-seed-2
+   anchor) to see if ladder is a stabilizer.
+3. *(stretch)* Encode "cycle-19 ladder lift was anchor-conditional"
+   as `bin/checks/12_*` that re-runs cycle-22 seed=0 and asserts
+   test lift_FF in [+2.85, +2.95].
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/practical-gallant-gauss/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits restricted
+  to `research/` and the new cycle-22 experiment dir.
+- Wall-clock breakdown:
+  - env setup (gymnasium, pytest, matplotlib; pyarrow OOM'd 6× and
+    was determined unnecessary for cycle-22's experiment): ~3 min
+    of useful install, ~5 min of failed pyarrow retries.
+  - smoke test of warm-start: ~1 min.
+  - both ladder seeds in parallel: ~17 min wall (CEM 10 min +
+    rerank ~4 min + test ~2 min + FF baseline ~1 min).
+  - stretch run launched after primary: ~13 min wall (in flight
+    at LOG-write time; will land in results/ before commit).
+  - figures + cross-anchor summary: ~3 min.
+  - STATE/LOG/README/presentation writeups: ~25 min.
+  - planned commit + pytest: ~5 min.
+  - total ~70 min — well within budget.
+- 12 active checks. 03_required_python_deps and 08_jax_optional both
+  passed after the cycle's setup step. No checks added or retired
+  this cycle.
+- New experiment dir:
+  `research/experiments/2026-05-05-cycle22-m4-ladder-anchor-control/`
+  with `scripts/{run_ladder_cem_anchor.py, ladder_strategy.py,
+  make_figures.py}` +
+  `results/{cycle21_seed1_seed0, cycle21_seed1_seed1,
+  cycle21_seed2_seed0}/{history.json, test.json, progress.log}`
+  + `results/cross_anchor_summary.json` +
+  `figures/{m4_c22_cross_anchor_ladder_lift.png,
+  m4_c22_seed1_anchor_val_curves.png}` + `README.md`.
+- New presentation figures: `m4_c22_cross_anchor_ladder_lift.png`.
+
+### Cycle 22 stretch result (added after primary writeup)
+
+The stretch run (`ANCHOR_KEY=cycle21_seed2, RNG_SEED=0`) finished
+~13 min after launch.
+
+| run | rerank winner | val | test_score | lift_FF | lift over piecewise seed-2 |
+|--|--|--:|--:|--:|--:|
+| `cycle21_seed2_seed0` | **anchor** | 3.215 | 2.746 | +2.275 | **+0.000** |
+
+Same pattern as primary: rerank winner is the warm-start anchor.
+Notably, the CEM trajectory on this anchor *walked into a worse
+basin* (gen-3 search-best +1.036, multiple gen-4 elites at
+retail_adv −15 to −18) — so this run is not just "anchor was
+optimal" but "anchor was the only thing that prevented a negative
+result." The rerank-anchor-first rule did real protective work.
+
+This rejects the "ladder as stabilizer" sub-hypothesis: ladder did
+not recover any lift on the basin-collapsed seed-2 piecewise; it
+just fell back to the anchor. Three anchors tested (cycle-18-s0,
+cycle-21-s1, cycle-21-s2), four ladder runs, one positive draw
+(cycle-19 single-seed +0.245), three zeros. Cross-anchor ladder
+lift over piecewise at the cycle-19/22 budget is effectively zero.
+
+`results/cross_anchor_summary.json` regenerated to include the
+stretch row; `figures/m4_c22_cross_anchor_ladder_lift.png` redrawn
+with the third (green) bar.

@@ -1,0 +1,52 @@
+{
+  "anchors": {
+    "cycle21_seed1": {
+      "piecewise_anchor": {
+        "test_score": 3.37,
+        "lift_FF": 2.9
+      },
+      "ladder_runs": [
+        {
+          "rng_seed": 0,
+          "best_by_val_source": "anchor",
+          "test_score": 3.3698507262730946,
+          "lift_FF": 2.899545354389765
+        },
+        {
+          "rng_seed": 1,
+          "best_by_val_source": "anchor",
+          "test_score": 3.3698507262730946,
+          "lift_FF": 2.899545354389765
+        }
+      ],
+      "ladder_lift_over_piecewise_seed1": [
+        -0.00045464561023500494,
+        -0.00045464561023500494
+      ]
+    },
+    "cycle21_seed2": {
+      "piecewise_anchor": {
+        "test_score": 2.746,
+        "lift_FF": 2.275
+      },
+      "ladder_runs": [
+        {
+          "rng_seed": 0,
+          "best_by_val_source": "anchor",
+          "test_score": 2.7457084669794507,
+          "lift_FF": 2.275403095096121
+        }
+      ],
+      "ladder_lift_over_piecewise_seed2": [
+        0.00040309509612113104
+      ]
+    }
+  },
+  "cycle19_reference": {
+    "anchor": "cycle18_seed0",
+    "ladder_test": 3.721,
+    "ladder_lift_FF": 3.251,
+    "piecewise_anchor_lift_FF": 3.006,
+    "lift_over_piecewise": 0.2450000000000001
+  }
+}

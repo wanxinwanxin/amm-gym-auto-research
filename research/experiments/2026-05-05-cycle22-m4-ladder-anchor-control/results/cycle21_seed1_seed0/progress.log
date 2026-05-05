@@ -1,0 +1,21 @@
+[22:47:42] M4 cycle-22 ladder CEM | anchor=cycle21_seed1 rng_seed=0 | dim=19 pop=12 gen=5 elite_n=2 workers=2
+[22:47:42]   anchor lift_FF nominal: +2.900
+[22:48:19]   anchor_ladder val (real_data, n=128): score= +3.651 adv= +5.405 retail_adv= +3.877 (37.4s)
+[22:50:28]   gen 0: best= +2.724 elite_mean= +1.411 all_mean= -3.564 (128.5s)
+[22:52:21]   gen 1: best= +2.290 elite_mean= +2.189 all_mean= +0.067 (112.7s)
+[22:54:14]   gen 2: best= +2.538 elite_mean= +2.533 all_mean= +2.388 (113.4s)
+[22:56:09]   gen 3: best= +2.592 elite_mean= +2.582 all_mean= +2.527 (114.8s)
+[22:58:03]   gen 4: best= +2.611 elite_mean= +2.605 all_mean= +2.585 (114.4s)
+[22:58:03]   CEM done in 583.9s
+[22:58:03]   rerank pool: 7 candidates
+[22:58:40]     rerank 0 (    anchor): val= +3.651 adv= +5.405 retail_adv= +3.877 (37.0s)
+[22:59:17]     rerank 1 (      gen4): val= +3.496 adv= +5.512 retail_adv= +4.150 (36.9s)
+[22:59:55]     rerank 2 (      gen4): val= +3.467 adv= +5.572 retail_adv= +4.236 (37.3s)
+[23:00:32]     rerank 3 (      gen3): val= +3.489 adv= +5.544 retail_adv= +4.186 (37.0s)
+[23:01:08]     rerank 4 (      gen3): val= +3.454 adv= +5.539 retail_adv= +4.218 (36.6s)
+[23:01:45]     rerank 5 (      gen2): val= +3.407 adv= +5.611 retail_adv= +4.340 (36.6s)
+[23:02:22]     rerank 6 (      gen2): val= +3.438 adv= +5.330 retail_adv= +3.959 (36.8s)
+[23:04:47]   TEST best (n=256): score= +3.370 adv= +5.189 retail_adv= +3.820
+[23:04:47]   FF test score:  +0.470
+[23:04:47]   lift_FF (test): +2.900
+[23:04:47] wrote /sessions/practical-gallant-gauss/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle22-m4-ladder-anchor-control/results/cycle21_seed1_seed0/test.json
