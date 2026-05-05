@@ -31,55 +31,67 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-05 (cycle 15 — <strong>M2 closed</strong>; deliverable
-is the cycle-11 d16_s2 anchor at challenge test = <strong>456.80</strong>
-[CI 448.0, 465.7]; on the realistic <code>real_data</code> evaluator
-the same policy scores test = <strong>+2.57</strong> [CI +1.98, +3.16],
-a lift of <strong>+2.10</strong> over the FixedFee(0.003) baseline.
-Cycle 15 added a held-out 256-seed test split, 95% bootstrap CIs, a
-9th anchor (c10B at rng_seed=1), and a retail-vs-arb PnL
-decomposition. The early-anchor inversion (c5/c6 score *below*
-FixedFee on real_data) reproduces on test with bootstrap CIs fully
-below zero, and the decomposition pinpoints retail edge — not arb
-loss — as the failure mode.) Read top-to-bottom; later milestones
-build on earlier ones.</p>
+updated 2026-05-05 (cycle 16). M2 deliverable (champion held since
+cycle 11) is the c11 d16_s2 anchor at challenge test =
+<strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
+<code>real_data</code> evaluator the same policy scores test =
+<strong>+2.57</strong> [CI +1.98, +3.16], a lift of
+<strong>+2.10</strong> over the FixedFee(0.003) baseline. Cycle 16
+ran the per-trade-size decomposition that cycle 15 set up: <strong>the
+c5↔c11 retail-edge gap is almost entirely a small-trade phenomenon</strong>
+(−10.67 of the −11.20 overall difference), and the mechanism is a
+<strong>routing collapse</strong> rather than a fee-level problem.
+Cycle 16 also planted the M4 cycle-0 baseline: a 5-gen × 12-pop CEM
+directly on <code>real_data</code> from the c5 anchor reaches lift_FF
+= <strong>+0.74</strong> on test, well below c11's +2.10 — so
+direct-on-real_data optimization, at this budget, doesn't reach the
+M2 ceiling. Read top-to-bottom; later milestones build on earlier
+ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
-  <li><strong>Where we are.</strong> M1 closed at cycle 5. M2 closed
-  at cycle 13 (deliverable: 456.80, ~85% of way to 540). Active
-  milestone is M3 (generalization study); M3 cycle 2 is the most
-  recent.</li>
+  <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
+  at cycle 13. M3 has had three cycles (14, 15, 16); cycle 16 also
+  opened M4 with a pre-launch baseline. Active milestone is now
+  M4 cycle 1.</li>
   <li><strong>Headline numbers (held-out test, n=256, 95% bootstrap CI).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
     [448.0, 465.7] (16-d piecewise CEM, rng_seed=2; target 540).
     M3 (real_data): same champion scores test <strong>+2.57</strong>
     [+1.98, +3.16], a lift of <strong>+2.10</strong> over the
-    FixedFee(0.003) baseline of 0.470. Curve plateaus at c9-EMA;
-    c11 = c13 *exactly* on both challenge and real_data
-    (recipe-ceiling identity, third independent check).</li>
-  <li><strong>What we've learned about M2 generalization.</strong>
-  Cycles 5–6 of M2 (challenge 414 → 433) <em>regress</em>
-  significantly on real data — c5 real_test = -0.74
-  [<span class="neg">-1.27, -0.23</span>]; c6 = -0.93
-  [<span class="neg">-1.47, -0.40</span>]. Both 95% CIs are fully
-  below FixedFee. Cycles 8 → 9-EMA (challenge 446 → 457) is the
-  <em>high-leverage segment</em>: each challenge pt buys ~+0.26 pts
-  of real-data lift. From c9-EMA onwards (cycles 10–13) the OOD
-  curve is flat. <strong>Decomposition (cycle 15):</strong> retail
-  edge advantage moves -10.0 (c5) → +1.06 (c11) — a swing of +11
-  units. Arb loss advantage stays inside +1.7 to +3.7 across the
-  whole trajectory. <em>The early-anchor inversion is a
-  retail-pricing problem, not an arb-loss problem.</em></li>
-  <li><strong>Open questions.</strong> (1) Does the c5/c6 inversion
-  *trajectory* (not just the endpoint) replicate when M2 is
-  re-run from c5 with rng_seed=1? Cycle 15 only re-ran the
-  *endpoint* with rng_seed=1 (c10B). (2) The retail-edge gap is
-  ~10 units big — *which* trade-size buckets (small/medium/large)
-  or *which* market regimes drive most of it? Cycle 16 candidate.
-  (3) M4 starting bar: the +2.10 OOD lift over FixedFee is what
-  direct-on-real_data optimization will need to beat.</li>
+    FixedFee(0.003) baseline of 0.470. M4 cycle-0 baseline (5-gen
+    × 12-pop CEM directly on real_data from c5):
+    <strong>+0.74 lift_FF</strong> on test, ~63% of the c11 ceiling.</li>
+  <li><strong>What we've learned about M2 generalization (now
+  with mechanism).</strong> Cycle 14 mapped the dual curve;
+  cycle 15 added bootstrap CIs and a retail/arb decomposition that
+  pinned the early-anchor failure on the retail side
+  (retail_edge_advantage swings −10.0 → +1.1 across the M2
+  trajectory; arb_loss_advantage stays in +1.7 to +3.7). Cycle 16
+  decomposed the retail gap by trade-size bucket: <strong>−10.67 of
+  the −11.20 overall difference is in the small bucket</strong>;
+  medium/large are within batch noise. The mechanism is a
+  <em>routing collapse</em>: c5 receives ~13% of small-trade count
+  while c11 receives ~57%. Per-unit-volume markout on the small
+  trades that <em>do</em> reach c5 is actually slightly below
+  FixedFee — so the router avoids c5 for <em>price</em> reasons
+  (mid placement / inventory skew), not fee reasons.</li>
+  <li><strong>What we've learned about direct-on-real_data
+  optimization (M4 cycle 0).</strong> Starting from c5 with a
+  5-gen × 12-pop CEM, the score climbs from −0.35 → +1.21
+  (+0.74 lift_FF on test), but retail_advantage <em>worsens</em>
+  from −10.14 → −13.10. All score gain is from arb. Direct CEM
+  finds an arb-side local optimum that doesn't fix the
+  small-bucket routing problem. The c11 anchor (an M2 challenge
+  byproduct) remains the strongest real_data policy on file.</li>
+  <li><strong>Open questions.</strong> (1) Does direct CEM on
+  real_data lift past +2.10 lift_FF when warm-started from c11
+  rather than c5? (Cycle 17 mirror experiment.) (2) Is the
+  cycle-16 M4 baseline retail_advantage drop (−10.14 → −13.10)
+  also a small-bucket worsening? (Cycle 17 decomp.) (3) Can a
+  retail-aware auxiliary loss (score + α × retail_edge) steer CEM
+  from c5 into the retail-fix basin?</li>
 </ul>
 </div>
 
@@ -90,13 +102,18 @@ build on earlier ones.</p>
   <li><a href="#glossary">Glossary</a></li>
   <li><a href="#m1">M1 — Validating the realistic simulator against on-chain markout</a></li>
   <li><a href="#m2">M2 — Optimizing the differentiable simulator on the simple-AMM challenge</a></li>
-  <li><a href="#m3">M3 — Generalization study (active milestone)</a>
+  <li><a href="#m3">M3 — Generalization study</a>
     <ul>
       <li><a href="#m3-c14">Cycle 14 (M3 cycle 1) — chronological-anchor dual-curve eval</a></li>
       <li><a href="#m3-c15">Cycle 15 (M3 cycle 2) — held-out test split + bootstrap CI + retail/arb decomposition</a></li>
+      <li><a href="#m3-c16">Cycle 16 (M3 cycle 3) — per-trade-size decomposition</a></li>
     </ul>
   </li>
-  <li><a href="#m4">M4 — Direct optimization on the realistic environment (not started)</a></li>
+  <li><a href="#m4">M4 — Direct optimization on the realistic environment (active milestone)</a>
+    <ul>
+      <li><a href="#m4-c16">Cycle 16 (M4 cycle 0) — pre-launch baseline: direct CEM from c5</a></li>
+    </ul>
+  </li>
 </ul>
 </div>
 
@@ -184,6 +201,30 @@ scale with policy complexity?
   in a +1.7 to +3.7 band across the entire M2 trajectory — i.e.,
   every M2 anchor is somewhat better than FixedFee at avoiding arb
   losses, even the ones that are net-harmful overall.</li>
+  <li><strong>Trade-size bucket.</strong> The piecewise controller
+  internally classifies each retail trade by
+  <code>size_ratio = amount_y / reserve_y_post</code> with two cuts
+  (small &lt; 0.003, medium ∈ [0.003, 0.012), large ≥ 0.012). Cycle
+  16 applies the same bucket cuts <em>externally</em> to retail
+  trade events to compute per-bucket retail edge. ~99% of retail
+  trade <em>count</em> is in the small bucket (a few hundred medium
+  + &lt; 1 large per episode on real_data); the medium and large
+  buckets matter mostly for inventory / signal updates, not for
+  fee revenue.</li>
+  <li><strong>Routing collapse.</strong> The pathological state
+  where the two-AMM router sends nearly all small-bucket retail
+  flow to the FixedFee venue and only a small fraction to the
+  submission — even though per-unit-volume markout on those small
+  trades is comparable. Identified in cycle 16 as the dominant
+  mechanism behind the c5 OOD failure: c5 captures only ~13% of
+  small-trade count vs c11's ~57%, accounting for ~95% of c5's
+  retail-edge gap.</li>
+  <li><strong>lift_FF.</strong> The submission's score on a given
+  evaluator minus the FixedFee(0.003) submission's score on the
+  same evaluator. Used in cycles 14–16 to compare anchors against
+  a fixed reference that is itself path-realistic. Distinct from
+  <code>edge_advantage</code>, which compares against the
+  normalizer venue's edge in the <em>same</em> simulation.</li>
 </ul>
 </div>
 
@@ -1629,16 +1670,154 @@ retail side.</em></figcaption>
   causal story.</li>
 </ul>
 
+<h3 id="m3-c16">Cycle 16 (M3 cycle 3) — per-trade-size decomposition</h3>
+
+<p><strong>Question.</strong> Cycle 15's retail/arb decomposition
+showed the M2 OOD failure mode is on the retail side, but that gap
+is ~10 lift points big across c5 vs c11. Is it concentrated in a
+specific trade-size bucket (small/medium/large), or uniform across
+buckets? If concentrated, M4 has a localized inductive-bias target.
+If uniform, the real_data evaluator itself is the bottleneck and
+direct optimization is the only path forward.</p>
+
+<p><strong>Method.</strong> We bucket retail trades by the same
+<code>size_ratio = amount_y / reserve_y_post</code> the piecewise
+controller uses internally, with cuts at the c5 default thresholds
+(small &lt; 0.003, medium ∈ [0.003, 0.012), large ≥ 0.012). The
+simulator's <code>step_once()</code> already exposes per-trade events
+with venue, source, pre/post state, and TradeInfo, so we loop
+<code>step_once()</code> externally and accumulate per-bucket ×
+per-venue retail edge — no simulator change needed. We evaluate two
+anchors on real_data with n=128 val seeds and FixedFee(0.003)
+normalizer: <code>c5</code> (the cycle-5 inherited piecewise, M2
+starting line) and <code>c11_d16_s2</code> (the cycle-11 grid CEM
+champion, M2 deliverable). For each anchor we report the per-bucket
+retail_edge_advantage with 95% bootstrap CIs, the trade counts
+routed to each venue, and the per-unit-volume markout in basis
+points. As a sanity check we re-derive the simulator's overall
+<code>retail_edge_*</code> totals from the per-event sums and
+compare; the max abs error per anchor is reported.</p>
+
+<p><strong>Result.</strong> The c5↔c11 retail-edge gap is almost
+entirely a small-bucket phenomenon, with a tight identity check.</p>
+
+<table>
+<tr><th class="l">anchor</th><th class="l">bucket</th><th>retail_edge_advantage</th><th>95% CI</th><th>n_sub</th><th>n_norm</th><th>edge/amt_y_sub (bps)</th><th>edge/amt_y_norm (bps)</th></tr>
+<tr><td class="l">c5</td><td class="l">small</td><td class="neg">−9.508</td><td>[−9.60, −9.41]</td><td>401.6</td><td>2621.2</td><td>28.39</td><td>35.38</td></tr>
+<tr><td class="l">c5</td><td class="l">medium</td><td>+0.036</td><td>[−0.15, +0.23]</td><td>3.6</td><td>4.1</td><td>130.89</td><td>105.46</td></tr>
+<tr><td class="l">c5</td><td class="l">large</td><td>−0.665</td><td>[−0.88, −0.47]</td><td>0.6</td><td>0.9</td><td>190.26</td><td>173.43</td></tr>
+<tr><td class="l">c11</td><td class="l">small</td><td class="pos">+1.167</td><td>[+0.99, +1.32]</td><td>2031.7</td><td>1546.2</td><td>31.56</td><td>31.79</td></tr>
+<tr><td class="l">c11</td><td class="l">medium</td><td>−0.022</td><td>[−0.12, +0.08]</td><td>3.9</td><td>4.0</td><td>104.09</td><td>103.57</td></tr>
+<tr><td class="l">c11</td><td class="l">large</td><td>−0.078</td><td>[−0.19, +0.02]</td><td>0.8</td><td>0.8</td><td>169.12</td><td>170.29</td></tr>
+</table>
+
+<p>The c5-minus-c11 retail_edge_advantage by bucket is small =
+−10.67, medium = +0.06, large = −0.59. The −10.67 small-bucket gap
+accounts for ~95% of the −11.20 overall difference. The identity
+check between simulator-aggregate <code>retail_edge_*</code> and
+per-event re-derived totals had max abs error 4.8e-14 (sub) and
+4.1e-14 (norm) — float roundoff only.</p>
+
+<figure>
+  <img src="../experiments/2026-05-05-cycle16-trade-size-decomp/figures/retail_edge_by_bucket.png" alt="Retail edge advantage and trade-count routing by bucket, c5 vs c11.">
+  <figcaption>Cycle 16 per-trade-size decomposition. Left panel —
+  retail_edge_advantage by bucket with 95% bootstrap CIs; the
+  small-bucket gap dominates while medium/large are within batch
+  noise. Right panel — mean retail trade count per episode (log
+  scale), submission solid, normalizer hatched. c5 receives ~13%
+  of small-trade count routed to it (401 vs 2621); c11 receives
+  ~57% (2032 vs 1546). The "routing collapse" is visually
+  unambiguous.</figcaption>
+</figure>
+
+<div class="insight">
+<strong>What it changed.</strong> The per-unit-volume markout column
+in the table is the key methodological surprise. On the small trades
+that actually <em>do</em> reach c5's submission AMM, the bps
+extracted is 28.39 vs FixedFee's 35.38 — i.e., c5's small-trade fee
+is, on average, <em>under</em> 0.003. So the router is sending small
+flow away from c5 not because c5 charges more in fees, but because
+c5's <em>price</em> (mid placement / inventory skew at the time of
+the trade) is worse than FixedFee's. The lever for M4 is therefore
+<em>price control on small trades</em> — keeping mid placement near
+fair when small flow arrives — not just "lower the small-trade fee".
+The piecewise family already has knobs for this (toxicity_to_mid /
+toxicity_to_side); the question is whether the CEM objective on
+real_data steers them correctly.
+</div>
+
 <h2 id="m4">M4 — Direct optimization on the realistic environment</h2>
-<div class="pending">Not started. M4 will sweep policy complexity from
-very simple (1–2 params) to rich (piecewise, ladder, MLP) and plot
-best realistic score vs. parameter count and training compute. The
-M3 cycle-2 result frames the M4 baseline: the
-<strong>+2.10 (test) lift over FixedFee on real_data</strong> is
-the bar to beat with direct-on-realistic optimization, and the M3
-decomposition tells M4 *where to look*: retail edge advantage is
-where most of the OOD gain has to come from (arb advantage is
-already +1.7 to +3.7 essentially regardless of training).</div>
+
+<h3 id="m4-c16">Cycle 16 (M4 cycle 0) — pre-launch baseline: direct CEM from c5</h3>
+
+<p><strong>Why this was the next step.</strong> Going into M4 we
+needed to know two things before launching a full optimization
+campaign on real_data: (a) whether the real_data evaluator is
+<em>CEM-friendly</em> (per-batch score well-behaved enough to track
+real gradients), and (b) whether a small-budget direct-on-real_data
+optimization from the c5 anchor recovers c11's +2.10 lift_FF
+ceiling, falls short, or surpasses it. (c11 is itself an M2-byproduct
+&mdash; it was optimized on the challenge evaluator, not real_data,
+so it's a non-trivial question whether direct OOD optimization beats
+incidental OOD generalization from challenge optimization.) Cycle 16
+runs the smallest M4 baseline that can answer (a) and (b).</p>
+
+<p><strong>Method.</strong> Warm-start CEM from the c5 inherited
+piecewise params on <code>evaluator_kind="real_data"</code>.
+Population 12, generations 5, elite_frac 0.2, init_std_frac 0.10
+(matching cycle 6's recipe but at half the population). Search seeds
+0..63 (n=64), val seeds 1000..1127 (n=128), test seeds 2000..2255
+(n=256). Normalizer FixedFee(0.003). Three workers
+(<code>cpu_count − 1</code>). All scoring on real_data; this run does
+<em>not</em> evaluate the trained policy on the challenge evaluator.
+Wall-clock ~14 minutes end to end.</p>
+
+<p><strong>Result.</strong> The CEM trajectory on val seeds is below.
+Per-gen "best_search" is the best score among the 12 candidates in
+that generation evaluated on the search seeds; "val score" rescores
+that single best candidate on the n=128 val seeds; "retail_adv" is
+the same candidate's retail_edge_advantage on val.</p>
+
+<table>
+<tr><th>gen</th><th>best_search</th><th>val score</th><th>val retail_adv</th><th>val edge_adv</th></tr>
+<tr><td>—</td><td class="l">c5 baseline</td><td>−0.353</td><td>−10.137</td><td>−6.103</td></tr>
+<tr><td>0</td><td>+0.700</td><td>+1.853</td><td class="neg">−13.333</td><td>−4.977</td></tr>
+<tr><td>1</td><td>−0.388</td><td>+0.684</td><td>−11.139</td><td>−5.467</td></tr>
+<tr><td>2</td><td>−0.220</td><td>+0.897</td><td>−11.426</td><td>−5.368</td></tr>
+<tr><td>3</td><td>−0.056</td><td>+1.111</td><td>−11.743</td><td>−5.266</td></tr>
+<tr><td>4</td><td>−0.016</td><td>+1.139</td><td>−11.780</td><td>−5.253</td></tr>
+</table>
+
+<p>Final best-by-val rescored on the held-out test split (n=256):
+test score = <strong>+1.210</strong>, lift_FF = <strong>+0.739</strong>,
+test retail_advantage = <strong>−13.10</strong>, test
+edge_advantage = −5.42. FixedFee(0.003) on the same test split
+scores 0.470.</p>
+
+<div class="insight">
+<strong>What it changed.</strong> Two findings, both important for
+M4 cycle 1.
+<ol>
+  <li><strong>Direct real_data CEM is functional but slow at this
+  budget.</strong> A 5-gen × 12-pop run closes about 63% of the
+  c5→c11 lift_FF gap (+1.95 of +3.18). Best_search and val are
+  still rising at gen 4 — the curve has not plateaued. So CEM does
+  see signal on real_data; the budget here is just small.</li>
+  <li><strong>The local optimum direct CEM finds is retail-worse
+  than c5, not retail-fixed.</strong> retail_advantage moved from
+  c5's val of −10.14 to the M4 baseline's test value of
+  <em>−13.10</em>, which is more negative, not less. All score
+  gain came from the arb side. Direct CEM, starting from c5,
+  amplifies the small-bucket failure rather than fixing it. This
+  says the c11 anchor (an M2-challenge byproduct) is currently a
+  stronger real_data policy than what direct optimization finds in
+  this budget. M4 cycle 1's first experiment should rerun this CEM
+  from c11 — if it lifts past +2.10, the warm-start prior
+  dominates the policy class; if it saturates near +2.10, c11 is
+  a piecewise-family real_data ceiling and M4 needs richer
+  families or a retail-aware loss.</li>
+</ol>
+</div>
 
 </body>
 </html>

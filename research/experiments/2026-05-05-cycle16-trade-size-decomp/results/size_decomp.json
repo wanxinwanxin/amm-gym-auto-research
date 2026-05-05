@@ -1,0 +1,121 @@
+{
+  "evaluator_kind": "real_data",
+  "n_seeds": 128,
+  "seeds_range": [
+    1000,
+    1128
+  ],
+  "normalizer_fee": 0.003,
+  "small_cut": 0.003,
+  "large_cut": 0.012,
+  "anchors": [
+    {
+      "label": "c5_baseline",
+      "n_seeds": 128,
+      "per_bucket": {
+        "small": {
+          "retail_edge_advantage_mean": -9.507561931685515,
+          "retail_edge_advantage_ci95": [
+            -9.60191819192314,
+            -9.413309253510473
+          ],
+          "edge_sub_mean": 1.0177365255874262,
+          "edge_norm_mean": 10.525298457272942,
+          "count_sub_mean": 401.6171875,
+          "count_norm_mean": 2621.21875,
+          "amt_y_sub_mean": 358.45820653752367,
+          "amt_y_norm_mean": 2974.7020495440506
+        },
+        "medium": {
+          "retail_edge_advantage_mean": 0.035958749846674576,
+          "retail_edge_advantage_ci95": [
+            -0.14695036506419054,
+            0.23316472346684441
+          ],
+          "edge_sub_mean": 2.9266122292547063,
+          "edge_norm_mean": 2.8906534794080314,
+          "count_sub_mean": 3.6171875,
+          "count_norm_mean": 4.140625,
+          "amt_y_sub_mean": 223.58480457538394,
+          "amt_y_norm_mean": 274.0960394187815
+        },
+        "large": {
+          "retail_edge_advantage_mean": -0.6651343793959589,
+          "retail_edge_advantage_ci95": [
+            -0.8832483724891295,
+            -0.4692739153686765
+          ],
+          "edge_sub_mean": 1.6275669807741084,
+          "edge_norm_mean": 2.292701360170067,
+          "count_sub_mean": 0.6484375,
+          "count_norm_mean": 0.9375,
+          "amt_y_sub_mean": 85.54513230260852,
+          "amt_y_norm_mean": 132.19720204332674
+        }
+      },
+      "identity_check": {
+        "max_abs_err_sub": 1.2434497875801753e-14,
+        "max_abs_err_norm": 1.2434497875801753e-13
+      },
+      "overall_retail_edge_advantage": -10.136737561234803,
+      "elapsed_s": 45.30904960632324
+    },
+    {
+      "label": "c11_d16_s2",
+      "n_seeds": 128,
+      "per_bucket": {
+        "small": {
+          "retail_edge_advantage_mean": 1.1671095127747098,
+          "retail_edge_advantage_ci95": [
+            0.9929422108228341,
+            1.3181005695942776
+          ],
+          "edge_sub_mean": 5.863472335480966,
+          "edge_norm_mean": 4.696362822706257,
+          "count_sub_mean": 2031.7109375,
+          "count_norm_mean": 1546.234375,
+          "amt_y_sub_mean": 1857.8735983444526,
+          "amt_y_norm_mean": 1477.4501468442907
+        },
+        "medium": {
+          "retail_edge_advantage_mean": -0.021931731878931104,
+          "retail_edge_advantage_ci95": [
+            -0.12124191149258087,
+            0.08044335583900632
+          ],
+          "edge_sub_mean": 2.5850050666811693,
+          "edge_norm_mean": 2.6069367985601004,
+          "count_sub_mean": 3.9140625,
+          "count_norm_mean": 3.953125,
+          "amt_y_sub_mean": 248.33341064344205,
+          "amt_y_norm_mean": 251.7054054778734
+        },
+        "large": {
+          "retail_edge_advantage_mean": -0.07849679892134431,
+          "retail_edge_advantage_ci95": [
+            -0.1879110868510301,
+            0.0219050849396232
+          ],
+          "edge_sub_mean": 1.7798431317821715,
+          "edge_norm_mean": 1.8583399307035156,
+          "count_sub_mean": 0.7734375,
+          "count_norm_mean": 0.7890625,
+          "amt_y_sub_mean": 105.24339033581293,
+          "amt_y_norm_mean": 109.12827752039179
+        }
+      },
+      "identity_check": {
+        "max_abs_err_sub": 4.796163466380676e-14,
+        "max_abs_err_norm": 4.085620730620576e-14
+      },
+      "overall_retail_edge_advantage": 1.0666809819744345,
+      "elapsed_s": 49.509403228759766
+    }
+  ],
+  "diffs_c5_minus_c11": {
+    "small": -10.674671444460225,
+    "medium": 0.05789048172560568,
+    "large": -0.5866375804746146
+  },
+  "total_elapsed_s": 94.91613698005676
+}

@@ -1,0 +1,39 @@
+[11:34:30] M4 baseline CEM | piecewise on real_data | pop=12 gen=5 elite_n=2 init_std_frac=0.1 workers=3
+[11:35:02]   c5 val (real_data, n=128): score= -0.353 adv= -6.103 retail_adv=-10.137 (32.5s)
+[11:36:43]   gen  0: best_search= 0.700 elite_mean= 0.083 median=-1.449 val= 1.853 adv=-4.977 retail_adv=-13.333 ( 69.1s + 32.0s)
+[11:38:24]   gen  1: best_search=-0.388 elite_mean=-0.443 median=-0.726 val= 0.684 adv=-5.467 retail_adv=-11.139 ( 68.1s + 32.3s)
+[11:40:03]   gen  2: best_search=-0.220 elite_mean=-0.276 median=-0.510 val= 0.897 adv=-5.368 retail_adv=-11.426 ( 67.5s + 32.1s)
+[11:41:43]   gen  3: best_search=-0.056 elite_mean=-0.111 median=-0.291 val= 1.111 adv=-5.266 retail_adv=-11.743 ( 67.6s + 32.3s)
+[11:43:22]   gen  4: best_search=-0.016 elite_mean=-0.042 median=-0.128 val= 1.139 adv=-5.253 retail_adv=-11.780 ( 67.1s + 32.3s)
+[11:43:22] CEM complete in 500.3s (8.3 min)
+[11:48:43]   FixedFee test (real_data): 0.470 (67.4s)
+[11:48:43]   -> wrote /sessions/practical-pensive-fermat/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle16-trade-size-decomp/results/m4_baseline/test.json
+[11:48:43] {
+  "params": {
+    "base_fee": 0.0033006375478787527,
+    "base_spread": 0.005250695965182226,
+    "signal_decay": 0.5197253349483911,
+    "toxicity_decay": 0.5215881156541683,
+    "small_trade_threshold": 0.004059042716434599,
+    "large_trade_threshold": 0.01830798512659926,
+    "continuation_small": 0.004653816150696683,
+    "continuation_medium": 0.014471890992106093,
+    "continuation_large": 0.014853883537272915,
+    "reversal_small": 0.013589768508865745,
+    "reversal_medium": 0.02005172677621231,
+    "reversal_large": 0.06147217471970454,
+    "continuation_to_same_side": -0.7002388922932792,
+    "continuation_to_cross_side": 0.5945329800586886,
+    "toxicity_to_mid": 0.0,
+    "toxicity_to_side": 0.03504609558211528
+  },
+  "val_score": 1.8525785846218916,
+  "val_edge_advantage": -4.9773632332243185,
+  "val_retail_advantage": -13.332912504621873,
+  "test_score": 1.209773351693356,
+  "test_edge_advantage": -5.418488241425128,
+  "test_retail_advantage": -13.104829869279069,
+  "test_n_seeds": 256,
+  "ff_test_score": 0.4703053718833298,
+  "lift_FF": 0.7394679798100261
+}

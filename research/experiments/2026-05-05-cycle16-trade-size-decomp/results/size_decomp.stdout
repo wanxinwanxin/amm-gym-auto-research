@@ -1,0 +1,21 @@
+[10:10:50] Cycle 16 — per-trade-size decomposition; evaluator=real_data; n_seeds=128
+[10:10:50]   evaluating anchor c5_baseline (n_params=16)…
+[10:11:01]     seed 32/128 | 11.4s elapsed
+[10:11:12]     seed 64/128 | 22.8s elapsed
+[10:11:24]     seed 96/128 | 34.4s elapsed
+[10:11:35]     seed 128/128 | 45.3s elapsed
+[10:11:35]   c5_baseline    | overall retail_adv=-10.137 | sub_id_err=1.24e-14 norm_id_err=1.24e-13 | 45.3s
+[10:11:35]     small  adv= -9.508 [ -9.60, -9.41] | n_sub= 401.6 n_norm=2621.2 | edge_sub= +1.018 edge_norm=+10.525
+[10:11:35]     medium adv= +0.036 [ -0.15, +0.23] | n_sub=   3.6 n_norm=   4.1 | edge_sub= +2.927 edge_norm= +2.891
+[10:11:35]     large  adv= -0.665 [ -0.88, -0.47] | n_sub=   0.6 n_norm=   0.9 | edge_sub= +1.628 edge_norm= +2.293
+[10:11:35]   evaluating anchor c11_d16_s2 (n_params=16)…
+[10:11:47]     seed 32/128 | 11.7s elapsed
+[10:11:59]     seed 64/128 | 24.4s elapsed
+[10:12:12]     seed 96/128 | 36.7s elapsed
+[10:12:25]     seed 128/128 | 49.5s elapsed
+[10:12:25]   c11_d16_s2     | overall retail_adv= +1.067 | sub_id_err=4.80e-14 norm_id_err=4.09e-14 | 49.5s
+[10:12:25]     small  adv= +1.167 [ +0.99, +1.32] | n_sub=2031.7 n_norm=1546.2 | edge_sub= +5.863 edge_norm= +4.696
+[10:12:25]     medium adv= -0.022 [ -0.12, +0.08] | n_sub=   3.9 n_norm=   4.0 | edge_sub= +2.585 edge_norm= +2.607
+[10:12:25]     large  adv= -0.078 [ -0.19, +0.02] | n_sub=   0.8 n_norm=   0.8 | edge_sub= +1.780 edge_norm= +1.858
+[10:12:25]   c5 minus c11 retail_edge_advantage by bucket: {'small': -10.674671444460225, 'medium': 0.05789048172560568, 'large': -0.5866375804746146}
+[10:12:25] -> wrote /sessions/practical-pensive-fermat/mnt/amm-gym-auto-research/research/experiments/2026-05-05-cycle16-trade-size-decomp/results/size_decomp.json (1.6 min)

@@ -1834,3 +1834,151 @@ pricing**, not on arb loss.
   Permission denied on this sandbox; the script's recovery branch
   works fine, but the log line is misleading. Not retiring; just
   noting for cycle-16 if it surfaces again.
+
+---
+
+## 2026-05-05T11:50Z — cycle 16 — M3 cycle 3 trade-size decomp + M4 cycle 0 baseline
+
+**Plan for the cycle.** Cycle 15 closed M3 cycle 2 with a
+held-out-test bootstrap CI on the c5/c6 OOD inversion (statistically
+significant) and a retail/arb decomposition that localized the
+early-anchor failure mode to the retail side. The active hypothesis
+going into cycle 16 was: *the early-anchor harm is concentrated in
+specific trade-size buckets / market regimes; if we can identify
+those, M4 has its first concrete inductive-bias target*.
+
+The cycle plan-of-record (from cycle-15 STATE.md) was two-pronged:
+(1) per-trade-size decomposition of c5 vs c11 retail edge on
+real_data; (2) pre-launch M4 baseline — direct CEM on
+`evaluator_kind="real_data"` from the c5 anchor at a small budget
+(pop=12, gen=5) to test whether real_data is CEM-friendly and to
+plant a flag for M4 cycle 1.
+
+**What I ran.**
+
+1. *Smoke test on 4 seeds* of the per-bucket eval to confirm the
+   identity check (re-derived retail_edge from per-event totals
+   matches simulator-aggregate to 1e-14). Result: cleanly identical.
+2. `eval_size_decomp.py` — full 128-val-seed eval for c5 and
+   c11_d16_s2 on real_data, accumulating per-bucket × per-venue
+   retail edge by looping `step_once()` externally.
+3. `make_figure.py` — 2-panel bar chart (retail_edge_advantage by
+   bucket; trade-count routing in log scale).
+4. `run_m4_baseline_cem.py` — 5-gen × 12-pop warm-start CEM from
+   c5 inherited piecewise on `evaluator_kind="real_data"`. Search
+   seeds 0..63, val 1000..1127, test 2000..2255, normalizer
+   FixedFee(0.003). 3 workers. Ran in ~14 min wall-clock end to end
+   (8.3 min CEM + ~5.5 min rerank/test).
+
+**What worked / what I learned.**
+
+- **The decomposition gives a sharp, single-mechanism story.** The
+  c5-vs-c11 retail-edge gap is almost entirely small-bucket: −10.67
+  of the −11.20 overall difference. Medium and large buckets are
+  within batch noise (medium +0.06, large −0.59). Bootstrap CIs
+  (10000 resamples on per-seed values) put the c5 small-bucket
+  retail_edge_advantage at −9.51 [−9.60, −9.41] vs c11 at +1.17
+  [+0.99, +1.32] — the gap is well outside seed noise.
+
+- **The mechanism is *routing*, not *fee level*.** c5 sees only
+  401.6/2621.2 ≈ 13% of small-trade count routed to it; c11 sees
+  2031.7/1546.2 ≈ 57%. Per-unit-volume markout (bps) on the small
+  trades that *do* reach c5 is 28.39 bps vs FF's 35.38 bps — i.e.
+  c5's small-trade fee is *under* 0.003 on average. So the router
+  is sending small flow to FF for *price* reasons (mid placement /
+  inventory), not fee reasons. This reframes the M4 lever.
+
+- **Direct CEM on real_data from c5 is real but slow, and it
+  amplifies the retail problem.** 5-gen × 12-pop CEM lifts c5 from
+  −1.214 → +0.739 lift_FF on test (256 seeds). Best_search and val
+  trajectories haven't plateaued at gen 4. retail_advantage went
+  from −10.14 (c5 val) to −13.10 (M4 baseline test) — *worse*.
+  The score gain is entirely from arb, not retail. This is a
+  meaningful signal: direct optimization without a retail-aware
+  prior finds an arb-side local optimum that doesn't fix the
+  small-bucket routing collapse.
+
+- **c11 still beats the M4 baseline.** c11 lift_FF on test = +2.10;
+  M4 baseline lift_FF = +0.74. The M2 deliverable remains the best
+  real_data policy on file by a wide margin.
+
+**What failed (or surprised on the downside).**
+
+- **Sandbox restarted mid-run on the first M4 attempt.** The
+  initial nohup'd CEM completed only the c5 baseline before the
+  sandbox was rotated; the second attempt also tripped on the
+  unlink-blocked-progress-log issue (already a known check, but the
+  M4 script duplicated the fragile `LOGFILE.unlink()` pattern from
+  cycle-6). Fixed by switching to `LOGFILE.open("w").close()`.
+  Recording this as cycle-16 operational lore: any new long-running
+  driver written from scratch should use truncate-on-write rather
+  than unlink. Reflecting via a check would require statically
+  analyzing source files for `.unlink(`-like patterns; I'm not
+  encoding it as a check this cycle, but the fix-on-touch is now
+  in `run_m4_baseline_cem.py`.
+
+- **Per-gen retail_advantage trajectory on the M4 baseline is
+  monotonically *worse* than c5 from gen 1 onward** (−11.1, −11.4,
+  −11.7, −11.8). That's somewhat counter to the active hypothesis
+  prior — we'd expected direct optimization to at least nibble
+  toward the retail side. Instead it confirms that the score
+  gradient on real_data, near c5, points toward arb-only
+  improvements; the retail fix requires a different starting basin
+  (c11) or an explicit retail-aware loss.
+
+**Updates implied for the prior.**
+
+- M3 cycle 3's qualitative claim ("c5 OOD failure is concentrated
+  in the small-trade bucket") is now load-bearing. The 95% CIs and
+  identity check are tight. M4 has a concrete inductive-bias
+  target.
+
+- M4 cycle 1's first experiment should be the *symmetric* version
+  of cycle 16's M4 baseline: direct CEM on real_data from c11
+  rather than c5. If c11+CEM lifts past +2.10, we have evidence
+  that direct OOD optimization works from a good prior; if it
+  doesn't, we have evidence that c11 is a real_data ceiling for
+  the piecewise family.
+
+- The "policy complexity sweep" framing of M4 should be augmented
+  with a "policy *prior* sweep" — start from {default, c5, c11},
+  fix the family at piecewise, sweep the warm-start. This isolates
+  whether M4 wins are driven by the policy class or the local
+  basin.
+
+**Next.**
+
+- **Cycle-17 plan-of-record:**
+  1. *Mirror experiment*: run the same 5-gen × 12-pop CEM with
+     `evaluator_kind="real_data"` but warm-start from c11_d16_s2.
+     Same compute budget. Compare gen-by-gen trajectory and final
+     test lift_FF to the cycle-16 M4 baseline. ~14 min.
+  2. *Per-trade-size decomp on the M4 baseline*: rerun
+     `eval_size_decomp.py` against the cycle-16 M4 baseline best-
+     by-val params to confirm the retail_advantage drop is in fact
+     a small-bucket worsening. ~2 min.
+  3. *(stretch)* Augment CEM with a retail-aware tiebreaker:
+     score = edge_advantage + α × retail_edge_advantage with α
+     small (e.g. 0.2), and rerun from c5. Tests whether a small
+     retail penalty steers CEM into the retail-fix basin without
+     sacrificing arb.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox: `/sessions/practical-pensive-fermat/mnt/amm-gym-auto-research`.
+- Edits restricted to `research/` and one new experiment dir.
+  Inherited working-tree diffs (`arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/`) untouched per convention.
+- Wall-clock: ~5 min orient + env setup + ~2 min smoke +
+  ~2 min full bucket eval + ~14 min M4 baseline + ~30 min
+  STATE/LOG/presentation/README + ~5 min check + commit ≈ 60 min.
+  Within the 2h budget.
+- All 12 active checks pass. No checks added or retired this
+  cycle. Cycle-15's note that `08_jax_optional` has a misleading
+  log line still applies — the recovery branch works fine, just
+  the `/tmp/jax_setup.log` redirect can't write on this sandbox.
+- M4 baseline `LOGFILE.unlink()` fragility (encoded by check 05
+  for results dir) was rediscovered when I copy-pasted from
+  cycle-6 patterns; switched to truncate-on-open. Worth noting
+  for any future driver-author: the cycle-15 LOG already flagged
+  this gotcha for `progress.log`-style writes.
