@@ -4461,3 +4461,15 @@ are diagnostic stretches that should follow if compute permits.
 - Identity warm-start verification: cycle-28 anchor val bit-equal
   to cycles 26 and 27 (+3.885) — confirms 5-bucket-tight strategy
   warm-starts identically; only init_std differs.
+
+**Push outcome.** `git push origin main` failed for every retry
+this cycle with the same proxy error: `Connection closed by
+UNKNOWN port 65535` / `Could not read from remote repository`.
+This is the sandbox's GitHub SSH proxy being intermittently
+down — it was failing from the start of the cycle (the cycle-27
+commit `9626515` was already local-only, repo was ahead-by-1 at
+cycle start). Cycle-28's commit `2b6bbeb` joins it as ahead-by-2.
+No code/repo changes needed; the next cycle's standard
+orient-step push retry should publish both commits. Recorded the
+state at the top of `research/STATE.md` so cycle 29 doesn't
+mis-classify the ahead-by-2 status as a merge conflict.

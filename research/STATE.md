@@ -2,6 +2,17 @@
 
 **Last updated**: 2026-05-06 (cycle 28 — closed)
 
+> **Operational note (cycle 28).** SSH proxy to GitHub failed for
+> the entire cycle (`Connection closed by UNKNOWN port 65535` on
+> every `git push`). The cycle-28 commit `2b6bbeb` and the
+> cycle-27 commit `9626515` are both local-only on this sandbox.
+> Both pushes need to be retried at the start of cycle 29 (the
+> standard cycle-protocol orient step already does this). No
+> commit history rewrite needed — `git push origin main` from a
+> healthy sandbox should publish both commits in order. This is
+> a sandbox-network issue, not a credential/repo issue, so it's
+> not paged to the user.
+
 ## Active milestone
 
 **M4 cycle 12 (closed) → M4 cycle 13 (next).** Cycle 28 ran the
