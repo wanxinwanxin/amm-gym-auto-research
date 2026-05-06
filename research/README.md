@@ -88,40 +88,38 @@ There is a parity test stack to keep diff and exact in lockstep
 
 ## Current milestone
 
-See `research/STATE.md`. As of cycle 25: M1 closed (cycle 5); **M2
+See `research/STATE.md`. As of cycle 27: M1 closed (cycle 5); **M2
 closed (cycle 13)** with deliverable challenge test = **456.80**
 (piecewise warm-start CEM, cycle-11 d16_s2 cell, ~85% of way to 540
 target). **M3 closed (cycle 16)** with the per-trade-size mechanism
 (c5↔c11 retail-edge gap is ~95% small-bucket; mechanism is a two-AMM
 router collapse — c5 captures only ~13% of small-trade count vs c11's
-~57%). **M4 active (cycle 9 closed)**.
+~57%). **M4 active (cycle 11 closed)**.
 
-**M4 long-CEM ladder update (cycle 25).** Cycle 25 ran the cycle-24
-plan-of-record: (Q1) second rng_seed of long-CEM ladder on the c21-s2
-(basin-collapsed) anchor; (Q2) single-seed long-CEM ladder probe on the
-cycle-18-seed-0 anchor (the strongest piecewise basin, lift_FF +3.006).
-**Result on Q1: c21-s2 second seed COLLAPSED.** CEM trajectory bottomed
-out at elite-mean +1.21, all non-anchor val scores ≥1.4 below the anchor,
-rerank picked the anchor itself, lift over piecewise = **+0.000**. The
-c21-s2 n=2 mean is now **+0.273 ± 0.387** (error bar contains zero);
-the cycle-24 single-seed +0.547 was a positive tail draw, not a stable
-stabilizer signature. **Result on Q2:** c18-s0 anchor lifted **+0.250**
-over piecewise (test **+3.727**, lift_FF +3.256, retail_adv +3.541) —
-*higher* than the c21-s1 n=3 mean lift (+0.134), so the proposed
-inverse-scaling line ("ladder lift drops as piecewise quality climbs")
-is rejected. The 3-anchor curve (c21-s2 +0.27, c21-s1 +0.13, c18-s0
-+0.25) is non-monotone. **The cycle-25 c18-s0 single-seed test +3.727
-is the highest single-seed real_data score on record** (n=1, supporting
-evidence). Aggregating all 6 long-CEM ladder seeds across 3 anchors:
-mean lift over piecewise +0.200 ± 0.192 — small, positive on average,
-but high-variance per seed. Long-CEM is bimodal: 5/6 in "search-find"
-(non-anchor val beats anchor by ≥+0.10), 1/6 in "search-collapse"
-(non-anchor val trails anchor by ≥+0.50). Empty dead zone in between.
+**M4 frontier on real_data (held since cycle 26).** Long-CEM 4-bucket
+ladder on the cycle-18-seed-0 ("c18-s0") piecewise anchor, n=3 across
+cycles 25+26: mean test **+3.747**, lift_FF **+3.277 ± 0.027**, lift
+over the same-anchor piecewise **+0.271 ± 0.027**. The c18-s0 cluster
+is both higher and 2.5× tighter than the c21-s1 cluster (cycles 23+24,
+lift_FF +3.034 ± 0.066). Single-seed best on real_data: cycle-26
+rng_seed=2 on c18-s0, test **+3.777**, lift_FF **+3.307**.
 
-**Cycle-26 plan-of-record**: (i) two more rng_seeds on c18-s0 long-CEM
-ladder to upgrade the c18-s0 anchor from n=1 to n=3 — the cleanest
-single experiment for moving the M4 frontier to a new anchor cluster;
-(ii) stretch: structurally richer family at long-CEM on c21-s1,
-multi-seed (cycle-24's plan-of-record direction).
+**Cycle 27 result.** Tested whether a structurally richer family
+(5-bucket ladder; 22-d, splitting the 4-bucket's `tiny` bucket into
+`ultra_tiny + tiny`) at the same anchor and CEM budget could move the
+frontier. **It cannot.** n=2 mean lift_FF **+3.093 ± 0.123**, lift
+over piecewise **+0.087 ± 0.123** — both seeds below the +3.28
+frontier-move threshold; n=2 mean −0.184 below the 4-bucket cluster.
+Mechanism: the 22-d search space is starved at the cycle-26 CEM
+budget (init_std_new=0.15) — 4-bucket elite-mean exceeds anchor by
+gen 2; 5-bucket elite-mean does not until gen 4 (one seed) or never
+(the other, which rerank-picks the anchor for lift = 0).
+
+**Cycle-28 plan-of-record**: 5-bucket at lower init_std_new=0.05 on
+c18-s0 multi-seed (same CEM budget; tests whether the cycle-27
+underperformance is compute-bounded or family-bounded). A more
+expensive alternative is 5-bucket at 15g × 24p (1.5× compute);
+hold for cycle 29 if the init_std variant doesn't help. Stretch: 4th
+c18-s0 long-CEM 4-bucket seed to tighten the cluster from n=3 to n=4.
 
 The cumulative narrative is in `research/presentation/index.html`.

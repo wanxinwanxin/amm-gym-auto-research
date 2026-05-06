@@ -1,0 +1,26 @@
+[08:12:02] M4 cycle-27 5-bucket-ladder LONG-CEM | anchor=cycle18_seed0 rng_seed=1 | dim=22 pop=24 gen=10 elite_n=4 workers=2
+[08:12:02]   anchor lift_FF nominal: +3.006
+[08:12:40]   anchor_5bucket val (real_data, n=128): score= +3.885 adv= +5.257 retail_adv= +3.268 (37.4s)
+[08:16:54]   gen 0: best= +2.901 elite_mean= +1.528 all_mean= -2.761 (254.7s)
+[08:21:08]   gen 1: best= +2.262 elite_mean= +1.598 all_mean= -1.943 (253.3s)
+[08:24:52]   gen 2: best= +2.524 elite_mean= +2.120 all_mean= +0.818 (224.5s)
+[08:28:39]   gen 3: best= +2.481 elite_mean= +2.458 all_mean= +1.931 (227.0s)
+[08:32:27]   gen 4: best= +2.650 elite_mean= +2.624 all_mean= +2.378 (227.5s)
+[08:36:11]   gen 5: best= +2.727 elite_mean= +2.710 all_mean= +2.606 (224.9s)
+[08:39:53]   gen 6: best= +2.773 elite_mean= +2.738 all_mean= +2.660 (221.2s)
+[08:43:43]   gen 7: best= +2.849 elite_mean= +2.826 all_mean= +2.735 (230.6s)
+[08:47:37]   gen 8: best= +2.878 elite_mean= +2.865 all_mean= +2.826 (233.9s)
+[08:51:20]   gen 9: best= +2.904 elite_mean= +2.892 all_mean= +2.853 (222.6s)
+[08:51:20]   CEM done in 2320.1s
+[08:51:20]   rerank pool: 7 candidates
+[08:51:55]     rerank 0 (    anchor): val= +3.885 adv= +5.257 retail_adv= +3.268 (35.5s)
+[08:52:30]     rerank 1 (      gen9): val= +3.480 adv= +4.137 retail_adv= +1.262 (35.1s)
+[08:53:05]     rerank 2 (      gen9): val= +3.494 adv= +4.238 retail_adv= +1.413 (35.0s)
+[08:53:40]     rerank 3 (      gen9): val= +3.512 adv= +4.176 retail_adv= +1.303 (35.1s)
+[08:54:15]     rerank 4 (      gen9): val= +3.513 adv= +4.307 retail_adv= +1.465 (35.0s)
+[08:54:50]     rerank 5 (      gen8): val= +3.526 adv= +4.279 retail_adv= +1.391 (35.0s)
+[08:55:25]     rerank 6 (      gen8): val= +3.539 adv= +4.321 retail_adv= +1.566 (35.0s)
+[08:57:48]   TEST best (n=256): score= +3.476 adv= +4.925 retail_adv= +3.215
+[08:57:48]   FF test score:  +0.470
+[08:57:48]   lift_FF (test): +3.006
+[08:57:48] wrote /sessions/amazing-pensive-thompson/mnt/amm-gym-auto-research/research/experiments/2026-05-06-cycle27-m4-5bucket-c18s0/results/cycle18_seed0_seed1/test.json

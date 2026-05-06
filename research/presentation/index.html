@@ -31,71 +31,72 @@
 
 <h1>AMM-gym auto-research</h1>
 <p class="meta">A self-contained narrative built up cycle by cycle. Last
-updated 2026-05-06 (cycle 26). M2 deliverable (champion held since
+updated 2026-05-06 (cycle 27). M2 deliverable (champion held since
 cycle 11) is the c11 d16_s2 anchor at challenge test =
 <strong>456.80</strong> [CI 448.0, 465.7]; on the realistic
 <code>real_data</code> evaluator the same policy scores test =
 <strong>+2.57</strong> [CI +1.98, +3.16], a lift of
-<strong>+2.10</strong> over the FixedFee(0.003) baseline.
-<strong>Cycle 26</strong> moves the M4 frontier on real_data:
-two additional rng_seeds of long-CEM ladder on the cycle-18-seed-0
-("c18-s0", strongest piecewise basin in the family) anchor lift
-<strong>+0.262</strong> and <strong>+0.301</strong> over the
-same-anchor piecewise — both in the "find" regime, both above the
-cycle-25 single-seed +0.250. The c18-s0 anchor's long-CEM ladder
-n=3 mean is now <strong>lift_FF +3.277 ± 0.027</strong> (test
-<strong>+3.747</strong>, lift over piecewise
-<strong>+0.271 ± 0.027</strong>), tighter and higher than the
-c21-s1 cluster (cycles 23+24, <strong>lift_FF +3.034 ± 0.066</strong>,
-lift over piecewise +0.134 ± 0.066). The new headline single-seed
-real_data score is <strong>+3.777</strong> (cycle 26 rng_seed=2 on
-c18-s0; supersedes cycle 25's +3.727). Aggregating all 8 long-CEM
-ladder runs across 3 anchors (cycles 23–26): mean lift over piecewise
-<strong>+0.220 ± 0.167</strong>; 7/8 in the find regime, 1/8 in
-the collapse regime. The cycle-24 "anchor-quality-monotone
-stabilizer" framing is now decisively rejected (the 3-anchor curve
-is not monotone), and the proposed cycle-25 inverse-scaling line is
-also wrong. The right characterization: <em>long-CEM ladder lift
-over piecewise is small (+0.13–+0.30 across anchors) but
-anchor-specific: c18-s0's basin happens to admit consistent ladder
-lift, while c21-s1's does not.</em> Read top-to-bottom; later
-milestones build on earlier ones.</p>
+<strong>+2.10</strong> over the FixedFee(0.003) baseline. The M4
+frontier on real_data sits at the cycle-25+26 4-bucket-ladder
+long-CEM cluster on the cycle-18-seed-0 ("c18-s0") piecewise
+anchor: n=3 mean test <strong>+3.747</strong>, lift_FF
+<strong>+3.277 ± 0.027</strong>, lift over the same-anchor
+piecewise <strong>+0.271 ± 0.027</strong>. The headline single-
+seed real_data score is <strong>+3.777</strong> (cycle 26
+rng_seed=2 on c18-s0). <strong>Cycle 27</strong> tested whether
+a structurally richer family (5-bucket ladder; split the 4-bucket's
+tiny bucket into ultra_tiny + tiny; +3 dims, 22-d total) at the
+same long-CEM budget on the same anchor could move the frontier.
+It cannot: n=2 mean lift_FF <strong>+3.093 ± 0.123</strong>, lift
+over piecewise <strong>+0.087 ± 0.123</strong> — both seeds below
+the +3.28 frontier-move threshold, n=2 mean −0.184 below the
+4-bucket cluster mean. The mechanistic finding is that the 22-d
+search space is starved at the cycle-26 CEM budget: 4-bucket
+elite-mean exceeds anchor by gen 2; 5-bucket elite-mean does not
+until gen 4 (one seed) or never (the other seed, which
+rerank-picks the anchor itself for lift = 0). The M4 headline
+locks at the 4-bucket cluster +3.277 ± 0.027 unless cycle 28's
+5-bucket-with-tighter-init_std or longer-CEM probe lifts it.
+Read top-to-bottom; later milestones build on earlier ones.</p>
 
 <div class="summary">
 <strong>At a glance.</strong>
 <ul>
   <li><strong>Where we are.</strong> M1 closed at cycle 5; M2 closed
   at cycle 13; M3 closed at cycle 16 with the per-bucket mechanism
-  (small-bucket routing collapse). M4 has had eleven cycles (16, 17,
-  18, 19, 20, 21, 22, 23, 24, 25, 26). Active milestone is
-  <strong>M4 cycle 11</strong> (next).</li>
+  (small-bucket routing collapse). M4 has had twelve cycles (16, 17,
+  18, 19, 20, 21, 22, 23, 24, 25, 26, 27). Active milestone is
+  <strong>M4 cycle 12</strong> (next).</li>
   <li><strong>Headline numbers (held-out test, n=256).</strong>
     M2 (challenge): champion test <strong>456.80</strong>
     [bootstrap 95% CI 448.0, 465.7] (16-d piecewise CEM, rng_seed=2;
     target 540). M3 (real_data, c11 anchor): same champion scores
     test <strong>+2.57</strong> [+1.98, +3.16], lift_FF
     <strong>+2.10</strong> over FixedFee(0.003) baseline 0.470.
-    <strong>M4 (real_data, current frontier — NEW).</strong> The
-    cross-seed reading is now the long-CEM ladder on the
-    <strong>cycle-18-seed-0</strong> piecewise anchor, n=3 across
-    cycles 25+26: mean test <strong>+3.747</strong>, lift_FF
+    <strong>M4 (real_data, current frontier — held since cycle 26).</strong>
+    The cross-seed reading sits at the long-CEM 4-bucket ladder on
+    the <strong>cycle-18-seed-0</strong> piecewise anchor, n=3
+    across cycles 25+26: mean test <strong>+3.747</strong>, lift_FF
     <strong>+3.277 ± 0.027</strong>, lift over the same-anchor
     piecewise <strong>+0.271 ± 0.027</strong> (range [+0.250,
-    +0.301]). This supersedes the prior cross-seed best
-    (long-CEM ladder on cycle-21-seed-1, n=3 cycles 23+24:
-    lift_FF +3.034 ± 0.066, lift over piecewise +0.134 ± 0.066).
-    The c18-s0 cluster is both higher and 2.5× tighter than the
-    c21-s1 cluster — Δ lift_FF +0.243 between the two anchors'
-    cross-seed means at the <em>same</em> family and budget.
-    <strong>Single-seed best on real_data</strong>: cycle-26
-    rng_seed=2 on c18-s0, test <strong>+3.777</strong>, lift_FF
-    <strong>+3.307</strong>, lift over piecewise <strong>+0.301</strong>
-    (supersedes cycle-25's +3.727). Earlier piecewise-only multi-seed
+    +0.301]). The c18-s0 cluster is both higher and 2.5× tighter
+    than the c21-s1 cluster (cycles 23+24, lift_FF +3.034 ± 0.066,
+    lift over piecewise +0.134 ± 0.066) — Δ lift_FF +0.243 between
+    the two anchors' cross-seed means at the <em>same</em> family
+    and budget. <strong>Single-seed best on real_data</strong>:
+    cycle-26 rng_seed=2 on c18-s0, test <strong>+3.777</strong>,
+    lift_FF <strong>+3.307</strong>, lift over piecewise
+    <strong>+0.301</strong>. Earlier piecewise-only multi-seed
     mean (cycle 21, c11-warm long-CEM, n=3): lift_FF +2.727 ± 0.322 —
-    held for context. Cross-anchor n=2 mean on the c21-s2
-    (basin-collapsed) anchor is +0.273 ± 0.387 (cycles 24+25), error
-    bar contains zero — the cycle-24 +0.547 was a high-variance
-    positive tail draw.</li>
+    held for context. <strong>Cycle 27 (NEW)</strong> probed a richer
+    family (5-bucket ladder; 22-d) at the same anchor and CEM budget:
+    n=2 mean lift_FF <strong>+3.093 ± 0.123</strong>, lift over
+    piecewise <strong>+0.087 ± 0.123</strong> — both seeds below
+    the +3.28 frontier-move threshold, n=2 mean −0.184 below the
+    4-bucket cluster mean. The 22-d search space is starved at the
+    cycle-26 CEM budget (init_std_new=0.15); cycle-28 plan is
+    5-bucket with init_std_new=0.05 to test whether the gap is
+    compute-bounded or family-bounded.</li>
   <li><strong>What cycle 21 changed.</strong> Re-ran cycle-18's
     long-CEM recipe (10g × 24p, piecewise, warm c11) with
     <code>rng_seed</code> ∈ {1, 2} (cycle 18 already supplied seed=0).
@@ -297,6 +298,7 @@ milestones build on earlier ones.</p>
       <li><a href="#m4-c24">Cycle 24 (M4 cycle 8) — third seed confirms +0.13 on c21-s1; cross-anchor long-CEM ladder on c21-s2 lifts +0.55 (stabilizer)</a></li>
       <li><a href="#m4-c25">Cycle 25 (M4 cycle 9) — second seed on c21-s2 collapses (lift +0.000); c18-s0 anchor lifts +0.250 — the inverse-scaling line is rejected</a></li>
       <li><a href="#m4-c26">Cycle 26 (M4 cycle 10) — c18-s0 long-CEM ladder confirmed at n=3: lift_FF +3.277 ± 0.027, lift over piecewise +0.271 ± 0.027 — new M4 frontier</a></li>
+      <li><a href="#m4-c27">Cycle 27 (M4 cycle 11) — 5-bucket ladder at long-CEM on c18-s0 falsifies the richer-family hypothesis: cluster mean +3.093 ± 0.123 (n=2), −0.184 below the 4-bucket cluster — M4 headline locks at +3.277 ± 0.027</a></li>
     </ul>
   </li>
 </ul>
@@ -3751,9 +3753,188 @@ richer family beat the 19-d ladder at the c18-s0 anchor? The
 c18-s0 basin's tight ±0.027 dispersion gives us cheap statistical
 power: any family that produces n=3 mean lift_FF above +3.31
 (roughly +0.03 above the c18-s0 cluster, well above the cycle-26
-cluster's stddev) would be a real frontier-mover. Cycle 27 should
-test the cycle-19 ladder family vs alternatives at long-CEM on
-c18-s0 multi-seed.</p>
+cluster's stddev) would be a real frontier-mover. Cycle 27 (below)
+tests the cycle-19 ladder family vs the natural one-bucket-richer
+extension at long-CEM on c18-s0 multi-seed.</p>
+</div>
+
+<h3 id="m4-c27">Cycle 27 (M4 cycle 11) — 5-bucket ladder at long-CEM on c18-s0 falsifies the richer-family hypothesis; M4 headline locks at +3.277 ± 0.027</h3>
+
+<div class="qmru">
+<p><strong>Question.</strong> Cycle 26 confirmed the 4-bucket ladder
+on the c18-s0 piecewise anchor as the M4 frontier on real_data
+(n=3 mean lift_FF +3.277 ± 0.027). The cycle-26 active hypothesis
+was that a structurally richer policy family at the same anchor
+and CEM budget would extend the cluster up. Concretely: split the
+4-bucket's <code>tiny</code> bucket into <code>ultra_tiny + tiny</code>
+(+3 dims, 22-d total — what we call the <strong>5-bucket ladder</strong>),
+warm-start it identity-equivalent to piecewise, and run the same
+long-CEM (10g × 24p) on c18-s0 multi-seed. Decision rule (n=2
+cycle-27): both seeds individually &gt; +3.31 → richer family lifts
+the M4 frontier; at least one seed &lt; +3.28 → richer family does
+NOT consistently help; lock M4 headline at the 4-bucket cluster
+mean. (Author note: cycle-26 STATE labelled this candidate
+"6-bucket" but the same paragraph described "split tiny into
+tiny+ultra-tiny" — a 1-bucket addition — so we follow the
+description.)</p>
+
+<p><strong>Method.</strong> 22-d 5-bucket ladder strategy, identical
+in fee structure to the cycle-26 4-bucket ladder except for the
+extra <code>ultra_tiny_*</code> dims (size threshold and per-bucket
+continuation/reversal weights). Identity warm-start directly from
+the c18-s0 piecewise anchor (same convention as cycle 26):
+<code>ultra_tiny_threshold = small_threshold × 0.25</code>,
+<code>tiny_threshold = small_threshold × 0.5</code>, and the
+ultra_tiny / tiny / small buckets all inherit piecewise's
+<code>continuation_small</code> and <code>reversal_small</code>.
+Bit-exact equivalence to piecewise on n=8 real_data seeds verified
+before launch. Identical CEM mechanics to cycle 23/24/25/26
+(init_std_inh=0.05, init_std_new=0.15, elite_frac=0.2, normalizer
+FixedFee(0.003,0.003), evaluator <code>real_data</code>, 64 search
+seeds, 128 val, 256 held-out test, RERANK_TOP_K=6 plus the
+anchor) and identical long-CEM budget (POPULATION=24,
+GENERATIONS=10). Two parallel runs at <code>workers=2</code>
+each: rng_seed=0 and rng_seed=1. Anchor val (n=128) on the
+5-bucket warm-start = +3.885, bit-equal to cycles 25 and 26 —
+identity warm-start verified across both rng_seeds and the two
+families. Wall-clock combined: ~46 min.</p>
+
+<p><strong>Result (decision rule "at least one seed &lt; +3.28"
+triggered → richer family does not consistently help on c18-s0
+at this CEM budget; M4 headline locks at +3.277 ± 0.027).</strong>
+Both cycle-27 seeds came in below the +3.28 threshold; the n=2
+cluster mean is −0.184 below the cycle-26 4-bucket cluster mean.</p>
+
+<table>
+  <thead>
+    <tr><th class="l">cycle / run</th>
+      <th>val (best, n=128)</th>
+      <th>test_score (n=256)</th>
+      <th>lift_FF</th>
+      <th>lift over c18-s0 piecewise</th>
+      <th>retail_adv (test)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="l">c18-s0 piecewise (anchor, recap)</td>
+      <td>3.885</td><td>3.476</td><td>+3.006</td>
+      <td>—</td><td>+3.215</td></tr>
+    <tr><td class="l"><strong>4-bucket n=3 mean ± σ (cycles 25+26)</strong></td>
+      <td>—</td><td>+3.747</td>
+      <td><strong>+3.277 ± 0.027</strong></td>
+      <td><span class="pos"><strong>+0.271 ± 0.027</strong></span></td>
+      <td>+3.43 ± 0.53</td></tr>
+    <tr><td class="l"><strong>5-bucket cycle 27 seed=0 (NEW)</strong></td>
+      <td>3.976 (gen 7)</td><td>3.651</td><td>+3.180</td>
+      <td><span class="pos">+0.174</span></td><td>+3.134</td></tr>
+    <tr><td class="l"><strong>5-bucket cycle 27 seed=1 (NEW)</strong></td>
+      <td>3.885 (anchor)</td><td>3.476</td><td>+3.006</td>
+      <td>+0.000</td><td>+3.215</td></tr>
+    <tr><td class="l"><strong>5-bucket n=2 mean ± σ</strong></td>
+      <td>—</td><td><strong>3.564</strong></td>
+      <td><strong>+3.093 ± 0.123</strong></td>
+      <td><strong>+0.087 ± 0.123</strong></td>
+      <td>+3.17 ± 0.06</td></tr>
+  </tbody>
+</table>
+
+<p>The 5-bucket cluster mean is <strong>−0.184</strong> below the
+4-bucket cluster mean at the same anchor, same evaluator, same
+held-out test seeds. The 5-bucket dispersion is <strong>4.6×</strong>
+wider (σ ±0.123 vs 4-bucket's ±0.027). Seed 1 is the cleanest
+piece of evidence: its rerank step picked the <em>anchor itself</em>
+because every gen-9 elite's val score (+3.48–+3.54) fell below the
+anchor's val (+3.885) — the CEM trajectory never crossed the
+warm-start on validation. Lift over piecewise = 0.000 (test bit-
+equal to the piecewise anchor). Seed 0 did cross (gen-7 val 3.976,
+above anchor 3.885) but the val→test gap on this seed was
+unusually wide (−0.32 vs cycle-26 4-bucket's mean val→test gap
+of −0.24 on the same anchor), so the test number landed at +3.651
+— −0.10 below the cycle-26 4-bucket cluster mean.</p>
+
+<p><img src="figures/m4_c27_anchor_lift_curve.png"
+alt="Cycle 27 — bar chart of piecewise vs 4-bucket vs 5-bucket lift_FF on c18-s0 anchor; 5-bucket bar shorter than 4-bucket"
+style="max-width:100%;"></p>
+
+<p><img src="figures/m4_c27_lift_summary.png"
+alt="Cycle 27 — per-seed lift over piecewise: 4-bucket (cycle 25+26) tightly clustered near +0.27; 5-bucket (cycle 27) scattered between 0.0 and +0.17"
+style="max-width:100%;"></p>
+
+<p><img src="figures/m4_c27_long_cem_val_curves.png"
+alt="Cycle 27 — long-CEM ladder val trajectories on c18-s0 5-bucket rng_seed=0 and rng_seed=1; both trajectories cross the anchor later than the 4-bucket trajectories did in cycle 26"
+style="max-width:100%;"></p>
+
+<p><strong>Mechanism — why the 5-bucket underperformed at the same
+budget.</strong> The 5-bucket has 6 new dims at init_std=0.15 vs
+the 4-bucket's 3 new dims; the 22-d initial-population covariance
+is roughly twice the new-dim noise energy of the 19-d. CEM
+elite-mean trajectory comparison: cycle-26 4-bucket elite-mean
+exceeds the anchor (+2.901 search) by gen 2; cycle-27 5-bucket
+elite-mean does not exceed +2.901 until gen 4 (seed 0) or
+gen 9 (seed 1, by which point it's too late for the search→val
+gap to close). The CEM is <em>starved</em> in the 22-d landscape
+at the same compute budget. This is a general pattern: doubling
+the new-dim budget (3 → 6 dims) at fixed init_std and fixed CEM
+generations halves the per-dim consolidation rate, and the
+effective search→val gap widens because elite-mean
+val ranges with the elite-mean search distribution.</p>
+
+<p><strong>Where this leaves the bimodal find/collapse claim.</strong>
+Cycle 26's check-13 invariant — every long-CEM ladder run lands
+either ≥ +0.10 (find) or ≤ −0.50 (collapse) above/below the
+anchor val, never between — held over 8 runs across 3 anchors
+on the 4-bucket family. Cycle 27 produces 2 wash-band samples
+on the 5-bucket family at the same long-CEM budget: seed 0 at
+margin +0.075 (just below the +0.10 find threshold), seed 1 at
+margin −0.405 (between collapse threshold −0.50 and find +0.10).
+The 4-bucket bimodal invariant does not generalise to the 5-bucket
+family at this CEM budget. Check 13 is narrowed in place to the
+4-bucket family; the cycle-27 5-bucket runs are recorded as
+observational rows that don't contribute to pass/fail. Whether
+the 4-bucket bimodal regime emerges in the 5-bucket family at
+higher CEM budget (cycle 28's plan-of-record probes this) is an
+open question.</p>
+
+<p><strong>What it changed.</strong></p>
+<ol>
+  <li><strong>The cycle-26 active hypothesis is rejected at long-CEM
+  (10g × 24p) budget.</strong> A structurally richer family
+  (5-bucket) does NOT lift the M4 frontier above the 4-bucket
+  cluster on c18-s0 at the same compute. The M4 headline locks at
+  the 4-bucket cluster mean +3.277 ± 0.027 (cycles 25+26).</li>
+  <li><strong>The 22-d 5-bucket landscape has more search noise
+  than the 19-d 4-bucket at the same CEM budget.</strong> This is
+  the key mechanistic finding. Two natural follow-ups distinguish
+  "family doesn't help" from "compute is binding": (i) longer CEM
+  (15g × 24p, 1.5× compute) and (ii) tighter init_std on the new
+  dims (0.05 instead of 0.15, matching inherited dims).</li>
+  <li><strong>Rerank-by-val with anchor floor is the safety net.</strong>
+  Seed 1's CEM never crossed the anchor on val, and the rerank
+  correctly picked the anchor — lift over piecewise = 0 instead
+  of regressing below piecewise. The cycle protocol is robust
+  across families.</li>
+  <li><strong>The bimodal regime was 4-bucket-specific.</strong>
+  Both cycle-27 5-bucket seeds land in the wash band. Check 13
+  narrowed in place; cycle-27 5-bucket runs in OBSERVATIONAL_RUNS,
+  not asserted on. Whether the regime re-emerges on the 5-bucket
+  family at higher budget is the cycle-28 question.</li>
+</ol>
+
+<p><strong>What's the next question?</strong> Is the 5-bucket
+underperformance compute-bounded or family-bounded? Cycle 28's
+plan-of-record: 5-bucket at <strong>init_std_new=0.05</strong>
+(matching inherited dims) on c18-s0 multi-seed. Same CEM budget
+as cycle 27. ~46 min wall for n=2. Decision rule: if the n=2
+mean lift_FF on c18-s0 &gt; +3.28 AND both seeds individually
+&gt; +3.10, the family helps when given less new-dim exploration
+variance — cycle 29 confirms with n=3. If at least one seed
+&lt; +3.06 (= piecewise level), the 5-bucket family is the
+binding constraint, not the search noise. A more expensive
+alternative: 5-bucket at <strong>15g × 24p</strong> on c18-s0
+(~70 min wall for n=2), a direct test of the compute-bounded
+hypothesis at the cost of 1.5× the cycle-27 compute. Cycle 28
+should pick the cheaper one (init_std variant) as primary and
+the longer-CEM variant as cycle-29 follow-up if the init_std
+variant doesn't move the cluster.</p>
 </div>
 
 </body>
