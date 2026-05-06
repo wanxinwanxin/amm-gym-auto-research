@@ -1,0 +1,26 @@
+[12:24:04] M4 cycle-28 5-bucket-ladder TIGHTSTD LONG-CEM | anchor=cycle18_seed0 rng_seed=1 | dim=22 pop=24 gen=10 elite_n=4 init_std_frac_new=0.05 init_std_frac_inh=0.05 workers=2
+[12:24:04]   anchor lift_FF nominal: +3.006
+[12:24:39]   anchor_5bucket val (real_data, n=128): score= +3.885 adv= +5.257 retail_adv= +3.268 (35.5s)
+[12:28:30]   gen 0: best= +2.902 elite_mean= +2.630 all_mean= -1.627 (230.6s)
+[12:32:12]   gen 1: best= +2.732 elite_mean= +2.697 all_mean= +1.781 (222.7s)
+[12:35:59]   gen 2: best= +3.065 elite_mean= +2.964 all_mean= +2.013 (226.2s)
+[12:39:49]   gen 3: best= +3.185 elite_mean= +3.150 all_mean= +2.854 (230.5s)
+[12:43:32]   gen 4: best= +3.213 elite_mean= +3.196 all_mean= +3.048 (222.5s)
+[12:47:14]   gen 5: best= +3.228 elite_mean= +3.222 all_mean= +3.166 (222.5s)
+[12:50:56]   gen 6: best= +3.256 elite_mean= +3.246 all_mean= +3.208 (222.1s)
+[12:54:38]   gen 7: best= +3.263 elite_mean= +3.257 all_mean= +3.215 (221.6s)
+[13:47:49]   gen 8: best= +3.272 elite_mean= +3.269 all_mean= +3.251 (3191.3s)
+[14:04:47]   gen 9: best= +3.279 elite_mean= +3.273 all_mean= +3.260 (1017.1s)
+[14:04:47]   CEM done in 6007.3s
+[14:04:47]   rerank pool: 7 candidates
+[14:05:24]     rerank 0 (    anchor): val= +3.885 adv= +5.257 retail_adv= +3.268 (37.7s)
+[14:06:02]     rerank 1 (      gen9): val= +4.066 adv= +5.745 retail_adv= +3.692 (37.4s)
+[14:06:40]     rerank 2 (      gen8): val= +4.084 adv= +5.668 retail_adv= +3.574 (37.9s)
+[14:07:18]     rerank 3 (      gen9): val= +4.056 adv= +5.695 retail_adv= +3.611 (38.0s)
+[14:07:55]     rerank 4 (      gen9): val= +4.089 adv= +5.668 retail_adv= +3.556 (37.7s)
+[14:08:33]     rerank 5 (      gen9): val= +4.042 adv= +5.658 retail_adv= +3.574 (37.4s)
+[14:09:10]     rerank 6 (      gen8): val= +4.068 adv= +5.578 retail_adv= +3.435 (37.4s)
+[14:11:39]   TEST best (n=256): score= +3.730 adv= +5.416 retail_adv= +3.536
+[14:11:39]   FF test score:  +0.470
+[14:11:39]   lift_FF (test): +3.259
+[14:11:39] wrote /sessions/zealous-focused-newton/mnt/amm-gym-auto-research/research/experiments/2026-05-06-cycle28-m4-5bucket-tightstd/results/cycle18_seed0_seed1/test.json

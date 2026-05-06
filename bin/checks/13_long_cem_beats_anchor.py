@@ -100,14 +100,28 @@ RUNS = [
 # the wash band (e.g. cycle-27 c18-s0 seed=1 at margin −0.405).
 OBSERVATIONAL_RUNS = [
     (
-        "cycle27 c18-s0 seed=0 (5-bucket)",
+        "cycle27 c18-s0 seed=0 (5-bucket, std_new=0.15)",
         ROOT
         / "research/experiments/2026-05-06-cycle27-m4-5bucket-c18s0/results/cycle18_seed0_seed0/test.json",
     ),
     (
-        "cycle27 c18-s0 seed=1 (5-bucket)",
+        "cycle27 c18-s0 seed=1 (5-bucket, std_new=0.15)",
         ROOT
         / "research/experiments/2026-05-06-cycle27-m4-5bucket-c18s0/results/cycle18_seed0_seed1/test.json",
+    ),
+    # Cycle-28 added the 5-bucket-tight (std_new=0.05) variant to
+    # test whether cycle-27 5-bucket underperformance was variance-
+    # bounded. Tracked observationally — same family branch, kept
+    # out of the bimodal assertion.
+    (
+        "cycle28 c18-s0 seed=0 (5-bucket, std_new=0.05)",
+        ROOT
+        / "research/experiments/2026-05-06-cycle28-m4-5bucket-tightstd/results/cycle18_seed0_seed0/test.json",
+    ),
+    (
+        "cycle28 c18-s0 seed=1 (5-bucket, std_new=0.05)",
+        ROOT
+        / "research/experiments/2026-05-06-cycle28-m4-5bucket-tightstd/results/cycle18_seed0_seed1/test.json",
     ),
 ]
 

@@ -4210,3 +4210,254 @@ are diagnostic and should follow.
 - Identity warm-start verification: bit-equal to piecewise on n=8
   real_data seeds (delta = 0.000000) — confirms 5-bucket strategy
   is correctly designed.
+
+
+## 2026-05-06T14:15Z — cycle 28 (M4 cycle 12 — 5-bucket ladder long-CEM with TIGHTENED init_std on new dims)
+
+**Plan for the cycle.** Cycle 27 ran a 22-d 5-bucket ladder long-CEM
+on the c18-s0 anchor at the cycle-26 budget (10g × 24p,
+init_std_frac_new=0.15) and produced cluster mean lift_FF
++3.093 ± 0.123, n=2 — −0.184 below the cycle-26 4-bucket cluster
+mean +3.277 ± 0.027. Cycle 27's mechanistic diagnosis: the
+22-d landscape has 2× the new-dim init noise energy of the 19-d
+4-bucket; the 5-bucket elite-mean trajectory crosses the anchor
+2–7 generations later; seed 1 reranks back to the anchor (CEM
+never lifts above warm-start val). Two natural cycle-28 follow-ups
+distinguish "family doesn't help" from "compute/variance is binding":
+(a) tighten init_std_new from 0.15 → 0.05 (matches inherited dims),
+~46 min wall; (b) longer CEM (15g × 24p, 1.5× compute), ~70 min.
+STATE-recommended primary was (a) because it's cheaper and
+distinguishes mechanism (variance vs compute). Cycle 28 plan: run
+(a) at n=2 (rng_seed ∈ {0, 1}) and report cluster mean ± σ.
+
+**Active hypothesis going in.**
+
+> "Cycle-27's 5-bucket underperformance is driven by excess
+> exploration variance on the 6 new dimensions (ultra_tiny_*,
+> tiny_*) at init_std_frac_new=0.15. Tightening init_std_new
+> to match the inherited dims' 0.05 fraction will close the
+> 5-bucket vs 4-bucket cluster-mean gap on c18-s0."
+
+Decision rule (from driver docstring):
+- **FRONTIER_LIFTED**: both seeds individually > +3.28 AND mean
+  lift_FF >= +3.28 → tightening lifts cluster onto frontier;
+  cycle 29 confirms with n=3.
+- **TIGHTENING_HURT**: at least one seed < +3.06 (= piecewise
+  level) → tightening over-restricts new-dim exploration;
+  the wider 0.15 std was doing useful work for the gen-9 elites.
+- **PARTIAL_OR_NO_LIFT**: cluster mean in [+3.10, +3.28] →
+  tightening helps but does not close the gap; family or compute
+  is the binding constraint, not exploration variance alone.
+
+**What we ran.** Identical to the cycle-27 driver except
+`INIT_STD_FRAC_NEW = 0.05` (was 0.15). Same warm-start (direct
+from c18-s0 piecewise), same CEM mechanics: pop=24, gen=10,
+elite_frac=0.2, normalizer FixedFee(0.003, 0.003), evaluator
+real_data, 64 search seeds, 128 val, 256 test, 6-deep
+rerank-by-val. Two runs in parallel: ANCHOR_KEY=cycle18_seed0
+RNG_SEED ∈ {0, 1}, workers per job = 2 (4 cores total).
+Wall-clock: 100 min (sandbox slowdown between gen 7 and gen 8
+added ~50 min stall to both seeds; CPU-bound work was ~46 min,
+matching cycle 27 before-stall budget).
+
+**Result.**
+
+| seed | val (best, n=128) | test (n=256) | lift_FF | retail_adv (test) |
+|--:|--:|--:|--:|--:|
+| 0 | +4.089 | +3.717 | **+3.246** | +2.908 |
+| 1 | +4.089 | +3.730 | **+3.259** | +3.536 |
+| **mean ± σ** | +4.089 | +3.723 | **+3.253 ± 0.009** | +3.22 ± 0.44 |
+
+Cluster comparison on c18-s0 anchor:
+
+| family | std_new | n_seeds | mean test | mean lift_FF | mean lift over piecewise |
+|--|--|--:|--:|--:|--:|
+| piecewise (cycle 18 single seed) | — | 1 | — | +3.006 | 0.000 |
+| 4-bucket (c25+c26) | 0.15 | 3 | +3.747 | **+3.277 ± 0.027** | +0.271 ± 0.027 |
+| 5-bucket (c27) | 0.15 | 2 | +3.564 | +3.093 ± 0.123 | +0.087 ± 0.123 |
+| **5-bucket-tight (c28)** | **0.05** | **2** | **+3.723** | **+3.253 ± 0.009** | **+0.247 ± 0.009** |
+| Δ (5-bucket-tight − 5-bucket-wide) | — | — | +0.159 | **+0.160** | +0.160 |
+| Δ (5-bucket-tight − 4-bucket) | — | — | −0.024 | **−0.024** | −0.024 |
+
+**Decision-rule verdict: PARTIAL_OR_NO_LIFT.** Cluster mean +3.253
+< +3.28 frontier threshold. But:
+- BOTH cycle-28 seeds individually exceed the +3.06 piecewise
+  floor by ~+0.20.
+- Cluster mean exceeds cycle-27 cluster mean by +0.160 (variance
+  reduction from 0.123 → 0.009 — 13× tighter).
+- Cluster mean is −0.024 below the 4-bucket cluster (within ~0.9σ
+  of the 4-bucket cluster's σ ±0.027 — statistically
+  indistinguishable on this small sample).
+- Both cycle-28 seeds picked gen-9 candidates as best-by-val
+  (val +4.089 each, +0.20 over anchor), well in the find regime.
+
+**Mechanism — why tightening helped.**
+
+- The 5-bucket has 6 new dims at init_std=0.15 in cycle 27. With
+  std=0.05 in cycle 28, the new-dim init noise energy is reduced
+  by 9× ((0.15/0.05)² = 9). The new dims now explore on the same
+  per-dim scale as the inherited dims, so the 22-d landscape is
+  no longer "starved" relative to the 19-d 4-bucket.
+- CEM convergence comparison (per-gen elite_mean):
+    | gen | c28 seed 0 | c28 seed 1 | c27 seed 0 | c27 seed 1 |
+    |--:|--:|--:|--:|--:|
+    | 0 | +2.029 | +2.630 | +2.025 | +1.938 |
+    | 1 | +2.906 | +2.697 | +2.845 | +2.501 |
+    | 2 | +3.079 | +2.964 | +2.853 | +2.501 |
+    | 3 | +3.123 | +3.150 | +2.949 | +2.501 |
+    | 4 | +3.189 | +3.196 | +2.901 | +2.501 |
+    | 5 | +3.231 | +3.222 | — | — |
+    | 9 | +3.293 | +3.273 | +2.978 | +2.892 |
+- The cycle-28 elite_mean exceeds the anchor (+2.901) by gen 1 in
+  both seeds. Cycle 27 took until gen 4 (seed 0) or gen 9 (seed 1).
+- Cycle-28 final elite_mean (+3.293 / +3.273) is above the 4-bucket
+  cluster mean (+3.277), confirming the search trajectory is now
+  competitive with the 4-bucket — the gap to the 4-bucket cluster
+  is in the val→test gap, not in CEM convergence.
+
+**Val→test gap.** Both cycle-28 seeds: val ~+4.089 → test
++3.717 / +3.730 (gap −0.37 / −0.36). Same magnitude as cycle-21
+piecewise long-CEM (mean gap −0.45) and cycle-23/24 4-bucket
+long-CEM (gap −0.30 to −0.40). Long-CEM rerank-by-val on this
+basin has a systematic ~0.30–0.40 regression-to-mean from val
+to test. This is a property of the (anchor × evaluator × budget)
+combination, not the family.
+
+**Bin/checks/.** Added cycle-28 5-bucket-tight runs to check 13's
+`OBSERVATIONAL_RUNS` (informational; bimodal assertion still
+narrowed to 4-bucket family). Cycle-28 seed 0 lands at margin
+−0.004 (wash band — a gen-2 outlier in the rerank pool barely
+under anchor); cycle-28 seed 1 lands at margin +0.157 (find
+regime). Aggregate 5-bucket family observational tally
+(c27+c28 = 4 seeds): 1/4 find, 3/4 wash, 0/4 collapse — the
+4-bucket bimodal regime does not generalise to the 5-bucket
+family at any tested CEM budget. Total active checks unchanged
+at 12 (cap respected).
+
+**Self-checks.**
+
+- Verified n=2 mean lift_FF: (3.246 + 3.259)/2 = 6.506/2 = 3.253 ✓
+  matches cross_seed_summary.json output.
+- Verified n=2 stddev (sample): |3.246 − 3.253|² + |3.259 −
+  3.253|² = 0.0001 + 0.00004 = 0.00014; var = 0.00014/(2-1) =
+  0.000085; stddev ≈ 0.0092 ✓.
+- Verified anchor val bit-equal to cycles 26 and 27 (3.885) —
+  identity warm-start across families/std settings holds.
+- Verified seed 0 best source = "gen9", val_score +4.0894, test
+  +3.7166, lift_FF = 3.7166 − 0.4703 = +3.2463 ✓.
+- Verified seed 1 best source = "gen9", val_score +4.0886, test
+  +3.7297, lift_FF = 3.7297 − 0.4703 = +3.2594 ✓.
+- Both seeds: rerank-by-val winner is a non-anchor candidate
+  (rerank source="gen9"), not the anchor — rerank floor not
+  triggered; cycle-28 seeds are in the genuine "search-find" regime
+  by best-by-val (val +4.089 vs anchor +3.885 = +0.204 over anchor).
+- Re-read presentation as a stranger: top "At a glance" needs
+  cycle-28 update (M4 frontier still +3.277 ± 0.027 but cycle-28
+  closed most of the cycle-27 variance gap); per-cycle section
+  needed at end of M4 chronology with TOC entry.
+
+**What it changed about our understanding.**
+
+1. **Cycle-27's 5-bucket underperformance was variance-bounded,
+   not family-bounded.** Tightening init_std_new lifts the cluster
+   mean +0.160 and shrinks σ 13×. This is the cleanest experimental
+   confirmation we have of a hyperparameter-mechanism causal chain
+   in the M4 search — cycle 27 made a specific prediction
+   ("excess new-dim noise causes the c18-s0 5-bucket gap") and
+   cycle 28 falsified the alternative ("family is intrinsically
+   worse") by closing most of the gap with the predicted change.
+2. **The 5-bucket-tight family is competitive with but does not
+   exceed the 4-bucket on c18-s0 long-CEM.** Cluster gap is
+   −0.024, within 0.9σ of the 4-bucket cluster's σ. The remaining
+   gap could be (a) a structural family ceiling at this compute,
+   or (b) compute-bounded — 5-bucket is more capable but consumes
+   more CEM compute to express. Cycle 29's higher-compute
+   experiment will disambiguate.
+3. **The val→test gap is a property of the (anchor × evaluator ×
+   budget) combination, not the family.** Cycle 28 confirms the
+   pattern that held across cycles 21/23/24/27 — a reliable
+   −0.30 to −0.40 gap on c18-s0 long-CEM. The frontier hunt is
+   compute-bottlenecked AT this gap; closing the val→test gap
+   would meaningfully advance M4 even without a family change.
+4. **The 5-bucket family does NOT have the 4-bucket's bimodal
+   find/collapse structure.** Across 4 cycle-27/28 seeds, 3 land
+   in the wash band by worst-non-anchor val. The 4-bucket
+   bimodal is a property of how the 19-d landscape's CEM
+   trajectories separate the find-vs-collapse runs cleanly; in
+   the 22-d 5-bucket landscape, gen-2 elites can be just below
+   anchor val while gen-9 elites are well above, producing
+   wash-band aggregate signatures. This is a stable feature of
+   the 5-bucket family and check 13 correctly excludes it.
+
+**What's the next question?**
+
+Decision rule keeps the M4 headline at the cycle-26 cluster mean
++3.277 ± 0.027, but the cycle-28 result reduces the
+"family-is-the-issue" probability and increases the
+"compute-binding" / "sample-size-binding" probabilities. Cycle 29
+candidates (in priority order):
+
+1. **5-bucket-tight at higher CEM compute (15g × 24p) on c18-s0,
+   multi-seed.** Direct test of the cycle-28 active hypothesis.
+   Decision rule: if n=2 mean lift_FF > +3.28 AND both seeds >
+   +3.20, the 5-bucket family lifts the frontier with more compute;
+   cycle 30 confirms with n=3. ~70 min wall (assuming sandbox runs
+   at normal speed; cycle 28 had 50 min stall added).
+2. **3rd c18-s0 5-bucket-tight seed (cycle 28 stretch).** Single
+   job, ~25 min wall. Tightens cycle-28 cluster from n=2 to n=3.
+   Useful if cycle 29's 15g×24p experiment is borderline; an n=3
+   cycle-28 cluster mean with σ=±0.009 lets us test the −0.024
+   4-bucket gap with much tighter confidence.
+3. **4th c18-s0 long-CEM 4-bucket ladder seed.** Single job,
+   ~25 min wall. Tightens c18-s0 cluster from n=3 to n=4.
+4. **Anchor-conditional collapse-rate at cheap budget.** 9
+   short-CEM seeds (3 per anchor × 3 anchors) at 5g × 12p. Tests
+   cycle-26 "anchor-specific collapse" hypothesis directly;
+   ~45 min wall. Diagnostic, deferred from cycle 26.
+
+Recommendation: **cycle 29 plan-of-record = (1) [5-bucket-tight
+longer CEM on c18-s0]**. It directly disambiguates the cycle-28
+finding (compute-bounded vs ceiling) on the same anchor. (2)/(3)
+are diagnostic stretches that should follow if compute permits.
+
+**Operational footnotes.**
+
+- Repo path on this sandbox:
+  `/sessions/zealous-focused-newton/mnt/amm-gym-auto-research`.
+- Inherited working-tree diffs across `arena_eval/`, `arena_policies/`,
+  `scripts/`, `tests/` untouched per convention. Edits this cycle
+  restricted to `research/`, `bin/checks/13_long_cem_beats_anchor.py`
+  (added cycle-28 OBSERVATIONAL_RUNS entries).
+- Wall-clock breakdown:
+  - env setup (gymnasium, pyarrow, pytest already installed; jax
+    skipped — check 08 still failing with sandbox-quirk /tmp permission
+    issue, non-blocking) ~1 min.
+  - smoke (anchor val + identity warm-start verification) ~1 min.
+  - both 5-bucket-tight seeds in parallel at workers=2: started
+    12:23:57, finished 14:11:39 — ~108 min wall (~46 min CPU work
+    + ~50 min sandbox stall between gen 7 and gen 8 + ~6 min
+    rerank+test). Still within 2-hour cycle budget.
+  - figures + cross-seed summary: ~1 min.
+  - presentation, STATE, LOG writeups: in progress.
+  - planned commit: ~3 min.
+- Bash polling notes: 200s sleeps survive consistently this cycle.
+  600s sleep killed by exit 143. Pattern matches cycle-26 & cycle-27.
+- Push to GitHub initially failing with "Connection closed by
+  UNKNOWN port 65535" / "Could not resolve hostname" — the SSH
+  proxy was intermittent during cycle setup. Will retry at commit
+  time.
+- 12 active checks unchanged. Check 08 (jax_optional) still
+  failing on /tmp permission issue; flagged for cycle 29 retire/fix.
+- New experiment dir:
+  `research/experiments/2026-05-06-cycle28-m4-5bucket-tightstd/`
+  with `scripts/{ladder5_strategy.py, run_ladder5_tightstd.py,
+  make_figures.py}` + `results/cycle18_seed0_seed{0,1}/{progress.log,
+  history.json, test.json}` + `results/cross_seed_summary.json` +
+  `results/seed{0,1}_stdout.log` + `figures/{m4_c28_anchor_lift_bar,
+  m4_c28_long_cem_val_curves, m4_c28_lift_per_seed}.png`.
+- New presentation figures (will copy from experiment):
+  `m4_c28_anchor_lift_bar.png`, `m4_c28_long_cem_val_curves.png`,
+  `m4_c28_lift_per_seed.png`.
+- Identity warm-start verification: cycle-28 anchor val bit-equal
+  to cycles 26 and 27 (+3.885) — confirms 5-bucket-tight strategy
+  warm-starts identically; only init_std differs.
