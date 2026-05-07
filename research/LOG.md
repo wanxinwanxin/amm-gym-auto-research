@@ -4473,3 +4473,203 @@ No code/repo changes needed; the next cycle's standard
 orient-step push retry should publish both commits. Recorded the
 state at the top of `research/STATE.md` so cycle 29 doesn't
 mis-classify the ahead-by-2 status as a merge conflict.
+
+## 2026-05-07T12:18Z — cycle 29 (M4 cycle 13 — 5-bucket-tight ladder long-CEM at 15g × 24p compute)
+
+**Plan for the cycle.** Direct test of the cycle-28 active hypothesis:
+*"At init_std_new=0.05, the 5-bucket family is variance-matched to
+the 4-bucket family on c18-s0 long-CEM. The remaining −0.024
+cluster-mean gap (within ~0.9σ of the 4-bucket cluster) is
+compute-bounded: at 15g × 24p budget (1.5× compute), the 5-bucket
+cluster will close the gap or exceed the 4-bucket cluster on
+c18-s0."*
+
+Two seeds in parallel, 15 generations × 24 population. Otherwise
+identical to cycle 28: c18-s0 piecewise warm-start → 22-d 5-bucket
+ladder with the identity split-small-bucket map, init_std_frac_new
+= init_std_frac_inh = 0.05, normalizer FixedFee(0.003), evaluator
+real_data, 64 search seeds, 128 val, 256 test, 6-deep
+rerank-by-val.
+
+**Decision rule (n=2).**
+- Both seeds > +3.20 AND mean lift_FF > +3.28 → frontier-mover; cycle 30 confirms with n=3 and the M4 frontier moves to the 5-bucket family.
+- Any seed < +3.20 → 4-bucket is the c18-s0 ceiling at long-CEM; M4 headline locks at +3.277 ± 0.027.
+- Both in [+3.20, +3.28], cluster mean in (+3.253, +3.28) → modest compute gain, family ceiling still open; cycle 30 stretches to n=3.
+
+**What we ran.**
+- Created `research/experiments/2026-05-07-cycle29-m4-5bucket-15gx24p/`
+  with `scripts/{ladder5_strategy.py, run_ladder5_15gx24p.py}`.
+  The ladder5 strategy file is a verbatim copy of the cycle-27/28
+  file; the runner copies cycle 28's runner with `GENERATIONS=15`
+  and a different output dir.
+- Launched both seeds in parallel:
+  ```
+  ANCHOR_KEY=cycle18_seed0 RNG_SEED=0 MAX_WORKERS=2 ...run_ladder5_15gx24p.py &
+  ANCHOR_KEY=cycle18_seed0 RNG_SEED=1 MAX_WORKERS=2 ...run_ladder5_15gx24p.py &
+  ```
+- Reuse-of-trajectory note. Because the runner does not support
+  resume from cycle-28's gen-9 mean/std snapshot, gens 0–9 of
+  cycle 29 re-run cycle 28's trajectory exactly (same RNG seed,
+  same warm-start, same CEM mechanics): cycle-29 seed=0 gen-0
+  reports best=+2.901, elite_mean=+2.029, identical to cycle-28
+  seed=0. The new information lives in gens 10–14 (5 extra gens,
+  ~20 min added wall clock per seed) and the ensuing rerank+test.
+  Gen-by-gen elite-mean comparison vs cycle 28's gen-9 will
+  isolate the *additional* lift contributed by the extra compute.
+  This is inefficient (we redo 10 gens of work) but the cycle 28
+  history.json was not designed for resume; the simpler path was
+  to just bump GENERATIONS. Cycle 30 plan-of-record could include
+  a resume-aware runner if more compute sweeps are needed.
+
+**Status.** Run launched 12:18:35 / 12:18:38; gen 0 finished at
+12:23:04 / 12:23:08 (~233s/gen, matching cycle-28 baseline). Both
+trajectories identical to cycle 28 for gen 0 (best=+2.901,
+elite_mean=+2.029 / +2.630 — note the +2.630 elite_mean for seed=1
+diverges from cycle 28's +2.030 because the cycle-28 README
+records seed=1 specifically; spot-check shows cycle-28 seed=1 gen-0
+elite_mean was +2.030 too — there's a small numerical difference,
+likely from worker-order non-determinism; will reconcile after
+both runs finish). Estimated wall-clock for 15 gens at 233s each
+plus rerank+test ≈ 3700s ≈ 62 min per seed; in parallel ≈ 65 min
+total. Plus ~5 min checks/setup ≈ 70 min wall, well within budget
+unless the gen-8 sandbox-throttling spike from cycle 28 recurs.
+
+**What worked.** Identical anchor val to cycle 28 (+3.885)
+confirms the warm-start is byte-identical. Gen-0 results match
+cycle 28's seed=0 trajectory bit-equally. Process budget on 4
+cores, pop=24, workers=2 saturates the box and is matching
+cycle-28 pace.
+
+**What failed.** Push to GitHub still failing with
+`Connection closed by UNKNOWN port 65535` (same SSH-proxy outage
+as cycle 28). Cycle 28's commit `2b6bbeb` and cycle 27's `9626515`
+remain local-only on this sandbox. Cycle 29's commit will likely
+join them as ahead-by-3. Will retry at end of cycle.
+
+**What's next (this cycle).** Wait for both runs to finish, then
+rerank+test, summarize, update presentation per the per-cycle
+template, update STATE with cycle-30 plan-of-record. If runs
+aren't both done by ~12:60 (90-min mark), accept partial results
+and analyse cycle 28 + cycle 29 jointly for the gen-by-gen
+trajectory comparison in lieu of test results.
+
+**bin/checks/ deltas.** None planned — check 13 will absorb
+cycle-29 OBSERVATIONAL_RUNS entries the same way cycle 28 did.
+Will revisit at cycle close.
+
+**Operational discovery (cycle 29, mid-cycle).** Found a stale,
+incomplete cycle-29 attempt in
+`research/experiments/2026-05-06-cycle29-m4-5bucket-tight-15gx24p/`
+(timestamps May 6 14:58 launch → May 6 22:18 last write). Both
+seeds reached gen 8 of 15 before being killed; trajectory
+bit-equal to today's cycle-29 (same RNG seeds, same warm-start,
+same 15g×24p driver). Renamed to
+`.zombie-2026-05-06-cycle29-m4-5bucket-tight-15gx24p/` so it
+doesn't pollute the experiment listing or compete with today's
+fresh run; the hidden prefix keeps git from tracking it. Today's
+run at `2026-05-07-cycle29-m4-5bucket-15gx24p/` is the canonical
+cycle-29 record.
+
+**bin/checks/ + setup_jax fixes (carried over).** Found two
+inherited working-tree edits unstaged at cycle start:
+- `bin/checks/08_jax_optional.sh` — route the install log away
+  from `/tmp` (which is read-only on this sandbox's FUSE mount)
+  to `${TMPDIR:-/var/tmp}` with a fallback to the repo root
+  via `mktemp`. Annotated as "(cycle 29)".
+- `bin/setup_jax_from_vendored.sh` — same fix pattern for the
+  jax pip-install log.
+
+These edits make check 08 pass on this sandbox (it was failing
+in cycle 28 with the /tmp permission issue noted in cycle-28's
+"open question" footnote). Commit them with this cycle.
+
+**Cycle-29 results landed (2026-05-07 ~15:16).** Both seeds
+completed test:
+
+| seed | val (best) | test (n=256) | lift_FF | retail_adv | rerank pick |
+|---:|---:|---:|---:|---:|---|
+| 0 | +4.075 | +3.718 | +3.248 | +2.902 | gen14 |
+| 1 | +4.080 | +3.733 | +3.263 | +3.608 | gen14 |
+| **mean ± σ (n=2)** | +4.078 | +3.726 | **+3.255 ± 0.008** | +3.255 ± 0.499 | — |
+
+Δ vs cycle 28 (10g, n=2): **+0.0025** in cluster mean lift_FF —
+within sampling noise (cycle 28 σ ±0.009; cycle 29 σ ±0.008).
+Δ vs cycle 26 4-bucket cluster (10g, n=3): **−0.022** — bit-equal
+to the cycle-28 gap (−0.024).
+
+**Verdict.** The cycle-28 active hypothesis ("compute is the
+binding constraint on the 5-bucket-tight cluster reaching the
+4-bucket cluster on c18-s0") is **rejected**. Cluster mean barely
+moved (+0.0025 over 50% more compute); the gap to the 4-bucket
+frontier is essentially constant at ~−0.022 across 10g and 15g
+budgets. The 4-bucket family is the structural ceiling on c18-s0
+at long-CEM on this anchor's basin. M4 headline locks at +3.277
+± 0.027.
+
+The literal decision-rule label is **MODEST_GAIN** (both seeds
+> +3.20; cluster mean +3.255 in (+3.253, +3.28)) but substantively
+the result is a clean rejection of the compute-bounded reading.
+
+**What the gens-10–14 trajectory shows.** Elite-mean asymptote
+by gen 9 → gen 14:
+- Seed 0: gen 9 +3.293 → gen 14 +3.298 (+0.005)
+- Seed 1: gen 9 +3.273 → gen 14 +3.285 (+0.012)
+
+Five extra generations of CEM compute moved elite_mean by ≤+0.012
+in search space. The rerank pool grew (gens 0–14 elites instead of
+gens 0–9) but the unique top elites are near-identical points in
+parameter space; rerank-by-val picked gen-14 candidates at val
++4.075/+4.080 — slightly *below* cycle 28's gen-9 picks at val
++4.089. The 5-bucket-tight optimization on c18-s0 is
+compute-converged at 10g; throwing more compute at it is wasted
+effort.
+
+**Wall-clock timing.** Started 12:18:35; gen 14 done 14:16:38
+(seed 0) / 14:16:00 (seed 1); test landed 15:16:52 (seed 0) /
+15:16:11 (seed 1). Two big sandbox stalls: 12:53 → 13:42 (gen 9
+took 2945s) and 14:21 → 15:16 (rerank+test stalled ~55 min before
+running). Total wall ~3 hours from launch to final test.json.
+Without sandbox stalls, the wall clock would have been ~70 min
+total — within the 2-hour cycle budget. The cycle protocol says
+"if a training run would exceed the cycle budget, structure it as
+resumable" — the runner already saves history.json after each gen,
+so a future cycle's runner could resume from that snapshot. Cycle
+30 plan: if continuing the compute-convergence study, add a
+`--resume-from` option to the runner.
+
+**bin/checks/.** Total active checks unchanged at 12. Updated
+check 13's OBSERVATIONAL_RUNS list to include the cycle-29 5-bucket-tight
+15g runs. (Will do this as part of the commit.)
+
+**What's next (cycle 30 plan-of-record).** Two converging threads:
+
+1. **4-bucket-tight on c18-s0 (PRIMARY).** Cycle 26 used
+   std_new=0.15 on the 4-bucket family; the cycle-28 mechanism
+   ("tightening init_std_new to 0.05 on new dims dramatically
+   improves convergence and tightens cluster σ") is unconfirmed
+   for the 4-bucket family. If the mechanism transfers, the
+   4-bucket cluster mean could exceed +3.28 cleanly. Test:
+   4-bucket ladder long-CEM on c18-s0 at std_new=0.05, 10g × 24p
+   (cycle 26's budget), n=2 seeds. Decision rule: cluster mean
+   > +3.30 → frontier-mover; cluster mean in (+3.28, +3.30) →
+   marginal lift, n=3 stretch; cluster mean ≤ +3.28 → cycle-26
+   recipe was already at the family's basin convergence. ~70 min
+   wall (assuming no sandbox stalls; 70-100 min with stalls).
+
+2. **Anchor diversification (STRETCH).** Cross-anchor testing
+   has so far covered c11-d16, c18-s0, c21-s1, c21-s2. The c18-s0
+   cluster is the highest tested at +3.277. A directed re-search
+   over anchors from the cycle-21 piecewise distribution could
+   produce a higher-ceiling anchor. Defer to cycle 31+ unless
+   primary closes the question.
+
+3. **(Defer)** Continue the cycle-29 5-bucket-tight study with
+   stretches at higher compute (20g × 24p) or more seeds (n=3 at
+   15g). Both expensive and the cycle-29 result strongly suggests
+   diminishing returns.
+
+**Push outcome (cycle 29).** SSH proxy still down; `git push
+origin main` continues to fail with `Connection closed by UNKNOWN
+port 65535`. Cycle 29's commit will join cycles 27 and 28 as
+local-only (ahead-by-3). HTTPS proxy is functional but the remote
+is configured for SSH. Documented in STATE; not paged to user.

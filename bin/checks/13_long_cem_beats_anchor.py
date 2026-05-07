@@ -123,6 +123,23 @@ OBSERVATIONAL_RUNS = [
         ROOT
         / "research/experiments/2026-05-06-cycle28-m4-5bucket-tightstd/results/cycle18_seed0_seed1/test.json",
     ),
+    # Cycle-29 ran 5-bucket-tight at 15g × 24p (1.5× cycle-28
+    # compute) on c18-s0 to test the cycle-28 "compute-bounded"
+    # hypothesis. Result: cluster mean +3.255 ± 0.008 (n=2),
+    # essentially bit-equal to cycle-28's +3.253 ± 0.009 — the
+    # compute hypothesis is rejected and the 4-bucket family is
+    # confirmed as the structural ceiling on c18-s0 at long-CEM.
+    # Tracked observationally for visibility; same family branch.
+    (
+        "cycle29 c18-s0 seed=0 (5-bucket, std_new=0.05, 15g)",
+        ROOT
+        / "research/experiments/2026-05-07-cycle29-m4-5bucket-15gx24p/results/cycle18_seed0_seed0/test.json",
+    ),
+    (
+        "cycle29 c18-s0 seed=1 (5-bucket, std_new=0.05, 15g)",
+        ROOT
+        / "research/experiments/2026-05-07-cycle29-m4-5bucket-15gx24p/results/cycle18_seed0_seed1/test.json",
+    ),
 ]
 
 

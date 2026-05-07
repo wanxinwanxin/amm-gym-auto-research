@@ -1,0 +1,82 @@
+{
+  "experiment": "2026-05-07-cycle29-m4-5bucket-15gx24p",
+  "anchor": "cycle18_seed0",
+  "family": "ladder_5bucket",
+  "init_std_frac_new": 0.05,
+  "init_std_frac_inherited": 0.05,
+  "generations": 15,
+  "population": 24,
+  "evaluator_kind": "real_data",
+  "piecewise_lift_FF": 3.005713888877396,
+  "seeds": [
+    {
+      "rng_seed": 0,
+      "status": "complete",
+      "history_gens": 15,
+      "anchor_val_score": 3.885134411998415,
+      "best_by_val": {
+        "val_score": 4.074523648227412,
+        "test_score": 3.718161538463021,
+        "test_retail_advantage": 2.901639256373871,
+        "lift_FF": 3.2478561665796915,
+        "ff_test_score": 0.4703053718833298,
+        "source": "gen14"
+      },
+      "lift_over_piecewise": 0.24214227770229524
+    },
+    {
+      "rng_seed": 1,
+      "status": "complete",
+      "history_gens": 15,
+      "anchor_val_score": 3.885134411998415,
+      "best_by_val": {
+        "val_score": 4.079822244011623,
+        "test_score": 3.733061786831807,
+        "test_retail_advantage": 3.6079254585358145,
+        "lift_FF": 3.2627564149484773,
+        "ff_test_score": 0.4703053718833298,
+        "source": "gen14"
+      },
+      "lift_over_piecewise": 0.25704252607108113
+    }
+  ],
+  "incomplete": [],
+  "cluster_cycle29_5bucket_tight_15g": {
+    "n_seeds_complete": 2,
+    "lift_FF_mean": 3.2553062907640844,
+    "lift_FF_std": 0.007450124184392948,
+    "lift_FF_min": 3.2478561665796915,
+    "lift_FF_max": 3.2627564149484773,
+    "test_score_mean": 3.725611662647414,
+    "lift_over_piecewise_mean": 0.2495924018866882,
+    "lift_over_piecewise_std": 0.007450124184392948,
+    "test_retail_advantage_mean": 3.2547823574548427
+  },
+  "cluster_cycle28_5bucket_tight_10g": {
+    "n_seeds": 2,
+    "lift_FF_mean": 3.252844516890754,
+    "lift_FF_std": 0.006511371973184854,
+    "lift_FFs": [
+      3.246333144917569,
+      3.2593558888639387
+    ]
+  },
+  "cluster_cycle26_4bucket_10g": {
+    "n_seeds": 3,
+    "lift_FF_mean": 3.276929880521447,
+    "lift_FF_std": 0.021772918947520443,
+    "lift_FFs": [
+      3.2561983858883536,
+      3.267579039721601,
+      3.3070122159543858
+    ]
+  },
+  "delta_vs_c28_10g": 0.002461773873330575,
+  "delta_vs_c26_4bucket": -0.02162358975736245,
+  "decision_thresholds": {
+    "frontier_lift": 3.28,
+    "ceiling_floor": 3.2
+  },
+  "verdict": "MODEST_GAIN",
+  "verdict_rationale": "worst 3.248 >= 3.2 but mean 3.255 <= 3.28; modest compute gain, family ceiling open"
+}

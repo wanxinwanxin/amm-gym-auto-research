@@ -24,9 +24,19 @@ if [[ ! -x "$ROOT/bin/setup_jax_from_vendored.sh" ]]; then
     exit 1
 fi
 
-if ! "$ROOT/bin/setup_jax_from_vendored.sh" >/tmp/jax_setup.log 2>&1; then
-    echo "FAIL: vendored-wheels install failed; see /tmp/jax_setup.log"
-    tail -n 5 /tmp/jax_setup.log >&2
+# NOTE (cycle 29): /tmp is not writable on this sandbox (FUSE mount).
+# Use mktemp under HOME or fall back to a logfile inside the repo's
+# checks dir. We don't strictly need the log for this check; on
+# install-failure we just want a tail. Use $TMPDIR or /var/tmp first.
+LOG_DIR="${TMPDIR:-/var/tmp}"
+if [[ ! -w "$LOG_DIR" ]]; then
+    LOG_DIR="$ROOT"
+fi
+LOG="$(mktemp "$LOG_DIR/jax_setup.XXXXXX.log" 2>/dev/null || echo "$LOG_DIR/jax_setup.log")"
+
+if ! "$ROOT/bin/setup_jax_from_vendored.sh" >"$LOG" 2>&1; then
+    echo "FAIL: vendored-wheels install failed; see $LOG"
+    tail -n 5 "$LOG" >&2
     exit 1
 fi
 

@@ -1,0 +1,31 @@
+[12:18:38] M4 cycle-29 5-bucket-ladder TIGHTSTD LONG-CEM 15g x 24p | anchor=cycle18_seed0 rng_seed=1 | dim=22 pop=24 gen=15 elite_n=4 init_std_frac_new=0.05 init_std_frac_inh=0.05 workers=2
+[12:18:38]   anchor lift_FF nominal: +3.006
+[12:19:14]   anchor_5bucket val (real_data, n=128): score= +3.885 adv= +5.257 retail_adv= +3.268 (36.1s)
+[12:23:08]   gen 0: best= +2.902 elite_mean= +2.630 all_mean= -1.627 (233.9s)
+[12:26:51]   gen 1: best= +2.732 elite_mean= +2.697 all_mean= +1.781 (223.7s)
+[12:30:33]   gen 2: best= +3.065 elite_mean= +2.964 all_mean= +2.013 (222.1s)
+[12:34:17]   gen 3: best= +3.185 elite_mean= +3.150 all_mean= +2.854 (223.4s)
+[12:38:02]   gen 4: best= +3.213 elite_mean= +3.196 all_mean= +3.048 (225.0s)
+[12:41:46]   gen 5: best= +3.228 elite_mean= +3.222 all_mean= +3.166 (224.0s)
+[12:45:36]   gen 6: best= +3.256 elite_mean= +3.246 all_mean= +3.208 (230.0s)
+[12:49:19]   gen 7: best= +3.263 elite_mean= +3.257 all_mean= +3.215 (222.8s)
+[12:53:02]   gen 8: best= +3.272 elite_mean= +3.269 all_mean= +3.251 (223.0s)
+[13:42:04]   gen 9: best= +3.279 elite_mean= +3.273 all_mean= +3.260 (2942.4s)
+[14:00:36]   gen 10: best= +3.276 elite_mean= +3.275 all_mean= +3.270 (1112.1s)
+[14:04:32]   gen 11: best= +3.282 elite_mean= +3.280 all_mean= +3.276 (235.5s)
+[14:08:22]   gen 12: best= +3.282 elite_mean= +3.281 all_mean= +3.278 (230.6s)
+[14:12:13]   gen 13: best= +3.285 elite_mean= +3.284 all_mean= +3.280 (230.2s)
+[14:16:00]   gen 14: best= +3.287 elite_mean= +3.285 all_mean= +3.278 (227.4s)
+[14:16:00]   CEM done in 7006.3s
+[14:16:00]   rerank pool: 7 candidates
+[14:16:37]     rerank 0 (    anchor): val= +3.885 adv= +5.257 retail_adv= +3.268 (37.0s)
+[14:17:14]     rerank 1 (     gen14): val= +4.074 adv= +5.682 retail_adv= +3.601 (37.4s)
+[14:17:51]     rerank 2 (     gen13): val= +4.070 adv= +5.670 retail_adv= +3.587 (37.1s)
+[14:18:29]     rerank 3 (     gen14): val= +4.078 adv= +5.700 retail_adv= +3.620 (37.5s)
+[14:19:06]     rerank 4 (     gen13): val= +4.078 adv= +5.678 retail_adv= +3.592 (37.3s)
+[14:19:43]     rerank 5 (     gen14): val= +4.080 adv= +5.703 retail_adv= +3.622 (37.1s)
+[14:20:20]     rerank 6 (     gen13): val= +4.078 adv= +5.701 retail_adv= +3.625 (37.0s)
+[15:16:11]   TEST best (n=256): score= +3.733 adv= +5.466 retail_adv= +3.608
+[15:16:11]   FF test score:  +0.470
+[15:16:11]   lift_FF (test): +3.263
+[15:16:12] wrote /sessions/clever-kind-knuth/mnt/amm-gym-auto-research/research/experiments/2026-05-07-cycle29-m4-5bucket-15gx24p/results/cycle18_seed0_seed1/test.json

@@ -39,13 +39,20 @@ fi
 # --no-index forbids PyPI fallback (which would re-trigger the build OOM).
 # --find-links points pip at the local dir for jax + transitive deps.
 # --break-system-packages is needed on the sandbox's system python3.
+# Cycle-29: /tmp is read-only on this sandbox; route the install log to
+# a writable temp dir (TMPDIR / /var/tmp / repo root) instead.
+LOG_DIR="${TMPDIR:-/var/tmp}"
+if [[ ! -w "$LOG_DIR" ]]; then
+    LOG_DIR="$ROOT"
+fi
+LOG="$(mktemp "$LOG_DIR/jax_install.XXXXXX.log" 2>/dev/null || echo "$LOG_DIR/jax_install.log")"
 if ! python3 -m pip install \
         --break-system-packages \
         --no-index \
         --find-links="$WHEELS" \
-        jax jaxlib >/tmp/jax_install.log 2>&1; then
-    echo "FAIL: pip install from vendored wheels errored; see /tmp/jax_install.log"
-    tail -n 20 /tmp/jax_install.log >&2
+        jax jaxlib >"$LOG" 2>&1; then
+    echo "FAIL: pip install from vendored wheels errored; see $LOG"
+    tail -n 20 "$LOG" >&2
     exit 1
 fi
 
